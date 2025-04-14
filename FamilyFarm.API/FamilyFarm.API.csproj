@@ -7,11 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="3.3.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FamilyFarm.BusinessLogic\FamilyFarm.BusinessLogic.csproj" />
+    <ProjectReference Include="..\FamilyFarm.DataAccess\FamilyFarm.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>
