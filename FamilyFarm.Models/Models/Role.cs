@@ -12,10 +12,8 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)] 
-        public string RoleId { get; set; }
-
-        public string RoleName  { get; set; }
-
-        public string RoleDescription { get; set; }
+        public required ObjectId RoleId { get; set; }
+        public required string RoleName  { get; set; }
+        public required string RoleDescription { get; set; }
     }
 }
