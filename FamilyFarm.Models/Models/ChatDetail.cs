@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
+
+namespace FamilyFarm.Models.Models
+{
+    public class ChatDetail
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required ObjectId ChatDetailId { get; set; }
+        public string? Message { get; set; }
+        public string? FileUrl { get; set; }
+        public string? FileType { get; set; }
+        public DateTime SendAt { get; set; }
+        public bool IsSeen { get; set; } = false;
+        public required ObjectId ChatId { get; set; }
+        public required ObjectId SenderId { get; set; }
+        public required ObjectId ReceiverId { get; set; }
+    }
+}

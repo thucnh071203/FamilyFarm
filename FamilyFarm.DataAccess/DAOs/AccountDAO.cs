@@ -61,9 +61,9 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             FilterDefinition<Account> filter;
 
-            if (!string.IsNullOrEmpty(acc_id) && string.IsNullOrEmpty(username))
+            if (!string.IsNullOrEmpty(acc_id) && string.IsNullOrEmpty(username) && ObjectId.TryParse(acc_id, out ObjectId objectAccId))
             {
-                filter = Builders<Account>.Filter.Eq(a => a.AccId, acc_id) &
+                filter = Builders<Account>.Filter.Eq(a => a.AccId, objectAccId) &
                          Builders<Account>.Filter.Eq(a => a.Status, status);
             }
             else if (!string.IsNullOrEmpty(username) && string.IsNullOrEmpty(acc_id))
