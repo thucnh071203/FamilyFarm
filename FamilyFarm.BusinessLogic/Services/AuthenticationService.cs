@@ -1,0 +1,70 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using FamilyFarm.BusinessLogic.PasswordHashing;
+using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+
+namespace FamilyFarm.BusinessLogic.Services
+{
+    public class AuthenticationService : IAuthenticationService
+    {
+        private readonly IConfiguration _configuration;
+        private readonly IAccountRepository _accountRepository;
+        private readonly PasswordHasher _hasher;
+
+        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher)
+        {
+            _configuration = configuration;
+            _accountRepository = accountRepository;
+            _hasher = hasher;
+        }
+
+        public async Task<LoginResponseDTO?> Login(LoginRequestDTO request)
+        {
+            if (string.IsNullOrEmpty(request.Identifier) || string.IsNullOrEmpty(request.Password))
+                return null;
+
+            var account = await _accountRepository.GetAccountByIdentifier(request.Identifier);
+
+            if (account == null || !_hasher.VerifyPassword(request.Password, account.PasswordHash)) 
+                return null;
+
+            return await GenerateToken(account);
+        }
+
+        private async Task<LoginResponseDTO> GenerateToken(Account account)
+        {
+            var issuer = _configuration["JwtSettings:Issuer"];
+            var audience = _configuration["JwtSettings:Audience"];
+            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"]!);
+            var tokenValidityMins = _configuration.GetValue<int>("JwtSettings:TokenValidMins");
+            var tokenExpiryTimeStamp = DateTime.UtcNow.AddMinutes(tokenValidityMins);
+
+            var token = new JwtSecurityToken(issuer,
+                audience, [
+                    new Claim(JwtRegisteredClaimNames.Name, account.Username)
+                    ],
+                expires: tokenExpiryTimeStamp,
+                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature));
+
+            var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return new LoginResponseDTO
+            {
+                Username = account.Username,
+                AccessToken = accessToken,
+                TokenExpiryIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds
+            };
+        }
+    }
+}
