@@ -15,7 +15,9 @@ namespace FamilyFarm.Models.Models
         public required ObjectId StepId { get; set; }
         [BsonRequired]
         public required ObjectId ProcessId { get; set; }
+        [BsonRequired]
         public required int StepNumber { get; set; }
+        [BsonRequired]
         public required string StepTitle { get; set; }
         public required string StepDesciption { get; set; }
         public bool? IsCompleted { get; set; }
