@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FamilyFarm.Models.Models;
+using MongoDB.Bson;
 
 namespace FamilyFarm.Repositories
 {
@@ -15,18 +16,24 @@ namespace FamilyFarm.Repositories
         Task<List<Account>> GetAll(string role_id, int status);
 
         //Get by Account Id (not check status)
-        Task<Account> GetAccountById(string acc_id);
+        Task<Account?> GetAccountById(string acc_id);
 
         //Get by Username (not check status)
-        Task<Account> GetAccountByUsername(string username);
+        Task<Account?> GetAccountByUsername(string username);
 
         //Get by Email
-        Task<Account> GetAccountByEmail(string email);
+        Task<Account?> GetAccountByEmail(string email);
 
         //Get by Phone
-        Task<Account> GetAccountByPhone(string phone);
+        Task<Account?> GetAccountByPhone(string phone);
 
         //Get by Identifier: username, email, and phone
         Task<Account?> GetAccountByIdentifier(string identifier);
+
+        //Update Refresh token
+        Task<bool> UpdateRefreshToken(ObjectId acc_id, string? refreshToken, DateTime? expiry);
+
+        //Get Account by Refresh token
+        Task<Account?> GetAccountByRefreshToken(string refreshToken);
     }
 }

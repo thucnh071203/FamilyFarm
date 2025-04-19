@@ -22,9 +22,9 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task<List<Role>> GetAllAsync()
         {
-           return await _Roles.Find(_ => true).ToListAsync();
+            return await _Roles.Find(_ => true).ToListAsync();
         }
-            
+
         public async Task<Role?> GetByIdAsync(string role_id)
         {
             if (ObjectId.TryParse(role_id, out ObjectId objectRoleId))
@@ -38,7 +38,7 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             await _Roles.InsertOneAsync(Role);
         }
-            
+
         public async Task UpdateAsync(string role_id, Role role)
         {
             if (ObjectId.TryParse(role_id, out ObjectId objectRoleId))

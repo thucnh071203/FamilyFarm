@@ -10,6 +10,7 @@ namespace FamilyFarm.BusinessLogic
 {
     public interface IAuthenticationService
     {
-        Task<LoginResponseDTO> Login(LoginRequestDTO request);
+        Task<LoginResponseDTO?> Login(LoginRequestDTO request);
+        Task<LoginResponseDTO?> ValidateRefreshToken(string refreshToken);
     }
 }
