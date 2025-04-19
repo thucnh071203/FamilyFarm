@@ -10,8 +10,4 @@
     <ProjectReference Include="..\FamilyFarm.DataAccess\FamilyFarm.DataAccess.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Implementations\" />
-  </ItemGroup>
-
 </Project>

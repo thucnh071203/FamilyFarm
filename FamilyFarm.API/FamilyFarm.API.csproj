@@ -7,12 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
     <PackageReference Include="MongoDB.Driver" Version="3.3.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.8.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FamilyFarm.BusinessLogic\FamilyFarm.BusinessLogic.csproj" />
     <ProjectReference Include="..\FamilyFarm.DataAccess\FamilyFarm.DataAccess.csproj" />
+    <ProjectReference Include="..\FamilyFarm.Models\FamilyFarm.Models.csproj" />
+    <ProjectReference Include="..\FamilyFarm.Repositories\FamilyFarm.Repositories.csproj" />
   </ItemGroup>
 
 </Project>

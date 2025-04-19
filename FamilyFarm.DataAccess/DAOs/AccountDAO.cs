@@ -32,11 +32,16 @@ namespace FamilyFarm.DataAccess.DAOs
                 "68007b2a87b41211f0af1d57" //ROLE_EXPERT
             };
 
+            int[] status_map = { 0, 1, 2 };
+
             var filters = new List<FilterDefinition<Account>>();
 
             //Condition 1: Filter status
-            filters.Add(Builders<Account>.Filter.Eq(a => a.Status, status));
-
+            if (status > -1 && status_map.Contains(status))
+            {
+                filters.Add(Builders<Account>.Filter.Eq(a => a.Status, status));
+            }
+            
             //Condition 2: Filter role_id
             if(ObjectId.TryParse(role_id, out ObjectId objectRoleId) && role_map.Contains(role_id))
             {
@@ -54,22 +59,27 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         /// <param name="acc_id">it is required if getting account with account id</param>
         /// <param name="username">it is required if getting account with username</param>
-        /// <param name="status">0 if ACTIVED, 1 if DELETED</param>
         /// <returns>Object Account</returns>
         /// <exception cref="ArgumentException">Throw exception when both acc_id and username is NULL</exception>
-        public async Task<Account> GetByIdAsync(string? acc_id, string? username, int status)
+        public async Task<Account> GetByIdAsync(string? acc_id, string? username, string? email, string? phone)
         {
             FilterDefinition<Account> filter;
 
-            if (!string.IsNullOrEmpty(acc_id) && string.IsNullOrEmpty(username))
+            if (!string.IsNullOrEmpty(acc_id))
             {
-                filter = Builders<Account>.Filter.Eq(a => a.AccId, acc_id) &
-                         Builders<Account>.Filter.Eq(a => a.Status, status);
+                filter = Builders<Account>.Filter.Eq(a => a.AccId, acc_id);
             }
-            else if (!string.IsNullOrEmpty(username) && string.IsNullOrEmpty(acc_id))
+            else if (!string.IsNullOrEmpty(username))
             {
-                filter = Builders<Account>.Filter.Eq(a => a.Username, username) &
-                         Builders<Account>.Filter.Eq(a => a.Status, status);
+                filter = Builders<Account>.Filter.Eq(a => a.Username, username);
+            }
+            else if (!string.IsNullOrEmpty(email))
+            {
+                filter = Builders<Account>.Filter.Eq(a => a.Email, email);
+            }
+            else if (!string.IsNullOrEmpty(phone))
+            {
+                filter = Builders<Account>.Filter.Eq(a => a.PhoneNumber, phone);
             }
             else
             {
