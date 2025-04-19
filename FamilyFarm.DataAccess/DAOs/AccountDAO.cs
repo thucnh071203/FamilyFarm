@@ -61,13 +61,13 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <param name="username">it is required if getting account with username</param>
         /// <returns>Object Account</returns>
         /// <exception cref="ArgumentException">Throw exception when both acc_id and username is NULL</exception>
-        public async Task<Account> GetByIdAsync(string? acc_id, string? username, string? email, string? phone)
+        public async Task<Account?> GetByIdAsync(string? acc_id, string? username, string? email, string? phone)
         {
             FilterDefinition<Account> filter;
 
-            if (!string.IsNullOrEmpty(acc_id))
+            if (!string.IsNullOrEmpty(acc_id) && ObjectId.TryParse(acc_id, out ObjectId objectAccId))
             {
-                filter = Builders<Account>.Filter.Eq(a => a.AccId, acc_id);
+                filter = Builders<Account>.Filter.Eq(a => a.AccId, objectAccId);
             }
             else if (!string.IsNullOrEmpty(username))
             {
@@ -83,8 +83,24 @@ namespace FamilyFarm.DataAccess.DAOs
             }
             else
             {
-                throw new ArgumentException();
+                return null;
             }
+            return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> UpdateRefreshToken(ObjectId accId, string? refreshToken, DateTime? expiry)
+        {
+                var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
+                var update = Builders<Account>.Update
+                    .Set(a => a.RefreshToken, refreshToken)
+                    .Set(a => a.TokenExpiry, expiry);
+                var result = await _Accounts.UpdateOneAsync(filter, update);
+                return result.IsAcknowledged && result.ModifiedCount > 0;
+        }
+
+        public async Task<Account?> GetAccountByRefreshTokenAsync(string refreshToken)
+        {
+            var filter = Builders<Account>.Filter.Eq(a => a.RefreshToken, refreshToken);
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
 

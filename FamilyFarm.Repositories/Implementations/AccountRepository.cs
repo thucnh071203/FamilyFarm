@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FamilyFarm.DataAccess.DAOs;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
+using MongoDB.Bson;
 
 namespace FamilyFarm.Repositories
 {
@@ -17,12 +18,12 @@ namespace FamilyFarm.Repositories
             _dao = dao;
         }
 
-        public async Task<Account> GetAccountByEmail(string email)
+        public async Task<Account?> GetAccountByEmail(string email)
         {
             return await _dao.GetByIdAsync(null, null, email, null);
         }
 
-        public Task<Account> GetAccountById(string acc_id)
+        public Task<Account?> GetAccountById(string acc_id)
         {
             return _dao.GetByIdAsync(acc_id, null, null, null);
         }
@@ -33,7 +34,7 @@ namespace FamilyFarm.Repositories
                 return null;
 
             // Kiểm tra theo Email
-            Account account = await _dao.GetByIdAsync(null, null, identifier, null);
+            Account? account = await _dao.GetByIdAsync(null, null, identifier, null);
             if (account != null)
                 return account;
 
@@ -50,12 +51,17 @@ namespace FamilyFarm.Repositories
             return null;
         }
 
-        public Task<Account> GetAccountByPhone(string phone)
+        public Task<Account?> GetAccountByPhone(string phone)
         {
             return _dao.GetByIdAsync(null, null, null, phone);
         }
 
-        public Task<Account> GetAccountByUsername(string username)
+        public async Task<Account?> GetAccountByRefreshToken(string refreshToken)
+        {
+            return await _dao.GetAccountByRefreshTokenAsync(refreshToken);
+        }
+
+        public Task<Account?> GetAccountByUsername(string username)
         {
             return _dao.GetByIdAsync(null, username, null, null);
         }
@@ -63,6 +69,11 @@ namespace FamilyFarm.Repositories
         public Task<List<Account>> GetAll(string role_id, int status)
         {
             return _dao.GetAllAsync(role_id, status);
+        }
+
+        public async Task<bool> UpdateRefreshToken(ObjectId acc_id, string? refreshToken, DateTime? expiry)
+        {
+            return await _dao.UpdateRefreshToken(acc_id, refreshToken, expiry);
         }
     }
 }

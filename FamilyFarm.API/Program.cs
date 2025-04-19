@@ -5,6 +5,9 @@ using FamilyFarm.BusinessLogic;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using FamilyFarm.BusinessLogic.Services;
+using MongoDB.Driver;
+using FamilyFarm.BusinessLogic.PasswordHashing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,12 +17,19 @@ var builder = WebApplication.CreateBuilder(args);
 //    builder.Configuration.GetSection("MongoDbSettings"));
 
 builder.Services.AddSingleton<MongoDBContext>();
+builder.Services.AddScoped<IMongoDatabase>(sp =>
+{
+    var context = sp.GetRequiredService<MongoDBContext>();
+    return context.Database!;
+});
+
 builder.Services.AddScoped<RoleDAO>();
 builder.Services.AddScoped<AccountDAO>();
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
-builder.Services.AddScoped<IAuthenticationService>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<PasswordHasher>();
 
 //SECURITY
 builder.Services.AddAuthentication(options =>
@@ -41,7 +51,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = config["Issuer"],
         ValidAudience = config["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["SecretKey"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["SecretKey"]!)),
+        ClockSkew = TimeSpan.Zero
     };
 });
 

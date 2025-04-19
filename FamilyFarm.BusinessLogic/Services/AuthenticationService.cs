@@ -41,6 +41,21 @@ namespace FamilyFarm.BusinessLogic.Services
             return await GenerateToken(account);
         }
 
+        public async Task<LoginResponseDTO?> ValidateRefreshToken(string refreshToken)
+        {
+            //Lấy account dựa trên refreshToken
+            var account = await _accountRepository.GetAccountByRefreshToken(refreshToken);
+
+            //Nếu refreshToken không có hoặc có nhưng hết hạn thì return null
+            if(account == null || account.TokenExpiry < DateTime.UtcNow) return null;
+
+            //Reset value 2 field RefreshToken và Expiry trước khi tạo mới
+            await _accountRepository.UpdateRefreshToken(account.AccId, null, null);
+
+            //Gọi GenerateToken để tạo accessToken và refreshToken mới
+            return await GenerateToken(account);
+        } 
+
         private async Task<LoginResponseDTO> GenerateToken(Account account)
         {
             var issuer = _configuration["JwtSettings:Issuer"];
@@ -63,8 +78,23 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Username = account.Username,
                 AccessToken = accessToken,
-                TokenExpiryIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds
+                TokenExpiryIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds,
+                RefreshToken = await GenerateRefreshToken(account)
             };
+        }
+
+        private async Task<string?> GenerateRefreshToken(Account account)
+        {
+            var refreshTokenValidMins = _configuration.GetValue<int>("JwtSettings:RefreshTokenValidMins");
+
+            if (account == null) return null;
+
+            string newRefreshToken = Guid.NewGuid().ToString();
+            DateTime newExpiry = DateTime.UtcNow.AddMinutes(refreshTokenValidMins);
+
+            await _accountRepository.UpdateRefreshToken(account.AccId, newRefreshToken, newExpiry);
+
+            return newRefreshToken;
         }
     }
 }
