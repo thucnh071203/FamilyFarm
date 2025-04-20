@@ -35,5 +35,9 @@ namespace FamilyFarm.Repositories
 
         //Get Account by Refresh token
         Task<Account?> GetAccountByRefreshToken(string refreshToken);
+
+        //Update fail login attempt
+        Task<bool> UpdateLoginFail(ObjectId acc_id, int? failAttempts, DateTime? lockedUntil);
+
     }
 }

@@ -35,8 +35,50 @@ namespace FamilyFarm.BusinessLogic.Services
 
             var account = await _accountRepository.GetAccountByIdentifier(request.Identifier);
 
-            if (account == null || !_hasher.VerifyPassword(request.Password, account.PasswordHash)) 
+            //KIỂM TRA account có hay không
+            if (account == null)
+            {
                 return null;
+            }
+
+            //KIỂM TRA XEM TÀI KHOẢN CÓ BỊ KHÓA LOGIN HAY KHÔNG
+            if (account.LockedUntil != null && account.LockedUntil > DateTime.UtcNow)
+            {
+                return new LoginResponseDTO
+                {
+                    MessageError = "Account is locked login.",
+                    LockedUntil = account.LockedUntil
+                };
+            }
+
+            //Kiểm tra xem có đúng password hay không
+            if (!_hasher.VerifyPassword(request.Password, account.PasswordHash))
+            {
+                //Kiểm tra xem trường FailedAttempts có bị null hay không
+                int failNumb = account.FailedAttempts ?? 0;
+                failNumb++;
+
+                if (account.FailedAttempts >= 5)
+                {
+                    //Reset lại số lần thất bại thành 0 và cập nhật thời gian khóa mới
+                    var lockedUntil = DateTime.UtcNow.AddSeconds(10);
+                    await _accountRepository.UpdateLoginFail(account.AccId, 0, lockedUntil);
+
+                    return new LoginResponseDTO
+                    {
+                        MessageError = "Account is locked login.",
+                        LockedUntil = lockedUntil
+                    };
+                } 
+                else
+                {
+                    await _accountRepository.UpdateLoginFail(account.AccId, failNumb, null);
+                    return null;
+                }
+            }
+
+            // Reset số lần fail nếu đăng nhập thành công
+            await _accountRepository.UpdateLoginFail(account.AccId, 0, null);
 
             return await GenerateToken(account);
         }
