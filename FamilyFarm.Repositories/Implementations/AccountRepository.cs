@@ -71,6 +71,11 @@ namespace FamilyFarm.Repositories
             return _dao.GetAllAsync(role_id, status);
         }
 
+        public async Task<bool> UpdateLoginFail(ObjectId acc_id, int? failAttempts, DateTime? lockedUntil)
+        {
+            return await _dao.UpdateLoginFailAsync(acc_id, failAttempts, lockedUntil);
+        }
+
         public async Task<bool> UpdateRefreshToken(ObjectId acc_id, string? refreshToken, DateTime? expiry)
         {
             return await _dao.UpdateRefreshToken(acc_id, refreshToken, expiry);

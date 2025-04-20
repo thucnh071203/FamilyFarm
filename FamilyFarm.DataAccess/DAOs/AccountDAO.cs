@@ -88,6 +88,10 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
 
+
+        /// <summary>
+        ///     Sử dụng riêng cho Update refresh token và expiry time mới
+        /// </summary>
         public async Task<bool> UpdateRefreshToken(ObjectId accId, string? refreshToken, DateTime? expiry)
         {
                 var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
@@ -98,10 +102,27 @@ namespace FamilyFarm.DataAccess.DAOs
                 return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 
+        /// <summary>
+        ///     Sử dụng để lấy Account theo refresh token
+        /// </summary>
         public async Task<Account?> GetAccountByRefreshTokenAsync(string refreshToken)
         {
             var filter = Builders<Account>.Filter.Eq(a => a.RefreshToken, refreshToken);
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        ///     Sử dụng để update số lần thất bại login và khóa login
+        /// </summary>
+        public async Task<bool> UpdateLoginFailAsync(ObjectId accId, int? failedAttempts, DateTime? lockedUntil)
+        {
+            var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
+            var update = Builders<Account>.Update
+                        .Set(a => a.FailedAttempts, failedAttempts)
+                        .Set(a => a.LockedUntil, lockedUntil);
+
+            var result = await _Accounts.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
         }
 
     }

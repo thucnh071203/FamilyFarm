@@ -23,6 +23,12 @@ namespace FamilyFarm.API.Controllers
         public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginRequestDTO request)
         {
             var result = await _authenService.Login(request);
+
+            if (result != null && result.MessageError != null)
+            {
+                return StatusCode(423, result);
+            }
+
             return result is not null ? result : Unauthorized();
         }
 
@@ -34,6 +40,7 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("Invalid Token!");
 
             var result = await _authenService.ValidateRefreshToken(request.Token);
+
             return result is not null ? result : Unauthorized();
         }
     }
