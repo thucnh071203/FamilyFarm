@@ -12,9 +12,9 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId NotifiStatusId { get; set; }
-        public required ObjectId AccId { get; set; }
-        public required ObjectId NotifiId { get; set; }
+        public required string NotifiStatusId { get; set; }
+        public required string AccId { get; set; }
+        public required string NotifiId { get; set; }
         public required string Status { get; set; }
     }
 }

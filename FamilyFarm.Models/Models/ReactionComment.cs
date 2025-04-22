@@ -12,10 +12,10 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required int ReactComment { get; set; }
-        public required ObjectId CommentId { get; set; }
-        public required ObjectId AccId { get; set; }
-        public required ObjectId CategoryReactionId { get; set; }
+        public required string ReactCommentId { get; set; }
+        public required string CommentId { get; set; }
+        public required string AccId { get; set; }
+        public required string CategoryReactionId { get; set; }
         public required string? ReactionName { get; set; }
         public required DateTime CreatedAt { get; set; }
         public bool Status { get; set; }
