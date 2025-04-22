@@ -27,7 +27,7 @@ namespace FamilyFarm.BusinessLogic.Config
                 {
                     if (!_isInitialized)
                     {
-                        var path = Path.Combine(Directory.GetCurrentDirectory(), "firebase", "prn221-69738-firebase-adminsdk-syn4i-4dee075804.json");
+                        var path = Path.Combine(Directory.GetCurrentDirectory(), "Firebase", "prn221-69738-firebase-adminsdk-syn4i-4dee075804.json");
 
                         FirebaseApp.Create(new AppOptions
                         {
