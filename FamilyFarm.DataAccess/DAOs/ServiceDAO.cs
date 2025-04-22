@@ -22,18 +22,15 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Get a list of all available services
         /// </summary>
-        public async Task<List<Service>> GetAllAsync(bool includeDeleted = false)
+        public async Task<List<Service>> GetAllAsync()
         {
-            if (includeDeleted)
-                return await _Services.Find(_ => true).ToListAsync();
-            else
-                return await _Services.Find(s => s.IsDeleted != true).ToListAsync();
+            return await _Services.Find(s => s.IsDeleted != true).ToListAsync();
         }
 
         /// <summary>
         ///     Get list of all available services by provider Id
         /// </summary>
-        public async Task<List<Service>> GetAllByProviderIdAsync(ObjectId providerId, bool includeDeleted = false)
+        public async Task<List<Service>> GetAllByProviderIdAsync(ObjectId providerId)
         {
             var filter = Builders<Service>.Filter.Eq(s => s.ProviderId, providerId) &
                          Builders<Service>.Filter.Ne(s => s.IsDeleted, true);
