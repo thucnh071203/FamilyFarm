@@ -152,7 +152,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 var username = principal?.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Name)?.Value;
 
                 return username;
-            } catch (Exception ex)
+            } catch
             {
                 return null;
             }
