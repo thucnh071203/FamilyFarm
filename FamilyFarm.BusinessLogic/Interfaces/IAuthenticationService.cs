@@ -12,5 +12,9 @@ namespace FamilyFarm.BusinessLogic
     {
         Task<LoginResponseDTO?> Login(LoginRequestDTO request);
         Task<LoginResponseDTO?> ValidateRefreshToken(string refreshToken);
+
+        //Param: access token from header
+        //Return: Username
+        string? GetDataFromToken(string accessToken);
     }
 }

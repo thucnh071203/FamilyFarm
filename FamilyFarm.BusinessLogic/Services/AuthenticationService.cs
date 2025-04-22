@@ -20,12 +20,14 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IConfiguration _configuration;
         private readonly IAccountRepository _accountRepository;
         private readonly PasswordHasher _hasher;
+        private readonly TokenValidationParameters _tokenValidationParameters;
 
-        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher)
+        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters)
         {
             _configuration = configuration;
             _accountRepository = accountRepository;
             _hasher = hasher;
+            _tokenValidationParameters = tokenValidationParameters;
         }
 
         public async Task<LoginResponseDTO?> Login(LoginRequestDTO request)
@@ -137,6 +139,23 @@ namespace FamilyFarm.BusinessLogic.Services
             await _accountRepository.UpdateRefreshToken(account.AccId, newRefreshToken, newExpiry);
 
             return newRefreshToken;
+        }
+
+        public string? GetDataFromToken(string accessToken)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(accessToken, _tokenValidationParameters, out _);
+
+                var username = principal?.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Name)?.Value;
+
+                return username;
+            } catch (Exception ex)
+            {
+                return null;
+            }
         }
     }
 }

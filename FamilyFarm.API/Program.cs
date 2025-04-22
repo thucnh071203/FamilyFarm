@@ -1,4 +1,4 @@
-using FamilyFarm.DataAccess.Context;
+﻿using FamilyFarm.DataAccess.Context;
 using FamilyFarm.DataAccess.DAOs;
 using FamilyFarm.Repositories;
 using FamilyFarm.BusinessLogic;
@@ -8,6 +8,7 @@ using System.Text;
 using FamilyFarm.BusinessLogic.Services;
 using MongoDB.Driver;
 using FamilyFarm.BusinessLogic.PasswordHashing;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,8 +62,34 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Nhập 'Bearer {token}' vào ô bên dưới (không có dấu ngoặc kép)",
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
