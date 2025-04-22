@@ -31,13 +31,13 @@ namespace FamilyFarm.Repositories
         Task<Account?> GetAccountByIdentifier(string identifier);
 
         //Update Refresh token
-        Task<bool> UpdateRefreshToken(ObjectId acc_id, string? refreshToken, DateTime? expiry);
+        Task<bool> UpdateRefreshToken(string? acc_id, string? refreshToken, DateTime? expiry);
 
         //Get Account by Refresh token
-        Task<Account?> GetAccountByRefreshToken(string refreshToken);
+        Task<Account?> GetAccountByRefreshToken(string refreshTokens);
 
         //Update fail login attempt
-        Task<bool> UpdateLoginFail(ObjectId acc_id, int? failAttempts, DateTime? lockedUntil);
+        Task<bool> UpdateLoginFail(string? acc_id, int? failAttempts, DateTime? lockedUntil);
 
     }
 }

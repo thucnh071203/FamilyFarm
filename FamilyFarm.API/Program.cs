@@ -9,6 +9,7 @@ using FamilyFarm.BusinessLogic.Services;
 using MongoDB.Driver;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 using Microsoft.OpenApi.Models;
+using FamilyFarm.BusinessLogic.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,8 +32,25 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<PasswordHasher>();
+//builder.Services.AddScoped<FirebaseConnection>();
 
 //SECURITY
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!);
+var tokenValidationParameters = new TokenValidationParameters
+{
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidateLifetime = true,
+    ValidateIssuerSigningKey = true,
+    ValidIssuer = jwtSettings["Issuer"],
+    ValidAudience = jwtSettings["Audience"],
+    IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+    ClockSkew = TimeSpan.Zero
+};
+
+builder.Services.AddSingleton(tokenValidationParameters);
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -43,18 +61,7 @@ builder.Services.AddAuthentication(options =>
 {
     options.RequireHttpsMetadata = false;
     options.SaveToken = true;
-    var config = builder.Configuration.GetSection("JwtSettings");
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = config["Issuer"],
-        ValidAudience = config["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["SecretKey"]!)),
-        ClockSkew = TimeSpan.Zero
-    };
+    options.TokenValidationParameters = tokenValidationParameters;
 });
 
 builder.Services.AddAuthorization();

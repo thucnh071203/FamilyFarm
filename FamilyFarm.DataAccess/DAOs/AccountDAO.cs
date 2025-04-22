@@ -43,9 +43,9 @@ namespace FamilyFarm.DataAccess.DAOs
             }
             
             //Condition 2: Filter role_id
-            if(ObjectId.TryParse(role_id, out ObjectId objectRoleId) && role_map.Contains(role_id))
+            if(string.IsNullOrEmpty(role_id) && role_map.Contains(role_id))
             {
-                filters.Add(Builders<Account>.Filter.Eq(a => a.RoleId, objectRoleId));
+                filters.Add(Builders<Account>.Filter.Eq(a => a.RoleId, role_id));
             }
 
             var finalFilter = Builders<Account>.Filter.And(filters);
@@ -65,9 +65,9 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             FilterDefinition<Account> filter;
 
-            if (!string.IsNullOrEmpty(acc_id) && ObjectId.TryParse(acc_id, out ObjectId objectAccId))
+            if (!string.IsNullOrEmpty(acc_id))
             {
-                filter = Builders<Account>.Filter.Eq(a => a.AccId, objectAccId);
+                filter = Builders<Account>.Filter.Eq(a => a.AccId, acc_id);
             }
             else if (!string.IsNullOrEmpty(username))
             {
@@ -92,7 +92,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Sử dụng riêng cho Update refresh token và expiry time mới
         /// </summary>
-        public async Task<bool> UpdateRefreshToken(ObjectId accId, string? refreshToken, DateTime? expiry)
+        public async Task<bool> UpdateRefreshToken(string? accId, string? refreshToken, DateTime? expiry)
         {
                 var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
                 var update = Builders<Account>.Update
@@ -114,7 +114,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Sử dụng để update số lần thất bại login và khóa login
         /// </summary>
-        public async Task<bool> UpdateLoginFailAsync(ObjectId accId, int? failedAttempts, DateTime? lockedUntil)
+        public async Task<bool> UpdateLoginFailAsync(string? accId, int? failedAttempts, DateTime? lockedUntil)
         {
             var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
             var update = Builders<Account>.Update
