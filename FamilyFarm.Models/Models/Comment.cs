@@ -12,11 +12,11 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId CommentId { get; set; }
+        public required string CommentId { get; set; }
         [BsonRequired]
-        public required ObjectId AccId { get; set; }
+        public required string AccId { get; set; }
         [BsonRequired]
-        public required ObjectId PostId { get; set; }
+        public required string PostId { get; set; }
         public required string Content { get; set; }
         public DateTime? CreateAt { get; set; }
         public bool? Status { get; set; }

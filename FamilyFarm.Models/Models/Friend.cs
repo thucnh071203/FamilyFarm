@@ -12,11 +12,11 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId FriendId { get; set; }
+        public required string FriendId { get; set; }
         [BsonRequired]
-        public required ObjectId SenderId { get; set; }
+        public required string SenderId { get; set; }
         [BsonRequired]
-        public required ObjectId ReceiverId { get; set; }
+        public required string ReceiverId { get; set; }
         public DateTime? UpdateAt { get; set; }
         public required string Status { get; set; }
     }
