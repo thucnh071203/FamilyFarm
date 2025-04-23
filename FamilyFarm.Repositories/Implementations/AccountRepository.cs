@@ -80,5 +80,11 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.UpdateRefreshToken(acc_id, refreshToken, expiry);
         }
+
+        public async Task<Account?> CreateFarmer(Account newFarmer)
+        {
+            return await _dao.CreateFarmerAsync(newFarmer);
+        }
+
     }
 }

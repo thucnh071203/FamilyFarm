@@ -43,5 +43,14 @@ namespace FamilyFarm.API.Controllers
 
             return result is not null ? result : Unauthorized();
         }
+
+        [AllowAnonymous]
+        [HttpPost("register-farmer")]
+        public async Task<ActionResult<RegisterFarmerResponseDTO>> RegisterFarmer([FromBody] RegisterFarmerRequestDTO request)
+        {
+            var result = await _authenService.RegisterFarmer(request);
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
     }
 }

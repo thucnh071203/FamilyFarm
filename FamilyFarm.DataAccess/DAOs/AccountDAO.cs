@@ -124,6 +124,25 @@ namespace FamilyFarm.DataAccess.DAOs
             var result = await _Accounts.UpdateOneAsync(filter, update);
             return result.ModifiedCount > 0;
         }
+        /// <summary>
+        ///     Thêm mới một tài khoản Farmer
+        /// </summary>
+        /// <param name="account">Đối tượng Farmer cần tạo</param>
+        /// <returns>Trả về Farmer nếu thành công, null nếu thất bại</returns>
+        public async Task<Account?> CreateFarmerAsync(Account account)
+        {
+            try
+            {
+                await _Accounts.InsertOneAsync(account);
+                return account;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi tạo Farmer: {ex.Message}");
+                return null;
+            }
+        }
+
 
     }
 }

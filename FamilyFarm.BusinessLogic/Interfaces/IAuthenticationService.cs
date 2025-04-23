@@ -16,5 +16,7 @@ namespace FamilyFarm.BusinessLogic
         //Param: access token from header
         //Return: Username
         string? GetDataFromToken(string accessToken);
+
+        Task<RegisterFarmerResponseDTO?> RegisterFarmer(RegisterFarmerRequestDTO request);
     }
 }
