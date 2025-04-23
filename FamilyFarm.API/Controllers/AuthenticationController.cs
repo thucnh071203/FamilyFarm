@@ -52,6 +52,15 @@ namespace FamilyFarm.API.Controllers
         }
 
         [AllowAnonymous]
+
+        [HttpPost("register-farmer")]
+        public async Task<ActionResult<RegisterFarmerResponseDTO>> RegisterFarmer([FromBody] RegisterFarmerRequestDTO request)
+        {
+            var result = await _authenService.RegisterFarmer(request);
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+
         [HttpPost("login-facebook")]
         public async Task<ActionResult<LoginResponseDTO>> LoginFacebook([FromBody] LoginFacebookRequestDTO request)
         {
@@ -112,5 +121,6 @@ namespace FamilyFarm.API.Controllers
             await _accountService.UpdateAsync(id, account);
             return Ok("Password changed successfully!");
         }
+
     }
 }

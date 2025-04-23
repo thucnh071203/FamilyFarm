@@ -180,6 +180,84 @@ namespace FamilyFarm.BusinessLogic.Services
             }
         }
 
+
+
+        public async Task<RegisterFarmerResponseDTO> RegisterFarmer(RegisterFarmerRequestDTO request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Username) ||
+                string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Phone))
+            {
+                return new RegisterFarmerResponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "Information is not null."
+                };
+            }
+
+            var existingAccount = await _accountRepository.GetAccountByIdentifier(request.Username);
+            if (existingAccount != null)
+            {
+                return new RegisterFarmerResponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "Username is already."
+                };
+            }
+
+            var existingEmail = await _accountRepository.GetAccountByEmail(request.Email);
+            if (existingEmail != null)
+            {
+                return new RegisterFarmerResponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "Email is already."
+                };
+            }
+
+            var hashedPassword = _hasher.HashPassword(request.Password);
+
+            var newAccount = new Account
+            {
+                AccId = ObjectId.GenerateNewId().ToString(),
+                RoleId = "68007b0387b41211f0af1d56", 
+                Username = request.Username,
+                PasswordHash = hashedPassword,
+                FullName = request.FullName,
+                Email = request.Email,
+                PhoneNumber = request.Phone,
+                Gender = null, 
+                City = request.City,
+                Country = request.Country,
+                Status = 1,
+                FailedAttempts = 0,
+                LockedUntil = null,
+                TokenExpiry = null,
+                RefreshToken = null,
+                CreateOtp = null
+            };
+
+            var createdAccount = await _accountRepository.CreateFarmer(newAccount);
+            if (createdAccount != null)
+            {
+                return new RegisterFarmerResponseDTO
+                {
+                    IsSuccess = true,
+                    MessageError = null
+                };
+            }
+
+            return new RegisterFarmerResponseDTO
+            {
+                IsSuccess = false,
+                MessageError = "Register fail!."
+            };
+        }
+
+
+
+
         public async Task<LoginResponseDTO?> LoginWithGoogle(LoginGoogleRequestDTO request)
         {
             var account = await _accountRepository.GetAccountByEmail(request.Email);
@@ -216,5 +294,6 @@ namespace FamilyFarm.BusinessLogic.Services
 
             return await GenerateToken(account);
         }
+
     }
 }

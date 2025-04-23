@@ -81,6 +81,12 @@ namespace FamilyFarm.Repositories
             return await _dao.UpdateRefreshToken(acc_id, refreshToken, expiry);
         }
 
+
+        public async Task<Account?> CreateFarmer(Account newFarmer)
+        {
+            return await _dao.CreateFarmerAsync(newFarmer);
+        }
+
         public async Task<Account?> GetByFacebookId(string facebookId)
         {
             return await _dao.GetByFacebookIdAsync(facebookId);
@@ -105,5 +111,6 @@ namespace FamilyFarm.Repositories
         {
             await _dao.DeleteAsync(id);
         }
+
     }
 }
