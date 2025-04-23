@@ -88,6 +88,38 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
 
+        public async Task<Account?> GetByFacebookIdAsync(string facebookId)
+        {
+            var filter = Builders<Account>.Filter.Eq(a => a.FacebookId, facebookId);
+            return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<Account> CreateFacebookAccountAsync(string fbId, string name, string email, string avatar)
+        {
+            var newAcc = new Account
+            {
+                AccId = ObjectId.GenerateNewId().ToString(),
+                Username = name,
+                PasswordHash = "", // Có thể bỏ hoặc để trống vì không dùng đăng nhập truyền thống
+                FullName = name,
+                Email = email,
+                PhoneNumber = "",
+                Birthday = null,
+                Gender = "Not specified",
+                City = "",
+                Country = "",
+                Status = 1,
+                RoleId = "68007b0387b41211f0af1d56", // Mặc định là FARMER
+                FacebookId = fbId,
+                Avatar = avatar,
+                IsFacebook = true,
+                CreateOtp = DateTime.UtcNow
+            };
+
+            await _Accounts.InsertOneAsync(newAcc);
+            return newAcc;
+        }
+
 
         /// <summary>
         ///     Sử dụng riêng cho Update refresh token và expiry time mới

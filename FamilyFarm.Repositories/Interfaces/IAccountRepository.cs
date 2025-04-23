@@ -39,5 +39,7 @@ namespace FamilyFarm.Repositories
         //Update fail login attempt
         Task<bool> UpdateLoginFail(string? acc_id, int? failAttempts, DateTime? lockedUntil);
 
+        Task<Account?> GetByFacebookId(string facebookId);
+        Task<Account> CreateFacebookAccount(string fbId, string name, string email, string avatar);
     }
 }

@@ -13,6 +13,7 @@ namespace FamilyFarm.Models.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string AccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string RoleId { get; set; }
         public required string Username { get; set; }
         public required string PasswordHash { get; set; }
@@ -37,5 +38,8 @@ namespace FamilyFarm.Models.Models
         public int Status { get; set; }
         public int? Otp {  get; set; }
         public DateTime? CreateOtp { get; set; }
+        public string? FacebookId { get; set; }
+        public bool IsFacebook { get; set; }
+
     }
 }
