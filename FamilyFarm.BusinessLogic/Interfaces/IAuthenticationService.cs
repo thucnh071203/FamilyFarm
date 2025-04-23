@@ -5,18 +5,24 @@ using System.Text;
 using System.Threading.Tasks;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
 
 namespace FamilyFarm.BusinessLogic
 {
     public interface IAuthenticationService
     {
         Task<LoginResponseDTO?> Login(LoginRequestDTO request);
+        Task<LoginResponseDTO?> LoginWithGoogle(LoginGoogleRequestDTO request);
         Task<LoginResponseDTO?> ValidateRefreshToken(string refreshToken);
 
         //Param: access token from header
         //Return: Username
         string? GetDataFromToken(string accessToken);
 
+
         Task<RegisterFarmerResponseDTO?> RegisterFarmer(RegisterFarmerRequestDTO request);
+
+        Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request);
+
     }
 }

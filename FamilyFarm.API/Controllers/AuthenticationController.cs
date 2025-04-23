@@ -1,6 +1,10 @@
 ﻿using FamilyFarm.BusinessLogic;
+using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.BusinessLogic.PasswordHashing;
+using FamilyFarm.DataAccess.DAOs;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +16,13 @@ namespace FamilyFarm.API.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IAuthenticationService _authenService;
-
-        public AuthenticationController(IAuthenticationService authenService)
+        private readonly IAccountService _accountService;
+        private readonly PasswordHasher _hasher;
+        public AuthenticationController(IAuthenticationService authenService, IAccountService accountService, PasswordHasher hasher)
         {
             _authenService = authenService;
+            _accountService = accountService;
+            _hasher = hasher;
         }
 
         [AllowAnonymous]
@@ -45,11 +52,74 @@ namespace FamilyFarm.API.Controllers
         }
 
         [AllowAnonymous]
+
         [HttpPost("register-farmer")]
         public async Task<ActionResult<RegisterFarmerResponseDTO>> RegisterFarmer([FromBody] RegisterFarmerRequestDTO request)
         {
             var result = await _authenService.RegisterFarmer(request);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+
+        [HttpPost("login-facebook")]
+        public async Task<ActionResult<LoginResponseDTO>> LoginFacebook([FromBody] LoginFacebookRequestDTO request)
+        {
+            var result = await _authenService.LoginFacebook(request);
+
+            if (result != null && result.MessageError != null)
+            {
+                return StatusCode(423, result);
+            }
+
+            return result is not null ? result : Unauthorized();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("login-google")]
+        public async Task<ActionResult<LoginResponseDTO>> LoginGoogle([FromBody] LoginGoogleRequestDTO request)
+        {
+            var result = await _authenService.LoginWithGoogle(request);
+
+            if (result != null && result.MessageError != null)
+            {
+                return StatusCode(423, result);
+            }
+
+            return result is not null ? result : Unauthorized();
+        }
+
+        [AllowAnonymous]
+        [HttpPut("set-password/{id}")]
+        public async Task<IActionResult> SetPassword(string id, [FromBody] SetPasswordDTO request)
+        {
+            var account = await _accountService.GetAccountById(id);
+            if (account == null)
+                return NotFound("Account not found");
+
+            if (account.Otp != -1)
+                return BadRequest("Password has been set");
+
+            account.PasswordHash = request.Password;
+            account.Otp = null;
+            await _accountService.UpdateAsync(id, account);
+            return Ok("Password setted successfully!");
+        }
+
+        [AllowAnonymous]
+        [HttpPut("change-password/{id}")]
+        public async Task<IActionResult> ChangePassword(string id, [FromBody] ChangePasswordDTO request)
+        {
+            var account = await _accountService.GetAccountById(id);
+            if (account == null)
+                return NotFound("Account not found");
+
+            if (!_hasher.VerifyPassword(request.OldPassword, account.PasswordHash))
+                return BadRequest("Password wrong!");
+
+            account.PasswordHash = request.NewPassword;
+            account.Otp = null;
+            await _accountService.UpdateAsync(id, account);
+            return Ok("Password changed successfully!");
         }
 
     }
