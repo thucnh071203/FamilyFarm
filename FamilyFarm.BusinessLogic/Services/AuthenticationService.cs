@@ -87,11 +87,12 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request)
         {
-            if (request == null)
+            if (string.IsNullOrEmpty(request.FacebookId))
                 return null;
                 
             var account = await _accountRepository.GetByFacebookId(request.FacebookId);
 
+            // Nếu chưa có tài khoản thì tạo mới tài khoản mới
             if (account == null)
             {
                 await _accountRepository.CreateFacebookAccount(request.FacebookId, request.Name, request.Email, request.Avatar);
