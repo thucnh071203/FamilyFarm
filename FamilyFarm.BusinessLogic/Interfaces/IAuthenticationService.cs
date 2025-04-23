@@ -12,6 +12,7 @@ namespace FamilyFarm.BusinessLogic
     public interface IAuthenticationService
     {
         Task<LoginResponseDTO?> Login(LoginRequestDTO request);
+        Task<LoginResponseDTO?> LoginWithGoogle(LoginGoogleRequestDTO request);
         Task<LoginResponseDTO?> ValidateRefreshToken(string refreshToken);
 
         //Param: access token from header

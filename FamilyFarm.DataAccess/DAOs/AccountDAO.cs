@@ -12,7 +12,6 @@ namespace FamilyFarm.DataAccess.DAOs
     public class AccountDAO
     {
         private readonly IMongoCollection<Account> _Accounts;
-
         public AccountDAO(IMongoDatabase database)
         {
             _Accounts = database.GetCollection<Account>("Account");    
@@ -87,6 +86,32 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
 
+        public async Task<Account> CreateAsync(Account account)
+        {
+            account.AccId = ObjectId.GenerateNewId().ToString();
+            account.Status = 0;
+            await _Accounts.InsertOneAsync(account);
+            return account;
+        }
+
+        public async Task<Account> UpdateAsync(string id, Account updatedAccount)
+        {
+            var existing = await _Accounts.Find(a => a.AccId == id && a.Status == 0).FirstOrDefaultAsync();
+            if (existing == null) return null;
+
+            updatedAccount.AccId = id; // Ensure ID doesn't change
+            await _Accounts.ReplaceOneAsync(a => a.AccId == id && a.Status == 0, updatedAccount);
+            return updatedAccount;
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            var filter = Builders<Account>.Filter.Where(a => a.AccId == id && a.Status == 0);
+            var update = Builders<Account>.Update.Set(a => a.Status, 1);
+
+            await _Accounts.UpdateOneAsync(filter, update);
+        }
+
         /// <summary>
         ///     To get Account with facebookId
         /// </summary>
@@ -113,11 +138,12 @@ namespace FamilyFarm.DataAccess.DAOs
                 Gender = "Not specified",
                 City = "",
                 Country = "",
-                Status = 1,
+                Status = 0,
                 RoleId = "68007b0387b41211f0af1d56", // Mặc định là FARMER
                 FacebookId = fbId,
                 Avatar = avatar,
                 IsFacebook = true,
+                Otp = -1,
                 CreateOtp = DateTime.UtcNow
             };
 
@@ -161,6 +187,8 @@ namespace FamilyFarm.DataAccess.DAOs
             var result = await _Accounts.UpdateOneAsync(filter, update);
             return result.ModifiedCount > 0;
         }
+
+
 
     }
 }

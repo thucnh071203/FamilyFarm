@@ -17,7 +17,16 @@ namespace FamilyFarm.Repositories
 
         //Get by Account Id (not check status)
         Task<Account?> GetAccountById(string acc_id);
-
+        
+        // Create Account
+        Task<Account> CreateAsync(Account account);
+        
+        // Update Account (check status)
+        Task<Account> UpdateAsync(string id, Account account);
+        
+        // Delete Account (Set Status = 1)
+        Task DeleteAsync(string id);
+        
         //Get by Username (not check status)
         Task<Account?> GetAccountByUsername(string username);
 

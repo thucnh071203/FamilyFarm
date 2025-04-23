@@ -10,6 +10,7 @@ using MongoDB.Driver;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 using Microsoft.OpenApi.Models;
 using FamilyFarm.BusinessLogic.Config;
+using FamilyFarm.BusinessLogic.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,7 @@ builder.Services.AddScoped<AccountDAO>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<PasswordHasher>();
 //builder.Services.AddScoped<FirebaseConnection>();
 
