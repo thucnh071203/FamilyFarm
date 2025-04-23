@@ -43,5 +43,19 @@ namespace FamilyFarm.API.Controllers
 
             return result is not null ? result : Unauthorized();
         }
+
+        [AllowAnonymous]
+        [HttpPost("login-facebook")]
+        public async Task<ActionResult<LoginResponseDTO>> LoginFacebook([FromBody] LoginFacebookRequestDTO request)
+        {
+            var result = await _authenService.LoginFacebook(request);
+
+            if (result != null && result.MessageError != null)
+            {
+                return StatusCode(423, result);
+            }
+
+            return result is not null ? result : Unauthorized();
+        }
     }
 }

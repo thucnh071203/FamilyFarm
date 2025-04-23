@@ -80,5 +80,15 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.UpdateRefreshToken(acc_id, refreshToken, expiry);
         }
+
+        public async Task<Account?> GetByFacebookId(string facebookId)
+        {
+            return await _dao.GetByFacebookIdAsync(facebookId);
+        }
+
+        public async Task<Account> CreateFacebookAccount(string fbId, string name, string email, string avatar)
+        {
+            return await _dao.CreateFacebookAccountAsync(fbId, name, email, avatar);
+        }
     }
 }

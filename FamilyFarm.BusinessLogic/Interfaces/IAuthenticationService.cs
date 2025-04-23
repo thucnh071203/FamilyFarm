@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
 
 namespace FamilyFarm.BusinessLogic
 {
@@ -16,5 +17,7 @@ namespace FamilyFarm.BusinessLogic
         //Param: access token from header
         //Return: Username
         string? GetDataFromToken(string accessToken);
+
+        Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request);
     }
 }

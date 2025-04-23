@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FamilyFarm.Models.Models;
 
-namespace FamilyFarm.BusinessLogic.Interfaces
+namespace FamilyFarm.BusinessLogic.Services
 {
-    interface IAccountService
+    class AccountService
     {
-        
     }
 }

@@ -85,6 +85,25 @@ namespace FamilyFarm.BusinessLogic.Services
             return await GenerateToken(account);
         }
 
+        public async Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request)
+        {
+            if (request == null)
+                return null;
+                
+            var account = await _accountRepository.GetByFacebookId(request.FacebookId);
+
+            if (account == null)
+            {
+                await _accountRepository.CreateFacebookAccount(request.FacebookId, request.Name, request.Email, request.Avatar);
+
+                var acountRegistered = await _accountRepository.GetByFacebookId(request.FacebookId);
+
+                return await GenerateToken(acountRegistered);
+            }
+
+            return await GenerateToken(account);
+        }
+
         public async Task<LoginResponseDTO?> ValidateRefreshToken(string refreshToken)
         {
             //Lấy account dựa trên refreshToken
