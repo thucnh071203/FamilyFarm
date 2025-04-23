@@ -7,8 +7,11 @@ using FamilyFarm.Models.Models;
 
 namespace FamilyFarm.BusinessLogic.Interfaces
 {
-    interface IAccountService
+    public interface IAccountService
     {
-        
+        Task<Account?> GetAccountById(string acc_id);
+        Task<Account> CreateAsync(Account account);
+        Task<Account> UpdateAsync(string id, Account account);
+        Task DeleteAsync(string id);
     }
 }

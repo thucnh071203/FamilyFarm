@@ -90,5 +90,20 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.CreateFacebookAccountAsync(fbId, name, email, avatar);
         }
+
+        public async Task<Account> CreateAsync(Account account)
+        {
+            return await _dao.CreateAsync(account);
+        }
+
+        public async Task<Account> UpdateAsync(string id, Account account)
+        {
+            return await _dao.UpdateAsync(id, account);
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            await _dao.DeleteAsync(id);
+        }
     }
 }

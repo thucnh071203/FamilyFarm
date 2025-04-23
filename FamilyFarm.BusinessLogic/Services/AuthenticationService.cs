@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
@@ -12,6 +13,7 @@ using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson;
 
 namespace FamilyFarm.BusinessLogic.Services
 {
@@ -176,6 +178,43 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 return null;
             }
+        }
+
+        public async Task<LoginResponseDTO?> LoginWithGoogle(LoginGoogleRequestDTO request)
+        {
+            var account = await _accountRepository.GetAccountByEmail(request.Email);
+            if (account == null)
+            {
+                // Tạo tài khoản mới nếu chưa tồn tại
+                account = new Account
+                {
+                    AccId = ObjectId.GenerateNewId().ToString(),
+                    Username = request.Email,
+                    PasswordHash = "",
+                    FullName = request.FullName,
+                    Email = request.Email,
+                    PhoneNumber = "",
+                    Birthday = null,
+                    Gender = "Not specified",
+                    City = "",
+                    Country = "",
+                    Status = 0,
+                    Otp = -1,
+                    RoleId = "68007b0387b41211f0af1d56", // Mặc định là FARMER
+                };
+                await _accountRepository.CreateAsync(account);
+            }
+
+            else if (account.LockedUntil != null && account.LockedUntil > DateTime.UtcNow)
+            {
+                return new LoginResponseDTO
+                {
+                    MessageError = "Account is locked login.",
+                    LockedUntil = account.LockedUntil
+                };
+            }
+
+            return await GenerateToken(account);
         }
     }
 }
