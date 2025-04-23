@@ -53,7 +53,6 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Accounts.Find(finalFilter).ToListAsync();
         }
 
-
         /// <summary>
         ///     To get Account with account Id or Username
         /// </summary>
@@ -88,12 +87,18 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        ///     To get Account with facebookId
+        /// </summary>
         public async Task<Account?> GetByFacebookIdAsync(string facebookId)
         {
             var filter = Builders<Account>.Filter.Eq(a => a.FacebookId, facebookId);
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        ///     Create a new account with facebook if that account has never been logged in
+        /// </summary>
         public async Task<Account> CreateFacebookAccountAsync(string fbId, string name, string email, string avatar)
         {
             var newAcc = new Account
