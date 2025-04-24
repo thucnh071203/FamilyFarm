@@ -21,6 +21,6 @@ namespace FamilyFarm.Models.Models
         public required string CategoryReactionId { get; set; }
         public required string? ReactionName { get; set; }
         public required DateTime CreatedAt { get; set; }
-        public bool Status { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 }

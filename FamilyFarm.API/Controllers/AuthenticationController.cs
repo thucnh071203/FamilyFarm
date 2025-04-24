@@ -53,7 +53,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("registerExpert")]
+        [HttpPost("register-expert")]
         public async Task<ActionResult<RegisterExpertReponseDTO>> RegisterExpert([FromBody] RegisterExpertRequestDTO request)
         {
             if(ModelState.IsValid)

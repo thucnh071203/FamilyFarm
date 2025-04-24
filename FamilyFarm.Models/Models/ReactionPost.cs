@@ -12,7 +12,7 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required int ReactPost { get; set; }
+        public required string ReactPostId { get; set; }
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string PostId { get; set; }
@@ -21,7 +21,7 @@ namespace FamilyFarm.Models.Models
         public required string CategoryReactionId { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
-        public bool? status { get; set; }
+        public bool? IsDeleted { get; set; }
 
     }
 }
