@@ -26,6 +26,5 @@ namespace FamilyFarm.BusinessLogic
         string? GetDataFromToken();
         Task<RegisterFarmerResponseDTO?> RegisterFarmer(RegisterFarmerRequestDTO request);
         Task<LoginResponseDTO?> LoginFacebook(LoginFacebookRequestDTO request);
-
     }
 }

@@ -91,7 +91,7 @@ namespace FamilyFarm.BusinessLogic.Services
             return await GenerateToken(account);
         }
 
-        public async Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request)
+        public async Task<LoginResponseDTO?> LoginFacebook(LoginFacebookRequestDTO request)
         {
             if (string.IsNullOrEmpty(request.FacebookId))
                 return null;

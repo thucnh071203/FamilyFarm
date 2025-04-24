@@ -185,6 +185,50 @@ namespace FamilyFarm.API.Controllers
             return Ok("Password changed successfully!");
         }
 
+        [AllowAnonymous]
+        [HttpPut("generate-OTP/{id}")]
+        public async Task<IActionResult> GenerateOtp(string id, [FromBody] GenerateOtpDTO request)
+        {
+            var account = await _accountService.GetAccountById(id);
+            if (account == null)
+            {
+                return NotFound("Account not found");
+            }
+            
+            if (account.Status != 0)
+            {
+                return BadRequest("Account is inactivate.");
+            }
 
+            account.Otp = request.Otp;
+            await _accountService.UpdateOtpAsync(id, account);
+            return Ok(new
+            {
+                message = "OTP updated successfully.",
+                otp = request.Otp
+            });
+        }
+
+        [AllowAnonymous]
+        [HttpPut("forgot-password/{id}")]
+        public async Task<IActionResult> ForfotPassword(string id, [FromBody] ResetPasswordDTO request)
+        {
+            var account = await _accountService.GetAccountById(id);
+            if (account == null)
+                return NotFound("Account not found");
+
+            if (account.Status != 0)
+            {
+                return BadRequest("Account is inactivate.");
+            } else if (account.Otp != request.Otp)
+            {
+                return BadRequest("Otp does not match.");
+            }
+
+            account.PasswordHash = request.Password;
+            account.Otp = null;
+            await _accountService.UpdateAsync(id, account);
+            return Ok("Password reset successfully!");
+        }
     }
 }

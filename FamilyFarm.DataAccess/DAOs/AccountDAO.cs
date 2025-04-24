@@ -174,7 +174,6 @@ namespace FamilyFarm.DataAccess.DAOs
             return newAcc;
         }
 
-
         /// <summary>
         ///     Sử dụng riêng cho Update refresh token và expiry time mới
         /// </summary>
