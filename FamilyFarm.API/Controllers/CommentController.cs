@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.DataAccess.DAOs;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -28,10 +29,16 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(Comment comment)
+        public async Task<IActionResult> Create([FromBody] Comment comment)
         {
-            var created = await _commentService.Create(comment);
-            return CreatedAtAction(nameof(GetById), new { id = created.CommentId }, created);
+            if (comment == null)
+                return BadRequest("Comment object is null");
+
+            var result = await _commentService.Create(comment);
+            if (result == null)
+                return BadRequest("Invalid PostId or AccId");
+
+            return Ok(result);
         }
 
         [HttpPut("update/{id}")]

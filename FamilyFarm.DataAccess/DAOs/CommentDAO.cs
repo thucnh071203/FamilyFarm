@@ -48,6 +48,8 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <returns>The inserted comment with assigned ID and timestamp</returns>
         public async Task<Comment> CreateAsync(Comment comment)
         {
+            if (!ObjectId.TryParse(comment.PostId, out _) || !ObjectId.TryParse(comment.AccId, out _))
+                return null;
             comment.CommentId = ObjectId.GenerateNewId().ToString();
             comment.CreateAt = DateTime.UtcNow;
             await _Comments.InsertOneAsync(comment);
