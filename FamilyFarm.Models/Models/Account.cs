@@ -21,7 +21,7 @@ namespace FamilyFarm.Models.Models
         public required string Email { get; set; }
         public required string PhoneNumber { get; set; }
         public DateTime? Birthday { get; set; }
-        public required string Gender { get; set; }
+        public string? Gender { get; set; }
         public required string City { get; set; }
         public required string Country { get; set; }
         public string? IdentifierNumber { get; set; }

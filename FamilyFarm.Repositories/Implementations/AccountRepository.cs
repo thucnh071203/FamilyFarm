@@ -56,6 +56,11 @@ namespace FamilyFarm.Repositories
             return _dao.GetByIdAsync(null, null, null, phone);
         }
 
+        public Task<Account?> GetAccountByIdentifierNumber(string identifierNumber)
+        {
+            return _dao.GetAccountByIdentifierNumber(identifierNumber);
+        }
+
         public async Task<Account?> GetAccountByRefreshToken(string refreshToken)
         {
             return await _dao.GetAccountByRefreshTokenAsync(refreshToken);
@@ -79,6 +84,12 @@ namespace FamilyFarm.Repositories
         public async Task<bool> UpdateRefreshToken(string? acc_id, string? refreshToken, DateTime? expiry)
         {
             return await _dao.UpdateRefreshToken(acc_id, refreshToken, expiry);
+        }
+
+
+        public async Task CreateAccount(Account account)
+        {
+            await _dao.CreateAccount(account);
         }
 
 
@@ -111,6 +122,7 @@ namespace FamilyFarm.Repositories
         {
             await _dao.DeleteAsync(id);
         }
+
 
     }
 }

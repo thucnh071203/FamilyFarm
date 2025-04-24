@@ -39,6 +39,9 @@ namespace FamilyFarm.Repositories
         //Get by Identifier: username, email, and phone
         Task<Account?> GetAccountByIdentifier(string identifier);
 
+        //Get by IdentifierNumber
+        Task<Account?> GetAccountByIdentifierNumber(string identifierNumber);
+
         //Update Refresh token
         Task<bool> UpdateRefreshToken(string? acc_id, string? refreshToken, DateTime? expiry);
 
@@ -49,12 +52,16 @@ namespace FamilyFarm.Repositories
         Task<bool> UpdateLoginFail(string? acc_id, int? failAttempts, DateTime? lockedUntil);
 
 
+        Task CreateAccount(Account account);
+
+
         //Register Farmer
         Task<Account?> CreateFarmer(Account newFarmer);
 
 
         Task<Account?> GetByFacebookId(string facebookId);
         Task<Account> CreateFacebookAccount(string fbId, string name, string email, string avatar);
+
 
     }
 }

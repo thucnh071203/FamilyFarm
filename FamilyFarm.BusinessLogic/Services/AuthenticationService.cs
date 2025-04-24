@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using FamilyFarm.BusinessLogic.PasswordHashing;
@@ -181,6 +182,179 @@ namespace FamilyFarm.BusinessLogic.Services
         }
 
 
+        public async Task<RegisterExpertReponseDTO?> RegisterExpert(RegisterExpertRequestDTO request)
+        {
+            if (request == null) return null;
+            if (await IsCheckDuplicateUsername(request.Username)==true)
+            {
+                return new RegisterExpertReponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "This username is already existed!"
+                };
+            }
+            else if (await IsCheckDuplicateEmail(request.Email) == true)
+            {
+                return new RegisterExpertReponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "This email is already existed!"
+                };
+            }
+            else if (await IsCheckDuplicatePhone(request.Phone) == true)
+            {
+                return new RegisterExpertReponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "This phone number is already existed!"
+                };
+            }
+            else if (await IsCheckDuplicateIdentifierNumber(request.Identifier) == true) {
+                return new RegisterExpertReponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "This identifier number is already existed!"
+                };
+            }
+            else
+            {
+                try
+                {
+                    await _accountRepository.CreateAccount(new Account
+                    {
+                        AccId = "",
+                        RoleId = "68007b2a87b41211f0af1d57",
+                        Username = request.Username,
+                        PasswordHash = _hasher.HashPassword(request.Password),
+                        FullName = request.Fullname,
+                        Email = request.Email,
+                        PhoneNumber = request.Phone,
+                        Birthday = request.Birthday,
+                        Gender = request.Gender,
+                        City = request.City,
+                        Country = request.Country,
+                        IdentifierNumber = request.Identifier,
+                        Address = request.Address,
+                        Avatar = request.Avatar,
+                        Background = null,
+                        Certificate = request.Certificate,
+                        WorkAt = null,
+                        StudyAt = null,
+                        RefreshToken = null,
+                        TokenExpiry = null,
+                        FailedAttempts = 0,
+                        LockedUntil = null,
+                        Status = 0,
+                        Otp = null,
+                        CreateOtp = null,
+
+
+                    });
+                    return new RegisterExpertReponseDTO
+                    {
+                        IsSuccess = true,
+                        MessageError = null
+                    };
+                }
+                catch (Exception ex)
+                {
+                    return new RegisterExpertReponseDTO
+                    {
+                        IsSuccess = false,
+                        MessageError = $"Lỗi hệ thống: {ex.Message}"
+                    };
+                }
+
+               
+            }
+
+
+        }
+        /// <summary>
+        /// check duplicate username
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns>false mean not duplicate, true mean this username is duplicate </returns>
+        public async Task<bool> IsCheckDuplicateUsername(string username)
+        {
+            var acc = await _accountRepository.GetAccountByUsername(username);
+            if (acc == null)
+            {
+                return false;
+            }
+            return true;
+        }
+        /// <summary>
+        /// check duplicate email
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns>false mean not duplicate, true mean this email is duplicate </returns>
+        public async Task<bool> IsCheckDuplicateEmail(string email)
+        {
+            var acc = await _accountRepository.GetAccountByEmail(email);
+            if (acc == null)
+            {
+                return false;
+            }
+            return true;
+        }
+        /// <summary>
+        /// check dupliate phone number 
+        /// </summary>
+        /// <param name="phone"></param>
+        /// <returns>false mean not duplicate, true mean this phone number is duplicate</returns>
+        public async Task<bool> IsCheckDuplicatePhone(string phone)
+        {
+            var acc = await _accountRepository.GetAccountByPhone(phone);
+            if (acc == null)
+            {
+                return false;
+            }
+            return true;
+        }
+        /// <summary>
+        /// check duplicate identifier number
+        /// </summary>
+        /// <param name="identifierNumber"></param>
+        /// <returns>false mean not duplicate, true mean this identifier number is duplicate</returns>
+        public async Task<bool> IsCheckDuplicateIdentifierNumber(string identifierNumber)
+        {
+            var acc = await _accountRepository.GetAccountByIdentifierNumber(identifierNumber);
+            if (acc == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            var regex = new Regex(@"^[\w\.\-]+@([\w\-]+\.)+[a-zA-Z]{2,}$");
+            return regex.IsMatch(email);
+        }
+        public bool IsValidPhoneNumber(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+                return false;
+
+            var regex = new Regex(@"^(0|\+84)[3-9][0-9]{8}$");  // Ví dụ: 038xxx, 090xxx, +8498xxx
+            return regex.IsMatch(phone);
+        }
+
+        public bool IsValidIdentifierNumber(string identityNumber)
+        {
+            if (string.IsNullOrWhiteSpace(identityNumber))
+                return false;
+
+            // CMND: 9 số | CCCD: 12 số
+            var regex = new Regex(@"^\d{9}$|^\d{12}$");
+            return regex.IsMatch(identityNumber);
+            }
+
+
 
         public async Task<RegisterFarmerResponseDTO> RegisterFarmer(RegisterFarmerRequestDTO request)
         {
@@ -293,6 +467,7 @@ namespace FamilyFarm.BusinessLogic.Services
             }
 
             return await GenerateToken(account);
+
         }
 
     }

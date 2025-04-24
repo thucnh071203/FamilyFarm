@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -209,5 +211,33 @@ namespace FamilyFarm.DataAccess.DAOs
 
 
 
+        /// <summary>
+        /// Use to create new account
+        /// </summary>
+        /// <param name="account"></param>
+        /// <returns></returns>
+        public async Task CreateAccount(Account account)
+        {
+            await _Accounts.InsertOneAsync(account);
+        } 
+        /// <summary>
+        /// Use to Get account by identifier number
+        /// </summary>
+        /// <param name="identifierNumber"> it's cccd/cmnd number</param>
+        /// <returns></returns>
+        public async Task<Account?> GetAccountByIdentifierNumber(string identifierNumber)
+        {
+            FilterDefinition<Account> filter;
+
+            if (!string.IsNullOrEmpty(identifierNumber))
+            {
+                filter = Builders<Account>.Filter.Eq(a => a.IdentifierNumber, identifierNumber);
+            }
+            else
+            {
+                return null;
+            }
+            return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
     }
 }

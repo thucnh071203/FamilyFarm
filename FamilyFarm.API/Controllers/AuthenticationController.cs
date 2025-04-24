@@ -7,6 +7,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyFarm.API.Controllers
@@ -52,6 +53,60 @@ namespace FamilyFarm.API.Controllers
         }
 
         [AllowAnonymous]
+        [HttpPost("registerExpert")]
+        public async Task<ActionResult<RegisterExpertReponseDTO>> RegisterExpert([FromBody] RegisterExpertRequestDTO request)
+        {
+            if(ModelState.IsValid)
+            {
+                List<string> listError = new List<string>();
+
+                if (!_authenService.IsValidEmail(request.Email))
+                {
+                    listError.Add("This email is invalid!");
+                }
+                if (!_authenService.IsValidPhoneNumber(request.Phone))
+                {
+                    listError.Add("This phone is invalid!");
+                }
+                if (!_authenService.IsValidIdentifierNumber(request.Identifier))
+                {
+                    listError.Add("This identify number is invalid!");
+                }
+                if(listError.Count !=0)
+                {
+                    return StatusCode(423, listError);
+                }
+                else
+                {
+                    var result = await _authenService.RegisterExpert(request);
+
+                    if (result == null)
+                    {
+                        // Lỗi không xác định – ví dụ: service trả về null không rõ lý do
+                        return StatusCode(500, "Internal server error during registration.");
+                    }
+
+                    if (!result.IsSuccess)
+                    {
+                        // Trả về mã 423 hoặc có thể là 400 nếu dữ liệu sai
+                        return StatusCode(423, result);
+                    }
+                    // Thành công
+                    return Ok(result);
+                }
+
+
+            }
+            else
+            {
+                return BadRequest(request);
+            }
+          
+            
+
+           
+        }
+
 
         [HttpPost("register-farmer")]
         public async Task<ActionResult<RegisterFarmerResponseDTO>> RegisterFarmer([FromBody] RegisterFarmerRequestDTO request)
@@ -121,6 +176,7 @@ namespace FamilyFarm.API.Controllers
             await _accountService.UpdateAsync(id, account);
             return Ok("Password changed successfully!");
         }
+
 
     }
 }
