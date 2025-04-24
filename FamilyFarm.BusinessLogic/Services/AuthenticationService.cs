@@ -12,6 +12,7 @@ using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
@@ -24,13 +25,15 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IAccountRepository _accountRepository;
         private readonly PasswordHasher _hasher;
         private readonly TokenValidationParameters _tokenValidationParameters;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters)
+        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;
             _accountRepository = accountRepository;
             _hasher = hasher;
             _tokenValidationParameters = tokenValidationParameters;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<LoginResponseDTO?> Login(LoginRequestDTO request)
@@ -51,7 +54,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 return new LoginResponseDTO
                 {
-                    MessageError = "Account is locked login.",
+                    Message = "Account is locked login.",
                     LockedUntil = account.LockedUntil
                 };
             }
@@ -71,7 +74,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
                     return new LoginResponseDTO
                     {
-                        MessageError = "Account is locked login.",
+                        Message = "Account is locked login.",
                         LockedUntil = lockedUntil
                     };
                 } 
@@ -88,7 +91,7 @@ namespace FamilyFarm.BusinessLogic.Services
             return await GenerateToken(account);
         }
 
-        public async Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request)
+        public async Task<LoginResponseDTO?> LoginFacebook(LoginFacebookRequestDTO request)
         {
             if (string.IsNullOrEmpty(request.FacebookId))
                 return null;
@@ -164,8 +167,15 @@ namespace FamilyFarm.BusinessLogic.Services
             return newRefreshToken;
         }
 
-        public string? GetDataFromToken(string accessToken)
+        public string? GetDataFromToken()
         {
+            var authHeader = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                return null;
+
+            var accessToken = authHeader.Substring("Bearer ".Length).Trim();
+
             var tokenHandler = new JwtSecurityTokenHandler();
 
             try
@@ -175,7 +185,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 var username = principal?.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Name)?.Value;
 
                 return username;
-            } catch
+            }
+            catch
             {
                 return null;
             }
@@ -264,12 +275,9 @@ namespace FamilyFarm.BusinessLogic.Services
                         MessageError = $"Lỗi hệ thống: {ex.Message}"
                     };
                 }
-
-               
             }
-
-
         }
+
         /// <summary>
         /// check duplicate username
         /// </summary>
@@ -335,6 +343,7 @@ namespace FamilyFarm.BusinessLogic.Services
             var regex = new Regex(@"^[\w\.\-]+@([\w\-]+\.)+[a-zA-Z]{2,}$");
             return regex.IsMatch(email);
         }
+
         public bool IsValidPhoneNumber(string phone)
         {
             if (string.IsNullOrWhiteSpace(phone))
@@ -352,11 +361,9 @@ namespace FamilyFarm.BusinessLogic.Services
             // CMND: 9 số | CCCD: 12 số
             var regex = new Regex(@"^\d{9}$|^\d{12}$");
             return regex.IsMatch(identityNumber);
-            }
+        }
 
-
-
-        public async Task<RegisterFarmerResponseDTO> RegisterFarmer(RegisterFarmerRequestDTO request)
+        public async Task<RegisterFarmerResponseDTO?> RegisterFarmer(RegisterFarmerRequestDTO request)
         {
             if (string.IsNullOrWhiteSpace(request.Username) ||
                 string.IsNullOrWhiteSpace(request.Password) ||
@@ -429,9 +436,6 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-
-
-
         public async Task<LoginResponseDTO?> LoginWithGoogle(LoginGoogleRequestDTO request)
         {
             var account = await _accountRepository.GetAccountByEmail(request.Email);
@@ -461,7 +465,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 return new LoginResponseDTO
                 {
-                    MessageError = "Account is locked login.",
+                    Message = "Account is locked login.",
                     LockedUntil = account.LockedUntil
                 };
             }
@@ -470,5 +474,19 @@ namespace FamilyFarm.BusinessLogic.Services
 
         }
 
+        public async Task<LoginResponseDTO?> Logout(string? username)
+        {
+            if (username == null)
+                return null;
+
+           await _accountRepository.DeleteRefreshToken(username);
+
+            return new LoginResponseDTO
+            {
+                AccessToken = null,
+                Message = "Logout successfully.",
+                RefreshToken = null
+            };
+        }
     }
 }

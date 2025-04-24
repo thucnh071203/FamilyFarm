@@ -36,6 +36,11 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _accountRepository.UpdateAsync(id, account);
         }
 
+        public async Task<Account> UpdateOtpAsync(string id, Account account)
+        {
+            return await _accountRepository.UpdateAsync(id, account);
+        }
+
         public async Task DeleteAsync(string id)
         {
             await _accountRepository.DeleteAsync(id);

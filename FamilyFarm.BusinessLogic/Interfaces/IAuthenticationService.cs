@@ -12,9 +12,10 @@ namespace FamilyFarm.BusinessLogic
     public interface IAuthenticationService
     {
         Task<LoginResponseDTO?> Login(LoginRequestDTO request);
+        //Return: null if username is null
+        Task<LoginResponseDTO?> Logout(string? username);
         Task<LoginResponseDTO?> LoginWithGoogle(LoginGoogleRequestDTO request);
         Task<LoginResponseDTO?> ValidateRefreshToken(string refreshToken);
-
         Task<RegisterExpertReponseDTO?> RegisterExpert(RegisterExpertRequestDTO request);
         bool IsValidEmail(string email);
         bool IsValidPhoneNumber(string phone);
@@ -22,12 +23,8 @@ namespace FamilyFarm.BusinessLogic
 
         //Param: access token from header
         //Return: Username
-        string? GetDataFromToken(string accessToken);
-
-
+        string? GetDataFromToken();
         Task<RegisterFarmerResponseDTO?> RegisterFarmer(RegisterFarmerRequestDTO request);
-
-        Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request);
-
+        Task<LoginResponseDTO?> LoginFacebook(LoginFacebookRequestDTO request);
     }
 }
