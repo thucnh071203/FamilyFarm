@@ -8,12 +8,14 @@ using MongoDB.Bson;
 
 namespace FamilyFarm.Models.Models
 {
-    class NotificationStatus
+    public class NotificationStatus
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string NotifiStatusId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string AccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string NotifiId { get; set; }
         public required string Status { get; set; }
     }

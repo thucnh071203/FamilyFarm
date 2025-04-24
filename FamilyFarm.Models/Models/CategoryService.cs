@@ -12,9 +12,10 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId CategoryServiceId { get; set; }
+        public required string CategoryServiceId { get; set; }
         [BsonRequired]
-        public required ObjectId AccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string AccId { get; set; }
         public required string CategoryName { get; set; }
         public required string CategoryDescription { get; set; }
         public DateTime? CreateAt { get; set; }
