@@ -38,5 +38,8 @@ namespace FamilyFarm.Models.Models
         public int Status { get; set; }
         public int? Otp {  get; set; }
         public DateTime? CreateOtp { get; set; }
+        public string? FacebookId { get; set; }
+        public bool IsFacebook { get; set; }
+
     }
 }

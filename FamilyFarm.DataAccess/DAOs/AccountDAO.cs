@@ -14,7 +14,6 @@ namespace FamilyFarm.DataAccess.DAOs
     public class AccountDAO
     {
         private readonly IMongoCollection<Account> _Accounts;
-
         public AccountDAO(IMongoDatabase database)
         {
             _Accounts = database.GetCollection<Account>("Account");    
@@ -55,7 +54,6 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Accounts.Find(finalFilter).ToListAsync();
         }
 
-
         /// <summary>
         ///     To get Account with account Id or Username
         /// </summary>
@@ -88,6 +86,71 @@ namespace FamilyFarm.DataAccess.DAOs
                 return null;
             }
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<Account> CreateAsync(Account account)
+        {
+            account.AccId = ObjectId.GenerateNewId().ToString();
+            account.Status = 0;
+            await _Accounts.InsertOneAsync(account);
+            return account;
+        }
+
+        public async Task<Account> UpdateAsync(string id, Account updatedAccount)
+        {
+            var existing = await _Accounts.Find(a => a.AccId == id && a.Status == 0).FirstOrDefaultAsync();
+            if (existing == null) return null;
+
+            updatedAccount.AccId = id; // Ensure ID doesn't change
+            await _Accounts.ReplaceOneAsync(a => a.AccId == id && a.Status == 0, updatedAccount);
+            return updatedAccount;
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            var filter = Builders<Account>.Filter.Where(a => a.AccId == id && a.Status == 0);
+            var update = Builders<Account>.Update.Set(a => a.Status, 1);
+
+            await _Accounts.UpdateOneAsync(filter, update);
+        }
+
+        /// <summary>
+        ///     To get Account with facebookId
+        /// </summary>
+        public async Task<Account?> GetByFacebookIdAsync(string facebookId)
+        {
+            var filter = Builders<Account>.Filter.Eq(a => a.FacebookId, facebookId);
+            return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        ///     Create a new account with facebook if that account has never been logged in
+        /// </summary>
+        public async Task<Account> CreateFacebookAccountAsync(string fbId, string name, string email, string avatar)
+        {
+            var newAcc = new Account
+            {
+                AccId = ObjectId.GenerateNewId().ToString(),
+                Username = name,
+                PasswordHash = "", // Có thể bỏ hoặc để trống vì không dùng đăng nhập truyền thống
+                FullName = name,
+                Email = email,
+                PhoneNumber = "",
+                Birthday = null,
+                Gender = "Not specified",
+                City = "",
+                Country = "",
+                Status = 0,
+                RoleId = "68007b0387b41211f0af1d56", // Mặc định là FARMER
+                FacebookId = fbId,
+                Avatar = avatar,
+                IsFacebook = true,
+                Otp = -1,
+                CreateOtp = DateTime.UtcNow
+            };
+
+            await _Accounts.InsertOneAsync(newAcc);
+            return newAcc;
         }
 
 
@@ -126,6 +189,27 @@ namespace FamilyFarm.DataAccess.DAOs
             var result = await _Accounts.UpdateOneAsync(filter, update);
             return result.ModifiedCount > 0;
         }
+        /// <summary>
+        ///     Thêm mới một tài khoản Farmer
+        /// </summary>
+        /// <param name="account">Đối tượng Farmer cần tạo</param>
+        /// <returns>Trả về Farmer nếu thành công, null nếu thất bại</returns>
+        public async Task<Account?> CreateFarmerAsync(Account account)
+        {
+            try
+            {
+                await _Accounts.InsertOneAsync(account);
+                return account;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi tạo Farmer: {ex.Message}");
+                return null;
+            }
+        }
+
+
+
 
         /// <summary>
         /// Use to create new account
