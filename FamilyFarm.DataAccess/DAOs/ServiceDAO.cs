@@ -30,7 +30,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Get list of all available services by provider Id
         /// </summary>
-        public async Task<List<Service>> GetAllByProviderIdAsync(ObjectId providerId)
+        public async Task<List<Service>> GetAllByProviderIdAsync(string providerId)
         {
             var filter = Builders<Service>.Filter.Eq(s => s.ProviderId, providerId) &
                          Builders<Service>.Filter.Ne(s => s.IsDeleted, true);
@@ -41,7 +41,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Get service by Id
         /// </summary>
-        public async Task<Service?> GetByIdAsync(ObjectId serviceId)
+        public async Task<Service?> GetByIdAsync(string serviceId)
         {
             var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId) &
                          Builders<Service>.Filter.Ne(s => s.IsDeleted, true);
@@ -61,7 +61,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Update existing service
         /// </summary>
-        public async Task<bool> UpdateAsync(ObjectId serviceId, Service item)
+        public async Task<bool> UpdateAsync(string serviceId, Service item)
         {
             var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId);
 
@@ -80,7 +80,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Delete service
         /// </summary>
-        public async Task<bool> DeleteAsync(ObjectId serviceId)
+        public async Task<bool> DeleteAsync(string serviceId)
         {
             var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId);
             var update = Builders<Service>.Update

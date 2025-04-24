@@ -8,7 +8,7 @@ using MongoDB.Bson;
 
 namespace FamilyFarm.Models.Models
 {
-    class Group
+    public class Group
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -17,6 +17,7 @@ namespace FamilyFarm.Models.Models
         public required string? GroupAvatar { get; set; }
         public required string? GroupBackground { get; set; }
         public required string PrivacyType { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string OwnerId { get; set; }
         public required DateTime CreatedAt { get; set; }
         public required DateTime UpdatedAt { get; set; }

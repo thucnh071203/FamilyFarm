@@ -8,12 +8,14 @@ using MongoDB.Bson;
 
 namespace FamilyFarm.Models.Models
 {
-    class PostCategory
+    public class PostCategory
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string CategoryPostId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string CategoryId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string PostId { get; set; }
         public required DateTime CreatedAt { get; set; }
         public required DateTime UpdatedAt { get; set; }

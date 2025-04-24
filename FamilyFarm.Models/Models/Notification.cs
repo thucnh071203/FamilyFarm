@@ -12,15 +12,21 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId NotifiId { get; set; }
+        public required string NotifiId { get; set; }
         [BsonRequired]
-        public required ObjectId CategoryNotifiId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string CategoryNotifiId { get; set; }
         [BsonRequired]
-        public required ObjectId AccId { get; set; }
-        public ObjectId? PostId { get; set; }
-        public ObjectId? ServiceId { get; set; }
-        public ObjectId? GroupId { get; set; }
-        public ObjectId? ProcessId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string AccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? PostId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? ServiceId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? GroupId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? ProcessId { get; set; }
         public required DateTime CreateAt { get; set; }
     }
 }

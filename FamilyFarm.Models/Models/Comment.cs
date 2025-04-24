@@ -14,8 +14,10 @@ namespace FamilyFarm.Models.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public required string CommentId { get; set; }
         [BsonRequired]
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string AccId { get; set; }
         [BsonRequired]
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string PostId { get; set; }
         public required string Content { get; set; }
         public DateTime? CreateAt { get; set; }

@@ -12,11 +12,13 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId SavedPostId { get; set; }
+        public required string SavedPostId { get; set; }
         [BsonRequired]
-        public required ObjectId AccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string AccId { get; set; }
         [BsonRequired]
-        public required ObjectId PostId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string PostId { get; set; }
         public DateTime? SavedAt { get; set; }
         public bool? IsDeleted { get; set; }
 

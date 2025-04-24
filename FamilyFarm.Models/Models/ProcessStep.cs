@@ -12,9 +12,10 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId StepId { get; set; }
+        public required string StepId { get; set; }
         [BsonRequired]
-        public required ObjectId ProcessId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string ProcessId { get; set; }
         [BsonRequired]
         public required int StepNumber { get; set; }
         [BsonRequired]

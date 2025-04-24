@@ -12,11 +12,13 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId ServiceId { get; set; }
+        public required string ServiceId { get; set; }
         [BsonRequired]
-        public required ObjectId CategoryServiceId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string CategoryServiceId { get; set; }
         [BsonRequired]
-        public required ObjectId ProviderId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string ProviderId { get; set; }
         public required string ServiceName { get; set; }
         public required string ServiceDescription { get; set; }
         public required decimal Price { get; set; }

@@ -14,9 +14,11 @@ namespace FamilyFarm.Models.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public required int ReactPost { get; set; }
         [BsonRequired]
-        public required ObjectId PostId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string PostId { get; set; }
         [BsonRequired]
-        public required ObjectId CategoryReactionId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string CategoryReactionId { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
         public bool? status { get; set; }

@@ -67,6 +67,11 @@ namespace FamilyFarm.DataAccess.DAOs
 
             if (!string.IsNullOrEmpty(acc_id))
             {
+                // Nếu acc_id không đúng định dạng ObjectId thì trả về null
+                if (!ObjectId.TryParse(acc_id, out _))
+                {
+                    return null;
+                }
                 filter = Builders<Account>.Filter.Eq(a => a.AccId, acc_id);
             }
             else if (!string.IsNullOrEmpty(username))
@@ -88,6 +93,11 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        ///     Creates a new account in the database with a generated unique ID and default status.
+        /// </summary>
+        /// <param name="account">The account object to be created.</param>
+        /// <returns>The created account object including its generated ID.</returns>
         public async Task<Account> CreateAsync(Account account)
         {
             account.AccId = ObjectId.GenerateNewId().ToString();
@@ -96,6 +106,12 @@ namespace FamilyFarm.DataAccess.DAOs
             return account;
         }
 
+        /// <summary>
+        ///     Updates an existing account by its ID if it is not marked as deleted.
+        /// </summary>
+        /// <param name="id">The ID of the account to update.</param>
+        /// <param name="updatedAccount">The new account data to replace the existing one.</param>
+        /// <returns>The updated account object, or null if not found or deleted.</returns>
         public async Task<Account> UpdateAsync(string id, Account updatedAccount)
         {
             var existing = await _Accounts.Find(a => a.AccId == id && a.Status == 0).FirstOrDefaultAsync();
@@ -106,10 +122,15 @@ namespace FamilyFarm.DataAccess.DAOs
             return updatedAccount;
         }
 
+        /// <summary>
+        ///     Soft deletes an account by setting its status to 1 (marked as deleted).
+        /// </summary>
+        /// <param name="id">The ID of the account to delete.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task DeleteAsync(string id)
         {
             var filter = Builders<Account>.Filter.Where(a => a.AccId == id && a.Status == 0);
-            var update = Builders<Account>.Update.Set(a => a.Status, 1);
+            var update = Builders<Account>.Update.Set(a => a.Status, 1); // Status = 1 (Is Deleted)
 
             await _Accounts.UpdateOneAsync(filter, update);
         }

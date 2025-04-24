@@ -14,6 +14,7 @@ namespace FamilyFarm.Models.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public required string CategoryId { get; set; }
         [BsonRequired]
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string AccId { get; set; }
         public required string CategoryName { get; set; }
         public required string CategoryDescription { get; set; }
