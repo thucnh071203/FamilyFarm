@@ -12,7 +12,7 @@ namespace FamilyFarm.Models.DTOs.Response
         public string? AccessToken { get; set; }
         public int TokenExpiryIn { get; set; }
         public string? RefreshToken { get; set; }
-        public string? MessageError { get; set; }
+        public string? Message { get; set; }
         public DateTime? LockedUntil { get; set; }
     }
 }

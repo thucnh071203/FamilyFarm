@@ -51,6 +51,8 @@ namespace FamilyFarm.Repositories
         //Update fail login attempt
         Task<bool> UpdateLoginFail(string? acc_id, int? failAttempts, DateTime? lockedUntil);
 
+        //Delete Refresh Token
+        Task<bool> DeleteRefreshToken(string? username);
 
         Task CreateAccount(Account account);
 

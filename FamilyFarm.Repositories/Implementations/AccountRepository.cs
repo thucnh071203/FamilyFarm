@@ -123,6 +123,9 @@ namespace FamilyFarm.Repositories
             await _dao.DeleteAsync(id);
         }
 
-
+        public async Task<bool> DeleteRefreshToken(string? username)
+        {
+            return await _dao.DeleteFreshTokenByUsername(username);
+        }
     }
 }
