@@ -259,5 +259,25 @@ namespace FamilyFarm.DataAccess.DAOs
             }
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
+
+        /// <summary>
+        ///     Delete Refresh Token of user by Username
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns>False if delete fail, True is success</returns>
+        public async Task<bool> DeleteFreshTokenByUsername(string? username)
+        {
+            if (string.IsNullOrEmpty(username))
+                return false;
+
+            var filter = Builders<Account>.Filter.Eq(a => a.Username, username);
+
+            var update = Builders<Account>.Update
+                .Set(a => a.RefreshToken, null)
+                .Set(a => a.TokenExpiry, null);
+            var result = await _Accounts.UpdateOneAsync(filter, update);
+
+            return result.IsAcknowledged && result.ModifiedCount > 0;
+        }
     }
 }

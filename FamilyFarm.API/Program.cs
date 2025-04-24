@@ -36,6 +36,8 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<PasswordHasher>();
 //builder.Services.AddScoped<FirebaseConnection>();
 
+builder.Services.AddHttpContextAccessor();
+
 //SECURITY
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!);
