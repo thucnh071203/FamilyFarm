@@ -8,7 +8,6 @@ namespace FamilyFarm.Models.DTOs.Request
 {
     public class ReactionRequestDTO
     {
-        public string PostId { get; set; }
         public string AccId { get; set; }
         public string CategoryReactionId { get; set; }
     }

@@ -35,12 +35,14 @@ builder.Services.AddScoped<AccountDAO>();
 builder.Services.AddScoped<CommentDAO>();
 builder.Services.AddScoped<CategoryReactionDAO>();
 builder.Services.AddScoped<ReactionPostDAO>();
+builder.Services.AddScoped<ReportDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICategoryReactionRepository, CategoryReactionRepository>();
 builder.Services.AddScoped<IReactionPostRepository, ReactionPostRepository>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -48,6 +50,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IReactionPostService, ReactionPostService>();
 builder.Services.AddScoped<IReactionPostService, ReactionPostService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 //builder.Services.AddScoped<FirebaseConnection>();
 
 builder.Services.AddHttpContextAccessor();
