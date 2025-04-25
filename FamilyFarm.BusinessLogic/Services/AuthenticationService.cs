@@ -77,7 +77,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         Message = "Account is locked login.",
                         LockedUntil = lockedUntil
                     };
-                } 
+                }
                 else
                 {
                     await _accountRepository.UpdateLoginFail(account.AccId, failNumb, null);
@@ -95,7 +95,7 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             if (string.IsNullOrEmpty(request.FacebookId))
                 return null;
-                
+
             var account = await _accountRepository.GetByFacebookId(request.FacebookId);
 
             // Nếu chưa có tài khoản thì tạo mới tài khoản mới
@@ -117,14 +117,14 @@ namespace FamilyFarm.BusinessLogic.Services
             var account = await _accountRepository.GetAccountByRefreshToken(refreshToken);
 
             //Nếu refreshToken không có hoặc có nhưng hết hạn thì return null
-            if(account == null || account.TokenExpiry < DateTime.UtcNow) return null;
+            if (account == null || account.TokenExpiry < DateTime.UtcNow) return null;
 
             //Reset value 2 field RefreshToken và Expiry trước khi tạo mới
             await _accountRepository.UpdateRefreshToken(account.AccId, null, null);
 
             //Gọi GenerateToken để tạo accessToken và refreshToken mới
             return await GenerateToken(account);
-        } 
+        }
 
         private async Task<LoginResponseDTO> GenerateToken(Account account)
         {
@@ -196,7 +196,7 @@ namespace FamilyFarm.BusinessLogic.Services
         public async Task<RegisterExpertReponseDTO?> RegisterExpert(RegisterExpertRequestDTO request)
         {
             if (request == null) return null;
-            if (await IsCheckDuplicateUsername(request.Username)==true)
+            if (await IsCheckDuplicateUsername(request.Username) == true)
             {
                 return new RegisterExpertReponseDTO
                 {
@@ -220,7 +220,8 @@ namespace FamilyFarm.BusinessLogic.Services
                     MessageError = "This phone number is already existed!"
                 };
             }
-            else if (await IsCheckDuplicateIdentifierNumber(request.Identifier) == true) {
+            else if (await IsCheckDuplicateIdentifierNumber(request.Identifier) == true)
+            {
                 return new RegisterExpertReponseDTO
                 {
                     IsSuccess = false,
@@ -275,6 +276,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         MessageError = $"Lỗi hệ thống: {ex.Message}"
                     };
                 }
+
             }
         }
 
@@ -401,14 +403,14 @@ namespace FamilyFarm.BusinessLogic.Services
 
             var newAccount = new Account
             {
-                AccId = ObjectId.GenerateNewId().ToString(),
-                RoleId = "68007b0387b41211f0af1d56", 
+                AccId = "",
+                RoleId = "68007b0387b41211f0af1d56",
                 Username = request.Username,
                 PasswordHash = hashedPassword,
                 FullName = request.FullName,
                 Email = request.Email,
                 PhoneNumber = request.Phone,
-                Gender = null, 
+                Gender = null,
                 City = request.City,
                 Country = request.Country,
                 Status = 1,
@@ -435,6 +437,37 @@ namespace FamilyFarm.BusinessLogic.Services
                 MessageError = "Register fail!."
             };
         }
+
+        //kiểm tra email xem có đúng không , định dạng sai : uyen@gmail,  @gmail.com
+        //phải có đủ :
+        //^[\w\.\-]+: Bắt đầu với một hoặc nhiều ký tự chữ, số, dấu chấm hoặc dấu gạch ngang.
+        //@: Sau đó là ký tự @ bắt buộc.
+        //([\w\-]+\.)+: tiếp theo là một hoặc nhiều nhóm tên miền con(như gmail., yahoo.,.gmail.com.vn)
+        //[a-zA-Z]{2,}$: cuối cùng kết thúc bằng tên miền chính(vd: com, vn, org) có ít nhất 2 ký tự chữ cái.
+        public bool CheckValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            var regex = new Regex(@"^[\w\.\-]+@([\w\-]+\.)+[a-zA-Z]{2,}$");  //uyen@gmail.com // có thể có nhiều tên miền liền .gmail.com.vn
+            return regex.IsMatch(email);
+        }
+
+        // kiểm tra sđt phải :
+        // bắt đầu bằng 0 hoặc +84
+        // theo sau là 1 số  từ 3 đén 9
+        // sau đó là đủ 8 số ngẫu nhiên từ 0 đến 9
+        public bool CheckValidPhoneNumber(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+                return false;
+
+            var regex = new Regex(@"^(0|\+84)[3-9][0-9]{8}$");
+            return regex.IsMatch(phone);
+        }
+
+
+
 
         public async Task<LoginResponseDTO?> LoginWithGoogle(LoginGoogleRequestDTO request)
         {
