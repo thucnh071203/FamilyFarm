@@ -28,8 +28,6 @@ namespace FamilyFarm.BusinessLogic
         bool CheckValidEmail(string email);
         bool CheckValidPhoneNumber(string phone);
 
-        Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request);
         Task<LoginResponseDTO?> LoginFacebook(LoginFacebookRequestDTO request);
-
     }
 }
