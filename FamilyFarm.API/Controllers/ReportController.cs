@@ -72,7 +72,7 @@ namespace FamilyFarm.API.Controllers
 
             var result = await _reportService.Create(report);
             if (result == null)
-                return BadRequest("Invalid PostId or AccId");
+                return BadRequest("Invalid PostId or ReporterId");
 
             return Ok(result);
         }
