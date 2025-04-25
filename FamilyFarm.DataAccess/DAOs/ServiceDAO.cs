@@ -10,7 +10,7 @@ using MongoDB.Driver;
 
 namespace FamilyFarm.DataAccess.DAOs
 {
-    class ServiceDAO
+    public class ServiceDAO
     {
         private readonly IMongoCollection<Service> _Services;
 
