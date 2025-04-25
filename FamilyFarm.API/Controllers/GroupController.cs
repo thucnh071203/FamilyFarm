@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyFarm.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/group")]
     [ApiController]
     public class GroupController : ControllerBase
     {
