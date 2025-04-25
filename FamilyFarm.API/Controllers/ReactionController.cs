@@ -6,15 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace FamilyFarm.API.Controllers
 {
     // chua co post controller nen de tam reaction o day (co the chuyen qua post controller hoac khong)
-    [Route("api/reaction-post")]
+    [Route("api/reaction")]
     //[Route("api/reaction")] // neu lam chung cho reaction-post và reaction-comment trong day (recommendation)
     [ApiController]
     // public class ReactionController : ControllerBase
-    public class ReactionPostController : ControllerBase
+    public class ReactionController : ControllerBase
     {
         private readonly IReactionPostService _reactionPostService;
 
-        public ReactionPostController(IReactionPostService reactionPostService)
+        public ReactionController(IReactionPostService reactionPostService)
         {
             _reactionPostService = reactionPostService;
         }
