@@ -34,6 +34,8 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             group.GroupId = ObjectId.GenerateNewId().ToString();
             group.CreatedAt = DateTime.UtcNow;
+            group.UpdatedAt = null;
+            group.DeletedAt = null;
             group.IsDeleted = false;
             await _Groups.InsertOneAsync(group);
             return group;
@@ -66,8 +68,10 @@ namespace FamilyFarm.DataAccess.DAOs
 
             if (filter == null) return null;
 
-            var update = Builders<Group>.Update.Set(g => g.IsDeleted, true);
-
+            var update = Builders<Group>.Update
+                .Set(g => g.DeletedAt, DateTime.UtcNow)
+                .Set(g => g.IsDeleted, true);
+                
             var result = await _Groups.UpdateOneAsync(filter, update);
 
             if (result.MatchedCount > 0 && result.ModifiedCount > 0)

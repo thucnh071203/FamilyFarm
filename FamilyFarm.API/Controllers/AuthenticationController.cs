@@ -1,7 +1,9 @@
 ﻿using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.PasswordHashing;
+using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
@@ -9,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using static System.Net.WebRequestMethods;
 
 namespace FamilyFarm.API.Controllers
 {
@@ -19,12 +22,14 @@ namespace FamilyFarm.API.Controllers
         private readonly IAuthenticationService _authenService;
         private readonly IAccountService _accountService;
         private readonly PasswordHasher _hasher;
+        private readonly IEmailSender _emailSender;
 
-        public AuthenticationController(IAuthenticationService authenService, IAccountService accountService, PasswordHasher hasher)
+        public AuthenticationController(IAuthenticationService authenService, IAccountService accountService, PasswordHasher hasher, IEmailSender emailSender)
         {
             _authenService = authenService;
             _accountService = accountService;
             _hasher = hasher;
+            _emailSender = emailSender;
         }
 
         [AllowAnonymous]
@@ -223,7 +228,7 @@ namespace FamilyFarm.API.Controllers
 
         [AllowAnonymous]
         [HttpPut("generate-OTP/{id}")]
-        public async Task<IActionResult> GenerateOtp(string id, [FromBody] GenerateOtpDTO request)
+        public async Task<IActionResult> GenerateOtp(string id)
         {
             var account = await _accountService.GetAccountById(id);
             if (account == null)
@@ -236,12 +241,16 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("Account is inactivate.");
             }
 
-            account.Otp = request.Otp;
+            var random = new Random();
+            int otpRandom = random.Next(100000, 999999);
+
+            account.Otp = otpRandom;
+            account.CreateOtp = DateTime.UtcNow;
             await _accountService.UpdateOtpAsync(id, account);
             return Ok(new
             {
                 message = "OTP updated successfully.",
-                otp = request.Otp
+                otp = otpRandom
             });
         }
 
@@ -263,8 +272,22 @@ namespace FamilyFarm.API.Controllers
 
             account.PasswordHash = request.Password;
             account.Otp = null;
+            account.CreateOtp = null;
             await _accountService.UpdateAsync(id, account);
             return Ok("Password reset successfully!");
+        }
+
+        // Test send email 
+        [HttpPost("send-email")]
+        public async Task<IActionResult> SendEmail([FromBody] EmailRequestDTO request)
+        {
+            var otp = 123456; 
+            var content = $"<p>Your OTP is:</p><div class='otp-box'>{otp}</div><p>It is valid for 2 minutes.</p>";
+            var html = EmailTemplateHelper.EmailConfirm(request.ToEmail, content);
+
+            await _emailSender.SendEmailAsync(request.ToEmail, request.Subject, html);
+
+            return Ok("Email sent successfully!");
         }
     }
 }
