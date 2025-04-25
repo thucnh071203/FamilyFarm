@@ -8,16 +8,19 @@ using MongoDB.Bson;
 
 namespace FamilyFarm.Models.Models
 {
-    class ReactionComment
+    public class ReactionComment
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string ReactCommentId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string CommentId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string AccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public required string CategoryReactionId { get; set; }
         public required string? ReactionName { get; set; }
         public required DateTime CreatedAt { get; set; }
-        public bool Status { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 }

@@ -19,6 +19,7 @@ namespace FamilyFarm.API.Controllers
         private readonly IAuthenticationService _authenService;
         private readonly IAccountService _accountService;
         private readonly PasswordHasher _hasher;
+
         public AuthenticationController(IAuthenticationService authenService, IAccountService accountService, PasswordHasher hasher)
         {
             _authenService = authenService;
@@ -32,7 +33,7 @@ namespace FamilyFarm.API.Controllers
         {
             var result = await _authenService.Login(request);
 
-            if (result != null && result.MessageError != null)
+            if (result != null && result.Message != null)
             {
                 return StatusCode(423, result);
             }
@@ -40,6 +41,19 @@ namespace FamilyFarm.API.Controllers
             return result is not null ? result : Unauthorized();
         }
 
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<ActionResult<LoginResponseDTO>> Logout()
+        {
+            var username = _authenService.GetDataFromToken();
+
+            if (username == null)
+                return BadRequest();
+
+            var result = await _authenService.Logout(username);
+            return result is not null ? result : Unauthorized();
+        }
+        
         [AllowAnonymous]
         [HttpPost("refresh-token")]
         public async Task<ActionResult<LoginResponseDTO>> Refresh([FromBody] RefreshTokenRequestDTO request)
@@ -53,7 +67,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("registerExpert")]
+        [HttpPost("register-expert")]
         public async Task<ActionResult<RegisterExpertReponseDTO>> RegisterExpert([FromBody] RegisterExpertRequestDTO request)
         {
             if (ModelState.IsValid)
@@ -94,17 +108,11 @@ namespace FamilyFarm.API.Controllers
                     // Thành công
                     return Ok(result);
                 }
-
-
             }
             else
             {
                 return BadRequest(request);
             }
-
-
-
-
         }
 
 
@@ -157,7 +165,7 @@ namespace FamilyFarm.API.Controllers
         {
             var result = await _authenService.LoginFacebook(request);
 
-            if (result != null && result.MessageError != null)
+            if (result != null && result.Message != null)
             {
                 return StatusCode(423, result);
             }
@@ -171,7 +179,7 @@ namespace FamilyFarm.API.Controllers
         {
             var result = await _authenService.LoginWithGoogle(request);
 
-            if (result != null && result.MessageError != null)
+            if (result != null && result.Message != null)
             {
                 return StatusCode(423, result);
             }
@@ -213,6 +221,50 @@ namespace FamilyFarm.API.Controllers
             return Ok("Password changed successfully!");
         }
 
+        [AllowAnonymous]
+        [HttpPut("generate-OTP/{id}")]
+        public async Task<IActionResult> GenerateOtp(string id, [FromBody] GenerateOtpDTO request)
+        {
+            var account = await _accountService.GetAccountById(id);
+            if (account == null)
+            {
+                return NotFound("Account not found");
+            }
+            
+            if (account.Status != 0)
+            {
+                return BadRequest("Account is inactivate.");
+            }
 
+            account.Otp = request.Otp;
+            await _accountService.UpdateOtpAsync(id, account);
+            return Ok(new
+            {
+                message = "OTP updated successfully.",
+                otp = request.Otp
+            });
+        }
+
+        [AllowAnonymous]
+        [HttpPut("forgot-password/{id}")]
+        public async Task<IActionResult> ForfotPassword(string id, [FromBody] ResetPasswordDTO request)
+        {
+            var account = await _accountService.GetAccountById(id);
+            if (account == null)
+                return NotFound("Account not found");
+
+            if (account.Status != 0)
+            {
+                return BadRequest("Account is inactivate.");
+            } else if (account.Otp != request.Otp)
+            {
+                return BadRequest("Otp does not match.");
+            }
+
+            account.PasswordHash = request.Password;
+            account.Otp = null;
+            await _accountService.UpdateAsync(id, account);
+            return Ok("Password reset successfully!");
+        }
     }
 }

@@ -12,6 +12,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<Account?> GetAccountById(string acc_id);
         Task<Account> CreateAsync(Account account);
         Task<Account> UpdateAsync(string id, Account account);
+        Task<Account> UpdateOtpAsync(string id, Account account);
         Task DeleteAsync(string id);
     }
 }

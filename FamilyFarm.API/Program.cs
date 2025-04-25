@@ -11,6 +11,8 @@ using FamilyFarm.BusinessLogic.PasswordHashing;
 using Microsoft.OpenApi.Models;
 using FamilyFarm.BusinessLogic.Config;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Repositories.Interfaces;
+using FamilyFarm.Repositories.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,15 +28,29 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
     return context.Database!;
 });
 
+// DAO DI
+builder.Services.AddScoped<PasswordHasher>();
 builder.Services.AddScoped<RoleDAO>();
 builder.Services.AddScoped<AccountDAO>();
+builder.Services.AddScoped<CommentDAO>();
+builder.Services.AddScoped<CategoryReactionDAO>();
+builder.Services.AddScoped<ReactionPostDAO>();
 
+// Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<ICategoryReactionRepository, CategoryReactionRepository>();
+builder.Services.AddScoped<IReactionPostRepository, ReactionPostRepository>();
 
+// Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<PasswordHasher>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IReactionPostService, ReactionPostService>();
+builder.Services.AddScoped<IReactionPostService, ReactionPostService>();
 //builder.Services.AddScoped<FirebaseConnection>();
+
+builder.Services.AddHttpContextAccessor();
 
 //SECURITY
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
