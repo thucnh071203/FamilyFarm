@@ -8,13 +8,15 @@ using MongoDB.Bson;
 
 namespace FamilyFarm.Models.Models
 {
-    class SharePostTag
+    public class SharePostTag
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId SharePostTagId { get; set; }
-        public required ObjectId SharePostId { get; set; }
-        public required ObjectId AccId { get; set; }
+        public required string SharePostTagId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string SharePostId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string AccId { get; set; }
         public required DateTime CreatedAt { get; set; }
     }
 }

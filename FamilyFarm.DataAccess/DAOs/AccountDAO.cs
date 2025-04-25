@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -12,7 +14,6 @@ namespace FamilyFarm.DataAccess.DAOs
     public class AccountDAO
     {
         private readonly IMongoCollection<Account> _Accounts;
-
         public AccountDAO(IMongoDatabase database)
         {
             _Accounts = database.GetCollection<Account>("Account");    
@@ -43,16 +44,15 @@ namespace FamilyFarm.DataAccess.DAOs
             }
             
             //Condition 2: Filter role_id
-            if(ObjectId.TryParse(role_id, out ObjectId objectRoleId) && role_map.Contains(role_id))
+            if(string.IsNullOrEmpty(role_id) && role_map.Contains(role_id))
             {
-                filters.Add(Builders<Account>.Filter.Eq(a => a.RoleId, objectRoleId));
+                filters.Add(Builders<Account>.Filter.Eq(a => a.RoleId, role_id));
             }
 
             var finalFilter = Builders<Account>.Filter.And(filters);
 
             return await _Accounts.Find(finalFilter).ToListAsync();
         }
-
 
         /// <summary>
         ///     To get Account with account Id or Username
@@ -65,9 +65,14 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             FilterDefinition<Account> filter;
 
-            if (!string.IsNullOrEmpty(acc_id) && ObjectId.TryParse(acc_id, out ObjectId objectAccId))
+            if (!string.IsNullOrEmpty(acc_id))
             {
-                filter = Builders<Account>.Filter.Eq(a => a.AccId, objectAccId);
+                // Nếu acc_id không đúng định dạng ObjectId thì trả về null
+                if (!ObjectId.TryParse(acc_id, out _))
+                {
+                    return null;
+                }
+                filter = Builders<Account>.Filter.Eq(a => a.AccId, acc_id);
             }
             else if (!string.IsNullOrEmpty(username))
             {
@@ -88,11 +93,91 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        ///     Creates a new account in the database with a generated unique ID and default status.
+        /// </summary>
+        /// <param name="account">The account object to be created.</param>
+        /// <returns>The created account object including its generated ID.</returns>
+        public async Task<Account> CreateAsync(Account account)
+        {
+            account.AccId = ObjectId.GenerateNewId().ToString();
+            account.Status = 0;
+            await _Accounts.InsertOneAsync(account);
+            return account;
+        }
+
+        /// <summary>
+        ///     Updates an existing account by its ID if it is not marked as deleted.
+        /// </summary>
+        /// <param name="id">The ID of the account to update.</param>
+        /// <param name="updatedAccount">The new account data to replace the existing one.</param>
+        /// <returns>The updated account object, or null if not found or deleted.</returns>
+        public async Task<Account> UpdateAsync(string id, Account updatedAccount)
+        {
+            var existing = await _Accounts.Find(a => a.AccId == id && a.Status == 0).FirstOrDefaultAsync();
+            if (existing == null) return null;
+
+            updatedAccount.AccId = id; // Ensure ID doesn't change
+            await _Accounts.ReplaceOneAsync(a => a.AccId == id && a.Status == 0, updatedAccount);
+            return updatedAccount;
+        }
+
+        /// <summary>
+        ///     Soft deletes an account by setting its status to 1 (marked as deleted).
+        /// </summary>
+        /// <param name="id">The ID of the account to delete.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        public async Task DeleteAsync(string id)
+        {
+            var filter = Builders<Account>.Filter.Where(a => a.AccId == id && a.Status == 0);
+            var update = Builders<Account>.Update.Set(a => a.Status, 1); // Status = 1 (Is Deleted)
+
+            await _Accounts.UpdateOneAsync(filter, update);
+        }
+
+        /// <summary>
+        ///     To get Account with facebookId
+        /// </summary>
+        public async Task<Account?> GetByFacebookIdAsync(string facebookId)
+        {
+            var filter = Builders<Account>.Filter.Eq(a => a.FacebookId, facebookId);
+            return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        ///     Create a new account with facebook if that account has never been logged in
+        /// </summary>
+        public async Task<Account> CreateFacebookAccountAsync(string fbId, string name, string email, string avatar)
+        {
+            var newAcc = new Account
+            {
+                AccId = ObjectId.GenerateNewId().ToString(),
+                Username = name,
+                PasswordHash = "", // Có thể bỏ hoặc để trống vì không dùng đăng nhập truyền thống
+                FullName = name,
+                Email = email,
+                PhoneNumber = "",
+                Birthday = null,
+                Gender = "Not specified",
+                City = "",
+                Country = "",
+                Status = 0,
+                RoleId = "68007b0387b41211f0af1d56", // Mặc định là FARMER
+                FacebookId = fbId,
+                Avatar = avatar,
+                IsFacebook = true,
+                Otp = -1,
+                CreateOtp = DateTime.UtcNow
+            };
+
+            await _Accounts.InsertOneAsync(newAcc);
+            return newAcc;
+        }
 
         /// <summary>
         ///     Sử dụng riêng cho Update refresh token và expiry time mới
         /// </summary>
-        public async Task<bool> UpdateRefreshToken(ObjectId accId, string? refreshToken, DateTime? expiry)
+        public async Task<bool> UpdateRefreshToken(string? accId, string? refreshToken, DateTime? expiry)
         {
                 var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
                 var update = Builders<Account>.Update
@@ -114,7 +199,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Sử dụng để update số lần thất bại login và khóa login
         /// </summary>
-        public async Task<bool> UpdateLoginFailAsync(ObjectId accId, int? failedAttempts, DateTime? lockedUntil)
+        public async Task<bool> UpdateLoginFailAsync(string? accId, int? failedAttempts, DateTime? lockedUntil)
         {
             var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
             var update = Builders<Account>.Update
@@ -124,6 +209,75 @@ namespace FamilyFarm.DataAccess.DAOs
             var result = await _Accounts.UpdateOneAsync(filter, update);
             return result.ModifiedCount > 0;
         }
+        /// <summary>
+        ///     Thêm mới một tài khoản Farmer
+        /// </summary>
+        /// <param name="account">Đối tượng Farmer cần tạo</param>
+        /// <returns>Trả về Farmer nếu thành công, null nếu thất bại</returns>
+        public async Task<Account?> CreateFarmerAsync(Account account)
+        {
+            try
+            {
+                await _Accounts.InsertOneAsync(account);
+                return account;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi tạo Farmer: {ex.Message}");
+                return null;
+            }
+        }
 
+
+
+
+        /// <summary>
+        /// Use to create new account
+        /// </summary>
+        /// <param name="account"></param>
+        /// <returns></returns>
+        public async Task CreateAccount(Account account)
+        {
+            await _Accounts.InsertOneAsync(account);
+        } 
+        /// <summary>
+        /// Use to Get account by identifier number
+        /// </summary>
+        /// <param name="identifierNumber"> it's cccd/cmnd number</param>
+        /// <returns></returns>
+        public async Task<Account?> GetAccountByIdentifierNumber(string identifierNumber)
+        {
+            FilterDefinition<Account> filter;
+
+            if (!string.IsNullOrEmpty(identifierNumber))
+            {
+                filter = Builders<Account>.Filter.Eq(a => a.IdentifierNumber, identifierNumber);
+            }
+            else
+            {
+                return null;
+            }
+            return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        ///     Delete Refresh Token of user by Username
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns>False if delete fail, True is success</returns>
+        public async Task<bool> DeleteFreshTokenByUsername(string? username)
+        {
+            if (string.IsNullOrEmpty(username))
+                return false;
+
+            var filter = Builders<Account>.Filter.Eq(a => a.Username, username);
+
+            var update = Builders<Account>.Update
+                .Set(a => a.RefreshToken, null)
+                .Set(a => a.TokenExpiry, null);
+            var result = await _Accounts.UpdateOneAsync(filter, update);
+
+            return result.IsAcknowledged && result.ModifiedCount > 0;
+        }
     }
 }

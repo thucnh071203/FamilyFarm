@@ -12,11 +12,13 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId ChatId { get; set; }
+        public required string ChatId { get; set; }
         [BsonRequired]
-        public required ObjectId User1Id { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string User1Id { get; set; }
         [BsonRequired]
-        public required ObjectId User2Id { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string User2Id { get; set; }
         public required DateTime? CreateAt { get; set; }
     }
 }

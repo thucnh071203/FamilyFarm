@@ -12,9 +12,10 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId CategoryReactionId { get; set; }
+        public required string CategoryReactionId { get; set; }
         [BsonRequired]
-        public required ObjectId AccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string AccId { get; set; }
         [BsonRequired]
         public required string ReactionName { get; set; }
         public bool? IsDeleted { get; set; }

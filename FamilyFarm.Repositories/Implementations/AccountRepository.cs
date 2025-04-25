@@ -56,6 +56,11 @@ namespace FamilyFarm.Repositories
             return _dao.GetByIdAsync(null, null, null, phone);
         }
 
+        public Task<Account?> GetAccountByIdentifierNumber(string identifierNumber)
+        {
+            return _dao.GetAccountByIdentifierNumber(identifierNumber);
+        }
+
         public async Task<Account?> GetAccountByRefreshToken(string refreshToken)
         {
             return await _dao.GetAccountByRefreshTokenAsync(refreshToken);
@@ -71,14 +76,56 @@ namespace FamilyFarm.Repositories
             return _dao.GetAllAsync(role_id, status);
         }
 
-        public async Task<bool> UpdateLoginFail(ObjectId acc_id, int? failAttempts, DateTime? lockedUntil)
+        public async Task<bool> UpdateLoginFail(string? acc_id, int? failAttempts, DateTime? lockedUntil)
         {
             return await _dao.UpdateLoginFailAsync(acc_id, failAttempts, lockedUntil);
         }
 
-        public async Task<bool> UpdateRefreshToken(ObjectId acc_id, string? refreshToken, DateTime? expiry)
+        public async Task<bool> UpdateRefreshToken(string? acc_id, string? refreshToken, DateTime? expiry)
         {
             return await _dao.UpdateRefreshToken(acc_id, refreshToken, expiry);
+        }
+
+
+        public async Task CreateAccount(Account account)
+        {
+            await _dao.CreateAccount(account);
+        }
+
+
+        public async Task<Account?> CreateFarmer(Account newFarmer)
+        {
+            return await _dao.CreateFarmerAsync(newFarmer);
+        }
+
+        public async Task<Account?> GetByFacebookId(string facebookId)
+        {
+            return await _dao.GetByFacebookIdAsync(facebookId);
+        }
+
+        public async Task<Account> CreateFacebookAccount(string fbId, string name, string email, string avatar)
+        {
+            return await _dao.CreateFacebookAccountAsync(fbId, name, email, avatar);
+        }
+
+        public async Task<Account> CreateAsync(Account account)
+        {
+            return await _dao.CreateAsync(account);
+        }
+
+        public async Task<Account> UpdateAsync(string id, Account account)
+        {
+            return await _dao.UpdateAsync(id, account);
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            await _dao.DeleteAsync(id);
+        }
+
+        public async Task<bool> DeleteRefreshToken(string? username)
+        {
+            return await _dao.DeleteFreshTokenByUsername(username);
         }
     }
 }

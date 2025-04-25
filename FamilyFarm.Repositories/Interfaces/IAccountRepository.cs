@@ -17,7 +17,16 @@ namespace FamilyFarm.Repositories
 
         //Get by Account Id (not check status)
         Task<Account?> GetAccountById(string acc_id);
-
+        
+        // Create Account
+        Task<Account> CreateAsync(Account account);
+        
+        // Update Account (check status)
+        Task<Account> UpdateAsync(string id, Account account);
+        
+        // Delete Account (Set Status = 1)
+        Task DeleteAsync(string id);
+        
         //Get by Username (not check status)
         Task<Account?> GetAccountByUsername(string username);
 
@@ -30,14 +39,31 @@ namespace FamilyFarm.Repositories
         //Get by Identifier: username, email, and phone
         Task<Account?> GetAccountByIdentifier(string identifier);
 
+        //Get by IdentifierNumber
+        Task<Account?> GetAccountByIdentifierNumber(string identifierNumber);
+
         //Update Refresh token
-        Task<bool> UpdateRefreshToken(ObjectId acc_id, string? refreshToken, DateTime? expiry);
+        Task<bool> UpdateRefreshToken(string? acc_id, string? refreshToken, DateTime? expiry);
 
         //Get Account by Refresh token
-        Task<Account?> GetAccountByRefreshToken(string refreshToken);
+        Task<Account?> GetAccountByRefreshToken(string refreshTokens);
 
         //Update fail login attempt
-        Task<bool> UpdateLoginFail(ObjectId acc_id, int? failAttempts, DateTime? lockedUntil);
+        Task<bool> UpdateLoginFail(string? acc_id, int? failAttempts, DateTime? lockedUntil);
+
+        //Delete Refresh Token
+        Task<bool> DeleteRefreshToken(string? username);
+
+        Task CreateAccount(Account account);
+
+
+        //Register Farmer
+        Task<Account?> CreateFarmer(Account newFarmer);
+
+
+        Task<Account?> GetByFacebookId(string facebookId);
+        Task<Account> CreateFacebookAccount(string fbId, string name, string email, string avatar);
+
 
     }
 }

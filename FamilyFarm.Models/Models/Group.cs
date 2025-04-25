@@ -8,16 +8,17 @@ using MongoDB.Bson;
 
 namespace FamilyFarm.Models.Models
 {
-    class Group
+    public class Group
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId GroupId { get; set; }
+        public required string GroupId { get; set; }
         public required string GroupName { get; set; }
         public required string? GroupAvatar { get; set; }
         public required string? GroupBackground { get; set; }
         public required string PrivacyType { get; set; }
-        public required ObjectId OwnerId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string OwnerId { get; set; }
         public required DateTime CreatedAt { get; set; }
         public required DateTime UpdatedAt { get; set; }
         public required DateTime DeletedAt { get; set; }

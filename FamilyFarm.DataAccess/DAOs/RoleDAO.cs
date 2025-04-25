@@ -25,11 +25,11 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Roles.Find(_ => true).ToListAsync();
         }
 
-        public async Task<Role?> GetByIdAsync(string role_id)
+        public async Task<Role?> GetByIdAsync(string? role_id)
         {
-            if (ObjectId.TryParse(role_id, out ObjectId objectRoleId))
+            if (!string.IsNullOrEmpty(role_id))
             {
-                return await _Roles.Find(r => r.RoleId == objectRoleId).FirstOrDefaultAsync();
+                return await _Roles.Find(r => r.RoleId == role_id).FirstOrDefaultAsync();
             }
             return null;
         }
@@ -41,9 +41,9 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task UpdateAsync(string role_id, Role role)
         {
-            if (ObjectId.TryParse(role_id, out ObjectId objectRoleId))
+            if (string.IsNullOrEmpty(role_id))
             {
-                await _Roles.ReplaceOneAsync(p => p.RoleId == objectRoleId, role);
+                await _Roles.ReplaceOneAsync(p => p.RoleId == role_id, role);
             }
             else
             {
@@ -51,11 +51,11 @@ namespace FamilyFarm.DataAccess.DAOs
             }
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(string? id)
         {
-            if (ObjectId.TryParse(id, out ObjectId objectRoleId))
+            if (string.IsNullOrEmpty(id))
             {
-                await _Roles.DeleteOneAsync(p => p.RoleId == objectRoleId);
+                await _Roles.DeleteOneAsync(p => p.RoleId == id);
             }
             else
             {

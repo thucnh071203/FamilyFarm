@@ -12,16 +12,20 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required ObjectId GroupMemberId { get; set; }
-        [BsonRequired] 
-        public required ObjectId GroupRoleId { get; set; }
+        public required string GroupMemberId { get; set; }
         [BsonRequired]
-        public required ObjectId GroupId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string GroupRoleId { get; set; }
         [BsonRequired]
-        public required ObjectId AccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string GroupId { get; set; }
+        [BsonRequired]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string AccId { get; set; }
         public required DateTime JointAt { get; set; }
         public required string MemberStatus { get; set; }
-        public ObjectId? InviteByAccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? InviteByAccId { get; set; }
         public required DateTime LeftAt { get; set; }
     }
 }
