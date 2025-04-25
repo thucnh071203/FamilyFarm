@@ -6,20 +6,21 @@ using System.Threading.Tasks;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Builder.Extensions;
+using Microsoft.Extensions.Configuration;
 
 namespace FamilyFarm.BusinessLogic.Config
 {
     public abstract class FirebaseConnection
     {
-        protected FirebaseConnection()
+        public FirebaseConnection(IConfiguration configuration)
         {
-            EnsureFirebaseInitialized();
+            EnsureFirebaseInitialized(configuration);
         }
 
         private static bool _isInitialized = false;
         private static readonly object _lock = new();
 
-        private void EnsureFirebaseInitialized()
+        protected static void EnsureFirebaseInitialized(IConfiguration configuration)
         {
             if (!_isInitialized)
             {
@@ -27,7 +28,7 @@ namespace FamilyFarm.BusinessLogic.Config
                 {
                     if (!_isInitialized)
                     {
-                        var path = Path.Combine(Directory.GetCurrentDirectory(), "Firebase", "prn221-69738-firebase-adminsdk-syn4i-4dee075804.json");
+                        var path = configuration["Firebase:CredentialsPath"];
 
                         FirebaseApp.Create(new AppOptions
                         {

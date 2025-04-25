@@ -51,7 +51,7 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IReactionPostService, ReactionPostService>();
 builder.Services.AddScoped<IReactionPostService, ReactionPostService>();
 builder.Services.AddScoped<IReportService, ReportService>();
-//builder.Services.AddScoped<FirebaseConnection>();
+builder.Services.AddScoped<IUploadFileService, UploadFileService>();
 
 builder.Services.AddHttpContextAccessor();
 
