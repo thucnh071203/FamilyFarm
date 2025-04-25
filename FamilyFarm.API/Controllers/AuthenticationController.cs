@@ -223,7 +223,7 @@ namespace FamilyFarm.API.Controllers
 
         [AllowAnonymous]
         [HttpPut("generate-OTP/{id}")]
-        public async Task<IActionResult> GenerateOtp(string id, [FromBody] GenerateOtpDTO request)
+        public async Task<IActionResult> GenerateOtp(string id)
         {
             var account = await _accountService.GetAccountById(id);
             if (account == null)
@@ -236,12 +236,16 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("Account is inactivate.");
             }
 
-            account.Otp = request.Otp;
+            var random = new Random();
+            int otpRandom = random.Next(100000, 999999);
+
+            account.Otp = otpRandom;
+            account.CreateOtp = DateTime.UtcNow;
             await _accountService.UpdateOtpAsync(id, account);
             return Ok(new
             {
                 message = "OTP updated successfully.",
-                otp = request.Otp
+                otp = otpRandom
             });
         }
 
@@ -263,6 +267,7 @@ namespace FamilyFarm.API.Controllers
 
             account.PasswordHash = request.Password;
             account.Otp = null;
+            account.CreateOtp = null;
             await _accountService.UpdateAsync(id, account);
             return Ok("Password reset successfully!");
         }
