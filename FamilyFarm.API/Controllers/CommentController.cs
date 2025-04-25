@@ -28,8 +28,11 @@ namespace FamilyFarm.API.Controllers
         /// If no comments exist for the post, it returns an empty list with a 200 OK status.
         /// </returns>
         [HttpGet("all-by-post/{postId}")]
-        public async Task<IActionResult> GetAllByPost(string postId) =>
-            Ok(await _commentService.GetAllByPost(postId));
+        public async Task<IActionResult> GetAllByPost(string postId)
+        {
+            var comments = await _commentService.GetAllByPost(postId);
+            return Ok(comments);
+        }
 
         /// <summary>
         /// Retrieves a comment by its unique identifier.

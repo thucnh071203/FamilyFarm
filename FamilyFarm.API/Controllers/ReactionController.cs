@@ -6,10 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace FamilyFarm.API.Controllers
 {
     // chua co post controller nen de tam reaction o day (co the chuyen qua post controller hoac khong)
-    [Route("api/reaction")]
-    //[Route("api/reaction")] // neu lam chung cho reaction-post và reaction-comment trong day (recommendation)
+    [Route("api/reaction")] // neu lam chung cho reaction-post và reaction-comment trong day (recommendation)
     [ApiController]
-    // public class ReactionController : ControllerBase
     public class ReactionController : ControllerBase
     {
         private readonly IReactionPostService _reactionPostService;
@@ -47,8 +45,8 @@ namespace FamilyFarm.API.Controllers
         /// - 200 OK with a success message if the reaction was successfully toggled,
         /// - 400 BadRequest if the reaction does not exist or is invalid (e.g., invalid category or account ID).
         /// </returns>
-        [HttpPost("toggle/{postId}")]
-        public async Task<IActionResult> ToggleReaction(string postId, [FromBody] ReactionRequestDTO request)
+        [HttpPost("toggle-reaction-post/{postId}")]
+        public async Task<IActionResult> ToggleReactionPost(string postId, [FromBody] ReactionRequestDTO request)
         {
             var result = await _reactionPostService.ToggleReactionAsync(postId, request.AccId, request.CategoryReactionId);
             if (!result)
