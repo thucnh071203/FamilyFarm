@@ -26,6 +26,8 @@ namespace FamilyFarm.BusinessLogic
 
 
         Task<RegisterFarmerResponseDTO?> RegisterFarmer(RegisterFarmerRequestDTO request);
+        bool CheckValidEmail(string email);
+        bool CheckValidPhoneNumber(string phone);
 
         Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request);
 

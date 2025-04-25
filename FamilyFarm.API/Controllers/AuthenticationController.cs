@@ -44,7 +44,7 @@ namespace FamilyFarm.API.Controllers
         [HttpPost("refresh-token")]
         public async Task<ActionResult<LoginResponseDTO>> Refresh([FromBody] RefreshTokenRequestDTO request)
         {
-            if(string.IsNullOrEmpty(request.Token)) 
+            if (string.IsNullOrEmpty(request.Token))
                 return BadRequest("Invalid Token!");
 
             var result = await _authenService.ValidateRefreshToken(request.Token);
@@ -56,7 +56,7 @@ namespace FamilyFarm.API.Controllers
         [HttpPost("registerExpert")]
         public async Task<ActionResult<RegisterExpertReponseDTO>> RegisterExpert([FromBody] RegisterExpertRequestDTO request)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 List<string> listError = new List<string>();
 
@@ -72,7 +72,7 @@ namespace FamilyFarm.API.Controllers
                 {
                     listError.Add("This identify number is invalid!");
                 }
-                if(listError.Count !=0)
+                if (listError.Count != 0)
                 {
                     return StatusCode(423, listError);
                 }
@@ -101,20 +101,56 @@ namespace FamilyFarm.API.Controllers
             {
                 return BadRequest(request);
             }
-          
-            
 
-           
+
+
+
         }
 
 
         [HttpPost("register-farmer")]
         public async Task<ActionResult<RegisterFarmerResponseDTO>> RegisterFarmer([FromBody] RegisterFarmerRequestDTO request)
         {
-            var result = await _authenService.RegisterFarmer(request);
-            return result.IsSuccess ? Ok(result) : BadRequest(result);
-        }
+            if (ModelState.IsValid)
+            {
+                List<string> listError = new List<string>();
 
+                if (!_authenService.CheckValidEmail(request.Email))
+                {
+                    listError.Add("This email is invalid!");
+                }
+                if (!_authenService.CheckValidPhoneNumber(request.Phone))
+                {
+                    listError.Add("This phone is invalid!");
+                }
+
+                if (listError.Count != 0)
+                {
+                    return StatusCode(400, listError);
+                }
+
+                else
+                {
+                    var result = await _authenService.RegisterFarmer(request);
+
+                    if (result == null)
+                    {
+                        return StatusCode(500, "Internal server error during registration.");
+                    }
+
+                    if (!result.IsSuccess)
+                    {
+                   
+                        return StatusCode(400, result);
+                    }
+                          return Ok(result);
+                }
+            }
+            else
+            {
+                return BadRequest(request);
+                            }
+        }
 
         [HttpPost("login-facebook")]
         public async Task<ActionResult<LoginResponseDTO>> LoginFacebook([FromBody] LoginFacebookRequestDTO request)
