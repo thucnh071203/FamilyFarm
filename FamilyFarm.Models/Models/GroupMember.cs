@@ -26,6 +26,6 @@ namespace FamilyFarm.Models.Models
         public required string MemberStatus { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
         public string? InviteByAccId { get; set; }
-        public required DateTime LeftAt { get; set; }
+        public required DateTime? LeftAt { get; set; }
     }
 }

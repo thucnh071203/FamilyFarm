@@ -27,7 +27,7 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             if (!ObjectId.TryParse(groupId, out _)) return null;
 
-            return await _Groups.Find(g => g.GroupId == groupId).FirstOrDefaultAsync();
+            return await _Groups.Find(g => g.GroupId == groupId && g.IsDeleted != true).FirstOrDefaultAsync();
         }
 
         public async Task<Group> CreateAsync(Group group)

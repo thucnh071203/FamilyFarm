@@ -40,7 +40,7 @@ namespace FamilyFarm.API.Controllers
 
             await _groupService.CreateGroup(addGroup);
 
-            return CreatedAtAction(nameof(GetGroupById), new { id = addGroup.GroupId }, addGroup);
+            return CreatedAtAction(nameof(GetGroupById), new { groupId = addGroup.GroupId }, addGroup);
         }
 
         [HttpPut("update/{groupId}")]
