@@ -165,18 +165,18 @@ namespace FamilyFarm.API.Controllers
                             }
         }
 
-        [HttpPost("login-facebook")]
-        public async Task<ActionResult<LoginResponseDTO>> LoginFacebook([FromBody] LoginFacebookRequestDTO request)
-        {
-            var result = await _authenService.LoginFacebook(request);
+        //[HttpPost("login-facebook")]
+        //public async Task<ActionResult<LoginResponseDTO>> LoginFacebook([FromBody] LoginFacebookRequestDTO request)
+        //{
+        //    var result = await _authenService.LoginFacebook(request);
 
-            if (result != null && result.Message != null)
-            {
-                return StatusCode(423, result);
-            }
+        //    if (result != null && result.Message != null)
+        //    {
+        //        return StatusCode(423, result);
+        //    }
 
-            return result is not null ? result : Unauthorized();
-        }
+        //    return result is not null ? result : Unauthorized();
+        //}
 
         [AllowAnonymous]
         [HttpPost("login-google")]
