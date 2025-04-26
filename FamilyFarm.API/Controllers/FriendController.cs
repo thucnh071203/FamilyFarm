@@ -1,6 +1,7 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -17,36 +18,42 @@ namespace FamilyFarm.API.Controllers
         {
             _friendService = friendService;
         }
-
         /// <summary>
-        /// Lấy danh sách lời mời kết bạn ĐÃ GỬI
+        /// Retrieves the list of friend requests SENT by a user that are still in PENDING status.
         /// </summary>
+        /// <param name="userId">The ID of the user who sent the friend requests.</param>
+        /// <returns>A list of pending sent friend requests, or an empty list if none found.</returns>
 
-        [HttpGet("requests/sent/{userId}")]
-        public async Task<IActionResult> GetSentFriendRequests(string userId)
+        [HttpGet("requests-sent/{userId}")]
+        public async Task<IActionResult> GetSendRequest(string userId)
         {
-            var sentRequests = await _friendService.GetAllSendFriendRequests(userId);
-            return Ok(sentRequests);
+            var pendingReports = await _friendService.GetAllSendFriendRequests(userId);
+
+            if (pendingReports == null || !pendingReports.Any())
+            {
+                return Ok(new List<Friend>());
+            }
+
+            return Ok(pendingReports);
         }
 
         /// <summary>
-        /// Lấy danh sách lời mời kết bạn ĐÃ NHẬN
+        /// Retrieves the list of friend requests RECEIVED by a user that are still in PENDING status.
         /// </summary>
-        [HttpGet("received-requests/{receiverId}")]
-        public async Task<IActionResult> GetReceivedRequestsAsync(string receiverId)
+        /// <param name="userId">The ID of the user who received the friend requests.</param>
+        /// <returns>A list of pending received friend requests, or an empty list if none found.</returns>
+
+        [HttpGet("requests-receive/{userId}")]
+        public async Task<IActionResult> GetReceiveRequest(string userId)
         {
-            // In giá trị nhận được từ request
-            Debug.WriteLine($"Received receiverId: {receiverId}");
+            var pendingReports = await _friendService.GetAllReceiveFriendRequests(userId);
 
-            // Gọi service để lấy dữ liệu
-            var result = await _friendService.GetAllReceiveFriendRequests(receiverId);
-
-            if (result.Count == 0)
+            if (pendingReports == null || !pendingReports.Any())
             {
-                return NotFound("No pending requests found.");
+                return Ok(new List<Friend>());
             }
 
-            return Ok(result);
+            return Ok(pendingReports);
         }
 
     }

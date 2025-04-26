@@ -14,51 +14,37 @@ namespace FamilyFarm.DataAccess.DAOs
 {
     public class FriendRequestDAO
     {
-        private readonly IMongoCollection<Friend> _Requests;
+        private readonly IMongoCollection<Friend> _Friends;
         public FriendRequestDAO(IMongoDatabase database)
         {
-            _Requests = database.GetCollection<Friend>("Request");
+            _Friends = database.GetCollection<Friend>("Friend");
         }
 
-        public async Task<List<Friend>> GetSentFriendRequestsAsync(string senderId)
+
+        /// <summary>
+        /// Retrieves a list of pending friend requests sent by the specified sender ID.
+        /// </summary>
+        /// <param name="senderId">The ID of the sender who initiated the friend requests.</param>
+        /// <returns>
+        /// A list of friend requests sent by the specified sender with a status of "Pending". 
+        /// If the sender ID is invalid (cannot be parsed as an ObjectId), returns null.
+        /// </returns>
+        public async Task<List<Friend?>> GetSentFriendRequestsAsync(string senderId)
         {
-            if (string.IsNullOrEmpty(senderId) || !ObjectId.TryParse(senderId, out ObjectId senderObjId))
-                return new List<Friend>();
-
-            var filter = Builders<Friend>.Filter.Eq(f => f.SenderId, senderId) &
-                         Builders<Friend>.Filter.Eq(f => f.Status, "Pending");
-
-            return await _Requests.Find(filter).ToListAsync();
+            if (!ObjectId.TryParse(senderId, out _))
+                return null;
+            return await _Friends.Find(r => r.SenderId == senderId && r.Status == "Pending").ToListAsync();
         }
 
-        // Phương thức lấy yêu cầu kết bạn đã nhận
-        public async Task<List<Friend>> GetReceivedFriendRequestsAsync(string receiverId)
+
+
+        public async Task<List<Friend?>> GetReceiveFriendRequestsAsync(string receveiId)
         {
-            // Kiểm tra receiverId có hợp lệ không
-            if (string.IsNullOrEmpty(receiverId) || !ObjectId.TryParse(receiverId, out ObjectId receiverObjId))
-            {
-                Debug.WriteLine("Invalid receiverId.");
-                return new List<Friend>();  // Trả về danh sách rỗng nếu receiverId không hợp lệ
-            }
-
-            // In giá trị receiverObjId
-            Debug.WriteLine($"Converted receiverObjId: {receiverObjId}");
-
-            // Xây dựng filter với ObjectId và Status "Pending"
-            var filter = Builders<Friend>.Filter.Eq("ReceiverId", receiverObjId) &
-                         Builders<Friend>.Filter.Eq("Status", "Pending");
-
-            // In ra filter để kiểm tra
-            Debug.WriteLine($"Filter: {filter}");
-
-            // Thực hiện truy vấn
-            var result = await _Requests.Find(filter).ToListAsync();
-
-            // Debug thông tin kết quả
-            Debug.WriteLine($"Found {result.Count} requests.");
-
-            return result;
+            if (!ObjectId.TryParse(receveiId, out _))
+                return null;
+            return await _Friends.Find(r => r.ReceiverId == receveiId && r.Status == "Pending").ToListAsync();
         }
+
 
 
     }

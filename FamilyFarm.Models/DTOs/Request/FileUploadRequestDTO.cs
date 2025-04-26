@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace FamilyFarm.Models.DTOs.Request
 {
-    public class ReactionRequestDTO
+    public class FileUploadRequestDTO
     {
-        public string AccId { get; set; }
-        public string CategoryReactionId { get; set; }
+        public IFormFile? imageFile { get; set; }
+        public IFormFile? otherFile { get; set; } 
     }
 }

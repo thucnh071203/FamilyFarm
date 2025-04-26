@@ -1,0 +1,31 @@
+﻿using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FamilyFarm.Repositories.Implementations
+{
+    public class PostRepository : IPostRepository
+    {
+        private readonly PostDAO _postDAO;
+
+        public PostRepository(PostDAO postDAO)
+        {
+            _postDAO = postDAO;
+        }
+
+        public async Task<List<Post>> SearchPostsByKeyword(string keyword)
+        {
+            return await _postDAO.SearchPostsByKeywordAsync(keyword);
+        }
+
+        public async Task<List<Post>> SearchPostsByCategories(List<string> categoryIds, bool isAndLogic)
+        {
+            return await _postDAO.SearchPostsByCategoriesAsync(categoryIds, isAndLogic);
+        }
+    }
+}

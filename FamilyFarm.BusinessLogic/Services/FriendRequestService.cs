@@ -25,12 +25,12 @@ namespace FamilyFarm.BusinessLogic.Services
             var sentRequests = await _requestRepository.GetSentFriendRequests(senderId);
             return sentRequests;
         }
-
-        public async Task<List<Friend>> GetAllReceiveFriendRequests(string receiverId)
+        public async Task<List<Friend>> GetAllReceiveFriendRequests(string receveiId)
         {
-            var receiveRequests = await _requestRepository.GetReceiveFriendRequests(receiverId);
+            var receiveRequests = await _requestRepository.GetSentFriendRequests(receveiId);
             return receiveRequests;
         }
+
 
     }
 }

@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace FamilyFarm.Repositories.Interfaces
 {
-    public interface IFriendRequestRepository
+    public interface IPostRepository
     {
-        Task<List<Friend>> GetSentFriendRequests(string senderId);
-        Task<List<Friend>> GetReceiveFriendRequests(string receveiId);
-
+        Task<List<Post>> SearchPostsByKeyword(string keyword);
+        Task<List<Post>> SearchPostsByCategories(List<string> categoryIds, bool isAndLogic);
     }
 }

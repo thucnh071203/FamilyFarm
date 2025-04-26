@@ -23,11 +23,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _requestDAO.GetSentFriendRequestsAsync(senderId);
         }
-        public async Task<List<Friend>> GetReceiveFriendRequests(string receiverId)
+        public async Task<List<Friend>> GetReceiveFriendRequests(string receveiId)
         {
-            return await _requestDAO.GetReceivedFriendRequestsAsync(receiverId);
+            return await _requestDAO.GetReceiveFriendRequestsAsync(receveiId);
         }
 
-    
     }
 }

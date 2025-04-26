@@ -10,6 +10,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
     public interface IFriendRequestService
     {
         Task<List<Friend>> GetAllSendFriendRequests(string senderId);
-        Task<List<Friend>> GetAllReceiveFriendRequests(string receiverId);
+        Task<List<Friend>> GetAllReceiveFriendRequests(string receveiId);
     }
 }
