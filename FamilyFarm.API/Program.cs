@@ -44,6 +44,7 @@ builder.Services.AddScoped<HashtagDAO>();
 builder.Services.AddScoped<PostCategoryDAO>();
 builder.Services.AddScoped<PostImageDAO>();
 builder.Services.AddScoped<PostTagDAO>();
+builder.Services.AddScoped<FriendDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -59,6 +60,7 @@ builder.Services.AddScoped<IHashTagRepository, HashTagRepository>();
 builder.Services.AddScoped<IPostCategoryRepository, PostCategoryRepository>();
 builder.Services.AddScoped<IPostImageRepository, PostImageRepository>();
 builder.Services.AddScoped<IPostTagRepository, PostTagRepository>();
+builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -72,6 +74,7 @@ builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IFriendRequestService, FriendRequestService>();
+builder.Services.AddScoped<IFriendService, FriendService>();
 
 builder.Services.AddHttpContextAccessor();
 
