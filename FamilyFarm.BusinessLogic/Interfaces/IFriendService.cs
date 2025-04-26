@@ -1,4 +1,5 @@
-﻿using FamilyFarm.Models.Models;
+﻿using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +10,9 @@ namespace FamilyFarm.BusinessLogic.Interfaces
 {
     public interface IFriendService
     {
-        Task<List<Account>> GetListFriends(string userId);
-        Task<List<Account>> GetListFollower(string receiverId);
-        Task<List<Account>> GetListFollowing(string senderId);
+        Task<FriendResponseDTO?> GetListFriends(string userId);
+        Task<FriendResponseDTO?> GetListFollower(string receiverId);
+        Task<FriendResponseDTO?> GetListFollowing(string senderId);
         Task<bool> Unfriend(string senderId, string receiverId);
     }
 }

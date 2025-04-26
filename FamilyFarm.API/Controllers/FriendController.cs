@@ -1,7 +1,10 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -13,10 +16,14 @@ namespace FamilyFarm.API.Controllers
     public class FriendController : ControllerBase
     {
         private readonly IFriendRequestService _friendService;
+        private readonly IFriendService _serviceOfFriend;
+        private readonly IAuthenticationService _authenService;
 
-        public FriendController(IFriendRequestService friendService)
+        public FriendController(IFriendRequestService friendService,IFriendService service, IAuthenticationService authorizationService)
         {
             _friendService = friendService;
+            _serviceOfFriend = service;
+            _authenService = authorizationService;
         }
         /// <summary>
         /// Retrieves the list of friend requests SENT by a user that are still in PENDING status.
@@ -54,6 +61,86 @@ namespace FamilyFarm.API.Controllers
             }
 
             return Ok(pendingReports);
+        }
+       
+        [HttpGet("list-friend")]
+        [Authorize]
+        public async Task<ActionResult<FriendResponseDTO>> GetListFriends()
+        {
+            var username = _authenService.GetDataFromToken();
+
+            var result = await _serviceOfFriend.GetListFriends(username);
+
+            if (result == null)
+                return BadRequest();
+
+            if (result.IsSuccess == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("list-friend-other")]
+        [Authorize]
+        public async Task<ActionResult<FriendResponseDTO>> GetListFriends(string username)
+        {
+            var result = await _serviceOfFriend.GetListFriends(username);
+
+            if (result == null)
+                return BadRequest();
+
+            if (result.IsSuccess == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("list-follower")]
+        [Authorize]
+        public async Task<ActionResult<FriendResponseDTO>> GetListFollower()
+        {
+            var username = _authenService.GetDataFromToken();
+
+            var result = await _serviceOfFriend.GetListFollower(username);
+
+            if (result == null)
+                return BadRequest();
+
+            if (result.IsSuccess == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("list-following")]
+        [Authorize]
+        public async Task<ActionResult<FriendResponseDTO>> GetListFollowing()
+        {
+            var username = _authenService.GetDataFromToken();
+
+            var result = await _serviceOfFriend.GetListFollowing(username);
+
+            if (result == null)
+                return BadRequest();
+
+            if (result.IsSuccess == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpDelete("unfriend")]
+        [Authorize]
+        public async Task<ActionResult> Unfriend(string receiver)
+        {
+            var username = _authenService.GetDataFromToken();
+
+            var result = await _serviceOfFriend.Unfriend(username, receiver);
+
+            if (result == false)
+                return BadRequest();
+
+            return Ok(result);
         }
 
     }

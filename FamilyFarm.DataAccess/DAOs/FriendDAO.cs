@@ -16,7 +16,7 @@ namespace FamilyFarm.DataAccess.DAOs
         public FriendDAO(IMongoDatabase database)
         {
             _Friend = database.GetCollection<Friend>("Friend");
-            _Account = database.GetCollection<Account>("Friend");
+            _Account = database.GetCollection<Account>("Account");
         }
 
         public async Task<List<Friend>> GetAllAsync()
@@ -32,7 +32,7 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             // Lấy danh sách receiverId từ các Friend đã là friend
             var friendFilter = Builders<Friend>.Filter.And(
-        Builders<Friend>.Filter.Eq(f => f.Status, "Friend"),
+        Builders<Friend>.Filter.Eq(f => f.Status, "Accepted"),
         Builders<Friend>.Filter.Or(
             Builders<Friend>.Filter.Eq(f => f.SenderId, userId),
             Builders<Friend>.Filter.Eq(f => f.ReceiverId, userId)
@@ -63,7 +63,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var friendFilter = Builders<Friend>.Filter.And(
                 Builders<Friend>.Filter.Eq(f => f.ReceiverId, receiverId),
-                Builders<Friend>.Filter.Eq(f => f.Status, "Follow")
+                Builders<Friend>.Filter.Eq(f => f.Status, "Pending")
             );
 
             var friends = await _Friend.Find(friendFilter).ToListAsync();
@@ -86,7 +86,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var friendFilter = Builders<Friend>.Filter.And(
                 Builders<Friend>.Filter.Eq(f => f.SenderId, senderId),
-                Builders<Friend>.Filter.Eq(f => f.Status, "Follow")
+                Builders<Friend>.Filter.Eq(f => f.Status, "Pending")
             );
 
             var friends = await _Friend.Find(friendFilter).ToListAsync();
@@ -141,7 +141,7 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId))
             {
-                throw new ArgumentException("SenderId and ReceiverId are null or empty.");
+                throw new ArgumentException("Sender and ReceiverI are null or empty.");
             }
 
             var filter = Builders<Friend>.Filter.And(
