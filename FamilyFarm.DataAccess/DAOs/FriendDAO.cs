@@ -1,0 +1,156 @@
+﻿using FamilyFarm.Models.Models;
+using MongoDB.Driver;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FamilyFarm.DataAccess.DAOs
+{
+    public class FriendDAO : SingletonBase
+    {
+        private readonly IMongoCollection<Friend> _Friend;
+        private readonly IMongoCollection<Account> _Account;
+
+        public FriendDAO(IMongoDatabase database)
+        {
+            _Friend = database.GetCollection<Friend>("Friend");
+            _Account = database.GetCollection<Account>("Friend");
+        }
+
+        public async Task<List<Friend>> GetAllAsync()
+        {
+            return await _Friend.Find(_ => true).ToListAsync();
+        }
+        /// <summary>
+        /// use to get list friend of user, list friend of others
+        /// </summary>
+        /// <param name="userid"> cũng có thể là receiverId</param>
+        /// <returns></returns>
+        public async Task<List<Account>> GetListFriends(string userId)
+        {
+            // Lấy danh sách receiverId từ các Friend đã là friend
+            var friendFilter = Builders<Friend>.Filter.And(
+        Builders<Friend>.Filter.Eq(f => f.Status, "Friend"),
+        Builders<Friend>.Filter.Or(
+            Builders<Friend>.Filter.Eq(f => f.SenderId, userId),
+            Builders<Friend>.Filter.Eq(f => f.ReceiverId, userId)
+            )
+            );
+
+
+            var friends = await _Friend.Find(friendFilter).ToListAsync();
+
+            var friendIds = friends.Select(f =>
+            f.SenderId == userId ? f.ReceiverId : f.SenderId
+            ).Distinct().ToList();
+
+            //  Lấy thông tin account từ receiverIds
+            var accountFilter = Builders<Account>.Filter.In(a => a.AccId, friendIds);
+            var friendAccounts = await _Account.Find(accountFilter).ToListAsync();
+
+            return friendAccounts;
+        }
+
+        /// <summary>
+        /// use to get list follower of user
+        /// </summary>
+        /// <param name="receiverId">là người nhận được yêu cầu kết bạn, tức là người đang có follower</param>
+        /// <returns></returns>
+        public async Task<List<Account>> GetListFollower(string receiverId)
+        {
+
+            var friendFilter = Builders<Friend>.Filter.And(
+                Builders<Friend>.Filter.Eq(f => f.ReceiverId, receiverId),
+                Builders<Friend>.Filter.Eq(f => f.Status, "Follow")
+            );
+
+            var friends = await _Friend.Find(friendFilter).ToListAsync();
+            var senderId = friends.Select(f => f.SenderId).ToList();
+
+
+            var accountFilter = Builders<Account>.Filter.In(a => a.AccId, senderId);
+            var followerAccounts = await _Account.Find(accountFilter).ToListAsync();
+
+            return followerAccounts;
+        }
+
+        /// <summary>
+        /// use to get list following of senderId, tức là user
+        /// </summary>
+        /// <param name="senderId">là người gửi yêu cầu kết bạn đến receiverId, tức đang following receiverId </param>
+        /// <returns></returns>
+        public async Task<List<Account>> GetListFollowing(string senderId)
+        {
+
+            var friendFilter = Builders<Friend>.Filter.And(
+                Builders<Friend>.Filter.Eq(f => f.SenderId, senderId),
+                Builders<Friend>.Filter.Eq(f => f.Status, "Follow")
+            );
+
+            var friends = await _Friend.Find(friendFilter).ToListAsync();
+            var receiverId = friends.Select(f => f.ReceiverId).ToList();
+
+
+            var accountFilter = Builders<Account>.Filter.In(a => a.AccId, receiverId);
+            var followerAccounts = await _Account.Find(accountFilter).ToListAsync();
+
+            return followerAccounts;
+        }
+
+        public async Task<Friend?> GetByIdAsync(string? Friend_id)
+        {
+            if (!string.IsNullOrEmpty(Friend_id))
+            {
+                return await _Friend.Find(r => r.FriendId == Friend_id).FirstOrDefaultAsync();
+            }
+            return null;
+        }
+
+        public async Task CreateAsync(Friend Friend)
+        {
+            await _Friend.InsertOneAsync(Friend);
+        }
+
+        public async Task UpdateAsync(string Friend_id, Friend Friend)
+        {
+            if (string.IsNullOrEmpty(Friend_id))
+            {
+                await _Friend.ReplaceOneAsync(p => p.FriendId == Friend_id, Friend);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid ObjectId format", nameof(Friend_id));
+            }
+        }
+
+        public async Task DeleteAsync(string? id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                await _Friend.DeleteOneAsync(p => p.FriendId == id);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid ObjectId format", nameof(id));
+            }
+        }
+
+        public async Task<bool> Unfriend(string senderId, string receiverId)
+        {
+            if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId))
+            {
+                throw new ArgumentException("SenderId and ReceiverId are null or empty.");
+            }
+
+            var filter = Builders<Friend>.Filter.And(
+                Builders<Friend>.Filter.Eq(f => f.SenderId, senderId),
+                Builders<Friend>.Filter.Eq(f => f.ReceiverId, receiverId)
+            );
+
+            var result = await _Friend.DeleteOneAsync(filter);
+            return result.DeletedCount > 0;
+        }
+    }
+}
