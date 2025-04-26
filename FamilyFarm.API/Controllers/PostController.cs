@@ -1,5 +1,9 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic;
+using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +14,12 @@ namespace FamilyFarm.API.Controllers
     public class PostController : ControllerBase
     {
         private readonly IPostService _postService;
+        private readonly IAuthenticationService _authenService;
 
-        public PostController(IPostService postService)
+        public PostController(IPostService postService, IAuthenticationService authenService)
         {
             _postService = postService;
+            _authenService = authenService;
         }
 
         ///// <summary>
@@ -59,6 +65,23 @@ namespace FamilyFarm.API.Controllers
 
             // Return the posts wrapped in an OK response if search is successful
             return Ok(posts);
+        }
+
+        [HttpPost("create")]
+        [Authorize]
+        public async Task<ActionResult<CreatePostResponseDTO>> CreateNewPost([FromForm] CreatePostRequestDTO request)
+        {
+            var username = _authenService.GetDataFromToken();
+
+            var result = await _postService.AddPost(username, request);
+
+            if (result == null) 
+                return BadRequest();
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
         }
     }
 }

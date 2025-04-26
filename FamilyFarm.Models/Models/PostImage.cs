@@ -12,12 +12,12 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string PostImageId { get; set; }
+        public string PostImageId { get; set; }
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string PostId { get; set; }
+        public string PostId { get; set; }
         [BsonRequired]
-        public required string ImageUrl { get; set; }
-        public bool? IsDeleted { get; set; }
+        public string ImageUrl { get; set; }
+        public bool? IsDeleted { get; set; } = false;
     }
 }
