@@ -11,6 +11,6 @@ namespace FamilyFarm.Models.DTOs.Response
     {
         public string? Message { get; set; }
         public bool? IsSuccess { get; set; }
-        public FriendMapper? Data { get; set; }
+        public List<FriendMapper>? Data { get; set; }
     }
 }
