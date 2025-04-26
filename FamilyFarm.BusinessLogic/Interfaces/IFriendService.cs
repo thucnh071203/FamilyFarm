@@ -1,0 +1,18 @@
+﻿using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FamilyFarm.BusinessLogic.Interfaces
+{
+    public interface IFriendService
+    {
+        Task<FriendResponseDTO?> GetListFriends(string userId);
+        Task<FriendResponseDTO?> GetListFollower(string receiverId);
+        Task<FriendResponseDTO?> GetListFollowing(string senderId);
+        Task<bool> Unfriend(string senderId, string receiverId);
+    }
+}

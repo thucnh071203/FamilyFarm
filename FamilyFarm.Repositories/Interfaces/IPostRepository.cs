@@ -11,5 +11,6 @@ namespace FamilyFarm.Repositories.Interfaces
     {
         Task<List<Post>> SearchPostsByKeyword(string keyword);
         Task<List<Post>> SearchPostsByCategories(List<string> categoryIds, bool isAndLogic);
+        Task<Post?> CreatePost(Post? post);
     }
 }

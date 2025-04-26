@@ -27,5 +27,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.SearchPostsByCategoriesAsync(categoryIds, isAndLogic);
         }
+
+        public async Task<Post?> CreatePost(Post? post)
+        {
+            return await _postDAO.CreatePost(post);
+        }
     }
 }

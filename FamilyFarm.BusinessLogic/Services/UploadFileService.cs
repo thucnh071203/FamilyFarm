@@ -47,6 +47,42 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        public async Task<List<FileUploadResponseDTO>> UploadListImage(List<IFormFile> files)
+        {
+            var uploadResults = new List<FileUploadResponseDTO>();
+
+            var storage = new FirebaseStorage(
+                "prn221-69738.appspot.com",
+                new FirebaseStorageOptions
+                {
+                    AuthTokenAsyncFactory = () => Task.FromResult(""),
+                    ThrowOnCancel = true
+                });
+
+            foreach (var file in files)
+            {
+                if (file == null || file.Length == 0)
+                    continue; // Bỏ qua file null hoặc file rỗng
+
+                var stream = file.OpenReadStream();
+                var fileName = $"image/{DateTime.UtcNow.Ticks}_{file.FileName}";
+
+                var imageUrl = await storage
+                    .Child(fileName)
+                    .PutAsync(stream);
+
+                uploadResults.Add(new FileUploadResponseDTO
+                {
+                    Message = "Upload image successfully.",
+                    UrlFile = imageUrl,
+                    TypeFile = "image",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            return uploadResults;
+        }
+
         public async Task<FileUploadResponseDTO> UploadOtherFile(IFormFile file)
         {
             var stream = file.OpenReadStream();

@@ -41,6 +41,13 @@ builder.Services.AddScoped<PostDAO>();
 builder.Services.AddScoped<FriendRequestDAO>();
 builder.Services.AddScoped<GroupRoleDAO>();
 builder.Services.AddScoped<GroupMemberDAO>();
+builder.Services.AddScoped<CategoryPostDAO>();
+builder.Services.AddScoped<HashtagDAO>();
+builder.Services.AddScoped<PostCategoryDAO>();
+builder.Services.AddScoped<PostImageDAO>();
+builder.Services.AddScoped<PostTagDAO>();
+builder.Services.AddScoped<FriendDAO>();
+>>>>>>> main
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -53,6 +60,12 @@ builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IFriendRequestRepository, FriendRequestRepository>();
 builder.Services.AddScoped<IGroupRoleRepository, GroupRoleRepository>();
 builder.Services.AddScoped<IGroupMemberRepository, GroupMemberRepository>();
+builder.Services.AddScoped<ICategoryPostRepository, CategoryPostRepository>();
+builder.Services.AddScoped<IHashTagRepository, HashTagRepository>();
+builder.Services.AddScoped<IPostCategoryRepository, PostCategoryRepository>();
+builder.Services.AddScoped<IPostImageRepository, PostImageRepository>();
+builder.Services.AddScoped<IPostTagRepository, PostTagRepository>();
+builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -68,6 +81,7 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IFriendRequestService, FriendRequestService>();
 builder.Services.AddScoped<IGroupRoleService, GroupRoleService>();
 builder.Services.AddScoped<IGroupMemberService, GroupMemberService>();
+builder.Services.AddScoped<IFriendService, FriendService>();
 //builder.Services.AddScoped<FirebaseConnection>();
 
 builder.Services.AddHttpContextAccessor();
