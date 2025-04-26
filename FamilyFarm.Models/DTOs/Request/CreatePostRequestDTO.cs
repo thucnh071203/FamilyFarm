@@ -10,11 +10,13 @@ namespace FamilyFarm.Models.DTOs.Request
     public class CreatePostRequestDTO
     {
         public string? PostContent { get; set; }
-        public List<string>? Hashtags { get; set; }
-        public List<string>? ListCategoryOfPost { get; set; }
-        public List<string>? ListTagFriend { get; set; }
-        public List<IFormFile>? ListImage { get; set; }
+        public List<string>? Hashtags { get; set; } //List string hashtag
+        public List<string>? ListCategoryOfPost { get; set; } //List category id
+        public List<string>? ListTagFriend { get; set; } //List account id
+        public List<IFormFile>? ListImage { get; set; } //List file image
         public string? Privacy {  get; set; }
+        public bool? isInGroup { get; set; }
+        public string? GroupId { get; set; }
 
     }
 }

@@ -1,4 +1,6 @@
-﻿using FamilyFarm.Models.Models;
+﻿using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +14,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         //Task<List<Post>> SearchPostsByKeyword(string keyword);
         //Task<List<Post>> SearchPostsByCategories(List<string> categoryIds, bool isAndLogic);
         Task<List<Post>> SearchPosts(string? keyword, List<string>? categoryIds, bool isAndLogic);
+        Task<CreatePostResponseDTO?> AddPost(string? username, CreatePostRequestDTO? request);
     }
 }

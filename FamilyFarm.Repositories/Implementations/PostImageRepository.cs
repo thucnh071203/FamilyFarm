@@ -1,0 +1,31 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories.Interfaces;
+
+namespace FamilyFarm.Repositories.Implementations
+{
+    public class PostImageRepository : IPostImageRepository
+    {
+        private readonly PostImageDAO _dao;
+
+        public PostImageRepository(PostImageDAO dao)
+        {
+            _dao = dao;
+        }
+
+        public async Task<PostImage?> CreatePostImage(PostImage? request)
+        {
+            return await _dao.CreatePostImage(request);
+        }
+
+        public async Task<List<PostImage>?> GetPostImageByPost(string? post_id)
+        {
+            return await _dao.GetAllImageOfPost(post_id);
+        }
+    }
+}

@@ -107,5 +107,26 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Find(p => validPostIds.Contains(p.PostId) && p.IsDeleted == false && p.PostScope == "Public")
                 .ToListAsync();
         }
+
+        /// <summary>
+        ///     Create new post (chưa check các validate)
+        /// </summary>
+        public async Task<Post?> CreatePost(Post? request)
+        {
+            if (request == null)
+                return null;
+
+            //Kiểm tra xem có Id hay chưa, nếu chưa thì tạo Id mới
+            if (string.IsNullOrEmpty(request.PostId))
+            {
+                request.PostId = ObjectId.GenerateNewId().ToString();
+            }
+
+            request.CreatedAt = DateTime.UtcNow;
+
+            await _postCollection.InsertOneAsync(request);
+
+            return request;
+        }
     }
 }
