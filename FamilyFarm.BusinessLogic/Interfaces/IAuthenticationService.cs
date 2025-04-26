@@ -29,7 +29,7 @@ namespace FamilyFarm.BusinessLogic
         bool CheckValidPhoneNumber(string phone);
 
         Task<LoginResponseDTO> LoginFacebook(LoginFacebookRequestDTO request);
-        Task<LoginResponseDTO?> LoginFacebook(LoginFacebookRequestDTO request);
+        //Task<LoginResponseDTO?> LoginFacebook(LoginFacebookRequestDTO request);
 
     }
 }
