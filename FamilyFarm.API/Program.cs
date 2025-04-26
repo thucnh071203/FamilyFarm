@@ -39,6 +39,7 @@ builder.Services.AddScoped<ReportDAO>();
 builder.Services.AddScoped<GroupDAO>();
 builder.Services.AddScoped<PostDAO>();
 builder.Services.AddScoped<FriendRequestDAO>();
+builder.Services.AddScoped<FriendDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -49,6 +50,7 @@ builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IFriendRequestRepository, FriendRequestRepository>();
+builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -62,6 +64,7 @@ builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IFriendRequestService, FriendRequestService>();
+builder.Services.AddScoped<IFriendService, FriendService>();
 //builder.Services.AddScoped<FirebaseConnection>();
 
 builder.Services.AddHttpContextAccessor();
