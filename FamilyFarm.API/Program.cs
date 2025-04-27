@@ -48,6 +48,7 @@ builder.Services.AddScoped<PostImageDAO>();
 builder.Services.AddScoped<PostTagDAO>();
 builder.Services.AddScoped<FriendDAO>();
 
+
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
