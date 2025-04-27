@@ -2,6 +2,7 @@
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -17,31 +18,39 @@ namespace FamilyFarm.API.Controllers
     {
         private readonly IFriendRequestService _friendService;
         private readonly IFriendService _serviceOfFriend;
+        private readonly IAccountService _accountService;
         private readonly IAuthenticationService _authenService;
 
-        public FriendController(IFriendRequestService friendService,IFriendService service, IAuthenticationService authorizationService)
+
+
+        public FriendController(IFriendRequestService friendService, IFriendService serviceOfFriend, IAccountService accountService, IAuthenticationService authenService)
         {
             _friendService = friendService;
-            _serviceOfFriend = service;
-            _authenService = authorizationService;
+            _serviceOfFriend = serviceOfFriend;
+            _accountService = accountService;
+            _authenService = authenService;
         }
+
         /// <summary>
         /// Retrieves the list of friend requests SENT by a user that are still in PENDING status.
         /// </summary>
         /// <param name="userId">The ID of the user who sent the friend requests.</param>
         /// <returns>A list of pending sent friend requests, or an empty list if none found.</returns>
-
-        [HttpGet("requests-sent/{userId}")]
-        public async Task<IActionResult> GetSendRequest(string userId)
+        [HttpGet("requests-sent")]
+        [Authorize]
+        public async Task<ActionResult<FriendResponseDTO>> GetSendRequest()
         {
-            var pendingReports = await _friendService.GetAllSendFriendRequests(userId);
+            var username = _authenService.GetDataFromToken();
 
-            if (pendingReports == null || !pendingReports.Any())
-            {
-                return Ok(new List<Friend>());
-            }
+            var result = await _friendService.GetAllSendFriendRequests(username);
 
-            return Ok(pendingReports);
+            if (result == null)
+                return BadRequest();
+
+            if (result.IsSuccess == false)
+                return NotFound(result);
+
+            return Ok(result);
         }
 
         /// <summary>
@@ -50,19 +59,145 @@ namespace FamilyFarm.API.Controllers
         /// <param name="userId">The ID of the user who received the friend requests.</param>
         /// <returns>A list of pending received friend requests, or an empty list if none found.</returns>
 
-        [HttpGet("requests-receive/{userId}")]
-        public async Task<IActionResult> GetReceiveRequest(string userId)
-        {
-            var pendingReports = await _friendService.GetAllReceiveFriendRequests(userId);
 
-            if (pendingReports == null || !pendingReports.Any())
+        [HttpGet("requests-receive")]
+        [Authorize]
+        public async Task<ActionResult<FriendResponseDTO>> GetReceiveRequest()
+        {
+            var username = _authenService.GetDataFromToken();
+
+            var result = await _friendService.GetAllReceiveFriendRequests(username);
+
+            if (result == null)
+                return BadRequest();
+
+            if (result.IsSuccess == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpPost("accept/{friendId}")]
+        public async Task<IActionResult> AcceptFriendRequest(string friendId)
+        {
+            var result = await _friendService.AcceptFriendRequestAsync(friendId);
+            if (result)
             {
-                return Ok(new List<Friend>());
+                return Ok("Friend request accepted.");
             }
 
-            return Ok(pendingReports);
+            return BadRequest("Friend request could not be accepted.");
         }
-       
+
+        // API Từ chối yêu cầu kết bạn
+        [HttpPost("reject/{friendId}")]
+        public async Task<IActionResult> RejectFriendRequest(string friendId)
+        {
+            var result = await _friendService.RejectFriendRequestAsync(friendId);
+            if (result)
+            {
+                return Ok("Friend request rejected.");
+            }
+
+            return BadRequest("Friend request could not be rejected.");
+        }
+
+
+        /// <summary>
+        /// trả lời những lời mời kết bạn nhận được in PENDING status.
+        /// </summary>
+        /// <param name="request">Nội dung phản hồi gồm FriendID và accept hay reject.</param>
+        /// <returns>A list of pending friend requests, và người dùng sẽ accept hay reject.</returns>
+
+
+        [HttpPost("respond-request")]
+        public async Task<IActionResult> RespondToFriendRequest([FromBody] FriendRequestDTO request)
+        {
+            if (request.Action != "Accept" && request.Action != "Reject")
+            {
+                return BadRequest(new FriendRequestResponse
+                {
+                    Message = "Action phải là 'accept' hoặc 'reject'.",
+                    IsSuccess = false
+                });
+            }
+
+            bool result = request.Action == "Accept"
+                ? await _friendService.AcceptFriendRequestAsync(request.FriendId)
+                : await _friendService.RejectFriendRequestAsync(request.FriendId);
+
+            if (result)
+            {
+                return Ok(new FriendRequestResponse
+                {
+                    Message = "Yêu cầu đã được xử lý thành công.",
+                    IsSuccess = true
+                });
+            }
+            else
+            {
+                return StatusCode(500, new FriendRequestResponse
+                {
+                    Message = "Có lỗi xảy ra khi xử lý yêu cầu.",
+                    IsSuccess = false
+                });
+            }
+        }
+
+
+
+
+        [HttpPost("send-friend-request")]
+        [Authorize]
+        public async Task<IActionResult> SendFriendRequest([FromBody] CreateFriendRequestDTO request)
+        {
+            //var senderId = User.Identity.Name; // Giả sử bạn có thể lấy senderId từ authentication context.
+
+            var username = _authenService.GetDataFromToken();
+
+            var user = await _accountService.GetAccountByUsername(username); // Truy vấn người dùng theo username
+
+            if (user == null)
+            {
+                return BadRequest("Không tìm thấy người dùng.");
+            }
+
+            var sendId = user.AccId; // Lấy AccID từ user tìm được
+
+
+            var receiverId = request.ReceiverId;
+
+            if (string.IsNullOrEmpty(receiverId))
+            {
+                return BadRequest("ReceiverId không hợp lệ.");
+            }
+
+            var result = await _friendService.SendFriendRequestAsync(sendId, receiverId);
+
+            if (result)
+            {
+     
+                return Ok(new FriendRequestResponse
+                {
+                    Message = "Yêu cầu kết bạn đã được gửi.",
+                    IsSuccess = true
+                });
+            }
+            else
+            {
+                return BadRequest(new FriendRequestResponse
+                {
+                    Message = "Fail.",
+                    IsSuccess = false
+                });
+            }
+        }
+
+
+
+
+
+
         [HttpGet("list-friend")]
         [Authorize]
         public async Task<ActionResult<FriendResponseDTO>> GetListFriends()

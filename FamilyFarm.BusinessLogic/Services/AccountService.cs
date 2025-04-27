@@ -24,6 +24,13 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _accountRepository.GetAccountById(acc_id);
         }
 
+
+        public async Task<Account?> GetAccountByUsername(string username)
+        {
+            return await _accountRepository.GetAccountByUsername(username);
+        }
+
+
         public async Task<Account> CreateAsync(Account account)
         {
             account.PasswordHash = _hasher.HashPassword(account.PasswordHash);
