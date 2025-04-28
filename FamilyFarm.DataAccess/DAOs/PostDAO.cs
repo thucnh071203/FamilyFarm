@@ -128,5 +128,64 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return request;
         }
+
+        /// <summary>
+        ///     Update post
+        /// </summary>
+        /// <returns>return a new post after updating, if update is fail return null</returns>
+        public async Task<Post?> UpdatePost(Post? request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.PostId))
+            {
+                return null;
+            }
+
+            try
+            {
+                var filter = Builders<Post>.Filter.Eq(x => x.PostId, request.PostId);
+
+                var update = Builders<Post>.Update
+                    .Set(x => x.PostContent, request.PostContent)
+                    .Set(x => x.PostScope, request.PostScope)
+                    .Set(x => x.UpdatedAt, DateTime.UtcNow);
+                // Thêm các field khác bạn muốn update ở đây
+
+                var result = await _postCollection.UpdateOneAsync(filter, update);
+
+                if (result.ModifiedCount > 0)
+                {
+                    // Sau khi update, lấy lại Post mới nhất để trả về
+                    var updatedPost = await _postCollection.Find(filter).FirstOrDefaultAsync();
+                    return updatedPost;
+                }
+                else
+                {
+                    return null; // Không update được (ví dụ postId không tồn tại)
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating post: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<Post?> GetById(string? post_id)
+        {
+            if (string.IsNullOrEmpty(post_id))
+                return null;
+
+            var filter = Builders<Post>.Filter.Eq(x => x.PostId, post_id);
+
+            try
+            {
+                var post = await _postCollection.Find(filter).FirstOrDefaultAsync();
+                return post;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
     }
 }

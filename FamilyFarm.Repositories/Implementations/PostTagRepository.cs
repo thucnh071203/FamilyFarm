@@ -23,6 +23,16 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.CreatePostTag(request);
         }
 
+        public async Task<bool> DeleteAllByPostId(string? post_id)
+        {
+            return await _dao.DeleteAllByPostId(post_id);
+        }
+
+        public async Task<bool> DeletePostTagById(string? post_tag_id)
+        {
+            return await _dao.DeleteTagById(post_tag_id);
+        }
+
         public async Task<List<PostTag>?> GetPostTagByPost(string? post_id)
         {
             return await _dao.GetAllPostTagOfPost(post_id);

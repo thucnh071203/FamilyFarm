@@ -23,6 +23,16 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.CreatePostCategory(request);
         }
 
+        public async Task<bool> DeleteAllByPostId(string? post_id)
+        {
+            return await _dao.DeleteAllByPostId(post_id);
+        }
+
+        public async Task<bool> DeletePostCategoryById(string? post_category_id)
+        {
+            return await _dao.DeletePostCategoryById(post_category_id);
+        }
+
         public async Task<List<PostCategory>?> GetCategoryByPost(string? post_id)
         {
             return await _dao.GetAllCategoryOfPost(post_id);

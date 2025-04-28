@@ -53,5 +53,47 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return categoriesOfPost;
         }
+
+        /// <summary>
+        ///     Delete category of post by id
+        /// </summary>
+        public async Task<bool> DeletePostCategoryById(string? post_category_id)
+        {
+            if (string.IsNullOrEmpty(post_category_id))
+                return false;
+
+            try
+            {
+                var filter = Builders<PostCategory>.Filter.Eq(x => x.CategoryPostId, post_category_id);
+                var result = await _postCategoryCollection.DeleteOneAsync(filter);
+
+                return result.DeletedCount > 0; // true nếu xóa được ít nhất 1 document
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     Delete all post image by post id
+        /// </summary>
+        public async Task<bool> DeleteAllByPostId(string? post_id)
+        {
+            if (!string.IsNullOrEmpty(post_id))
+                return false;
+
+            try
+            {
+                var filter = Builders<PostCategory>.Filter.Eq(x => x.PostId, post_id);
+                var result = await _postCategoryCollection.DeleteManyAsync(filter);
+
+                return result.DeletedCount > 0; // true nếu xóa được ít nhất 1 document
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

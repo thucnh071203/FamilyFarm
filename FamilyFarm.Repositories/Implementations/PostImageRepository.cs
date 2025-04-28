@@ -23,6 +23,21 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.CreatePostImage(request);
         }
 
+        public async Task<bool> DeleteAllByPostId(string? post_id)
+        {
+            return await _dao.DeleteAllByPostId(post_id);
+        }
+
+        public async Task<bool> DeleteImageById(string? image_id)
+        {
+            return await _dao.DeleteImageById(image_id);
+        }
+
+        public async Task<PostImage?> GetPostImageById(string? image_id)
+        {
+            return await _dao.GetById(image_id);
+        }
+
         public async Task<List<PostImage>?> GetPostImageByPost(string? post_id)
         {
             return await _dao.GetAllImageOfPost(post_id);
