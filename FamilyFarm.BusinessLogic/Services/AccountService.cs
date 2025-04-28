@@ -1,5 +1,7 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.PasswordHashing;
+using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using System;
@@ -24,6 +26,13 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _accountRepository.GetAccountById(acc_id);
         }
 
+
+        public async Task<Account?> GetAccountByUsername(string username)
+        {
+            return await _accountRepository.GetAccountByUsername(username);
+        }
+
+
         public async Task<Account> CreateAsync(Account account)
         {
             account.PasswordHash = _hasher.HashPassword(account.PasswordHash);
@@ -44,6 +53,56 @@ namespace FamilyFarm.BusinessLogic.Services
         public async Task DeleteAsync(string id)
         {
             await _accountRepository.DeleteAsync(id);
+        }
+
+        public async Task<UpdateProfileResponseDTO> UpdateProfileAsync(string username, UpdateProfileRequestDTO request)
+        {
+            if (request == null)
+            {
+                return new UpdateProfileResponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "Request is null"
+                };
+            }
+
+            var account = await _accountRepository.GetAccountByUsername(username);
+
+            if (account == null) {
+                return new UpdateProfileResponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "Account not found"
+                };
+            }
+
+            account.FullName = request.FullName;
+            account.Birthday = request.Birthday;
+            account.Gender = request.Gender;
+            account.City = request.City;
+            account.Country = request.Country;
+            account.Address = request.Address;
+            account.Background = request.Background;
+            account.Certificate = request.Certificate;
+            account.WorkAt = request.WorkAt;
+            account.StudyAt = request.StudyAt;
+
+            var result = await _accountRepository.UpdateAsync(account.AccId, account);
+
+            if (result == null)
+            {
+                return new UpdateProfileResponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "Update fail!"
+                };
+            }
+
+            return new UpdateProfileResponseDTO
+            {
+                IsSuccess = true,
+                MessageError = null
+            };
         }
     }
 }

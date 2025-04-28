@@ -36,6 +36,9 @@ namespace FamilyFarm.BusinessLogic.Services
             _accountRepository = accountRepository;
         }
 
+        /// <summary>
+        ///     Add new post
+        /// </summary>
         public async Task<CreatePostResponseDTO?> AddPost(string? username, CreatePostRequestDTO? request)
         {
             
@@ -240,5 +243,215 @@ namespace FamilyFarm.BusinessLogic.Services
             return posts;
         }
 
+        public async Task<UpdatePostResponseDTO?> UpdatePost(string? username, UpdatePostRequestDTO? request)
+        {
+            //Kiem tra dau vao, PostId tu dong nen khong can kiem tra
+            if (request == null)
+                return null;
+
+            if (username == null)
+                return null;
+
+            var ownAccount = await _accountRepository.GetAccountByUsername(username);
+            if (ownAccount == null)
+                return null;
+
+            //1. Update post thong tin co ban
+            if(request.PostId == null) 
+                return null;
+
+            var post = await _postRepository.GetPostById(request.PostId);
+
+            if (post == null) 
+                return null;
+
+            post.PostContent = request.Content;
+            post.PostScope = request.Privacy;
+            post.UpdatedAt = DateTime.UtcNow;
+
+            var newPost = await _postRepository.UpdatePost(post);
+
+            if (newPost == null) 
+                return new UpdatePostResponseDTO
+                {
+                    Message = "Update post is fail.",
+                    Success = false
+                };
+
+            //2. Update Post Category neu co
+            //2.1 Xoa Post Category cu neu co yeu cau
+            if(request.IsDeleteAllCategory == true)
+            {
+                await _postCategoryRepository.DeleteAllByPostId(request.PostId);
+            }
+
+            if(request.CategoriesToRemove != null && request.CategoriesToRemove.Count() > 0)
+            {
+                foreach (var categoryDelete in request.CategoriesToRemove)
+                {
+                    await _postCategoryRepository.DeletePostCategoryById(categoryDelete);
+                }
+            }
+
+            //2.2 Them Post category neu co
+            List<PostCategory> postCategories = new List<PostCategory>();
+
+            if (request.CategoriesToAdd != null && request.CategoriesToAdd.Count() > 0)
+            {
+                foreach(var categoryAdd in request.CategoriesToAdd)
+                {
+                    var categoryById = await _categoryPostRepository.GetCategoryById(categoryAdd);
+                    if (categoryById == null) 
+                        continue;
+
+                    var postCategory = new PostCategory();
+                    postCategory.CreatedAt = DateTime.UtcNow;
+                    postCategory.PostId = newPost.PostId; //Lay post id cua post vua update xong cho chac
+                    postCategory.CategoryId = categoryAdd;
+                    postCategory.CategoryName = categoryById.CategoryName.ToString();
+
+                    var newPostCategory =  await _postCategoryRepository.CreatePostCategory(postCategory);
+
+                    if(newPostCategory != null)
+                        postCategories.Add(newPostCategory);
+                }
+            }
+
+            //3. Post Image
+            //3.1 Xóa những image của post trong ds yêu cầu xóa
+            if(request.IsDeleteAllImage == true)
+            {
+                await _postImageRepository.DeleteAllByPostId(newPost.PostId);
+            }
+
+            if(request.ImagesToRemove != null && request.ImagesToRemove.Count() > 0)
+            {
+                foreach(var imagesToRemove in request.ImagesToRemove)
+                {
+                    var image = await _postImageRepository.GetPostImageById(imagesToRemove);
+
+                    if(image == null) continue;
+
+                    var isDeletedImage = await _postImageRepository.DeleteImageById(image.PostImageId);
+
+                    if(isDeletedImage == true)
+                    {
+                        //Xóa image đó trên firebase
+                        await _uploadFileService.DeleteFile(image.ImageUrl);
+                    }
+                }
+            }
+
+            //3.2 Add image mới nếu có
+            List<PostImage> postImages = new List<PostImage>();
+
+            if (request.ImagesToAdd != null && request.ImagesToAdd.Count > 0)
+            {
+                //Goi method upload List image tu Upload file service
+                List<FileUploadResponseDTO> listImageUrl = await _uploadFileService.UploadListImage(request.ImagesToAdd);
+
+                if (listImageUrl != null && listImageUrl.Count > 0)
+                {
+                    foreach (var image in listImageUrl)
+                    {
+                        var postImage = new PostImage();
+                        postImage.PostId = newPost.PostId;
+                        postImage.ImageUrl = image.UrlFile ?? "";
+
+                        var newPostImage = await _postImageRepository.CreatePostImage(postImage);
+
+                        if (newPostImage != null)
+                            postImages.Add(newPostImage);
+                    }
+                }
+            }
+
+            //4. Hashtag
+            //4.1 Xóa những hashtag trong list cần xóa
+            if(request.IsDeleteAllHashtag == true)
+            {
+                await _hashTagRepository.DeleteAllByPostId(newPost.PostId);
+            }
+
+            if(request.HashTagToRemove != null && request.HashTagToRemove.Count > 0)
+            {
+                foreach (var hashtagToRemove in request.HashTagToRemove)
+                {
+                    await _hashTagRepository.DeleteHashTagById(hashtagToRemove);
+                }
+            }
+
+            //4.2 Add thêm hashtag mới
+            List<HashTag> hashTags = new List<HashTag>();
+
+            if (request.HashTagToAdd != null && request.HashTagToAdd.Count > 0)
+            {
+                foreach (var itemHashtag in request.HashTagToAdd)
+                {
+                    var hashtag = new HashTag();
+                    hashtag.HashTagContent = itemHashtag;
+                    hashtag.PostId = newPost.PostId;
+                    hashtag.CreateAt = DateTime.UtcNow;
+
+                    var newHashTag = await _hashTagRepository.CreateHashTag(hashtag);
+
+                    if (newHashTag != null)
+                        hashTags.Add(newHashTag);
+                }
+            }
+
+            //5. Post Tag
+            //5.1 Xóa Post Tag cũ
+            if (request.IsDeleteAllFriend == true)
+            {
+                await _postTagRepository.DeleteAllByPostId(newPost.PostId);
+            }
+
+            if (request.PostTagsToRemove != null && request.PostTagsToRemove.Count > 0)
+            {
+                foreach (var postTagToRemove in request.PostTagsToRemove)
+                {
+                    await _postTagRepository.DeletePostTagById(postTagToRemove);
+                }
+            }
+
+            //5.2 Thêm Post Tag mới
+            List<PostTag> postTags = new List<PostTag>();
+
+            if (request.PostTagsToAdd != null && request.PostTagsToAdd.Count > 0)
+            {
+                foreach (var friendId in request.PostTagsToAdd)
+                {
+                    var account = await _accountRepository.GetAccountById(friendId);
+                    if (account == null)
+                        continue;
+
+                    var postTag = new PostTag();
+                    postTag.AccId = account.AccId;
+                    postTag.Username = account.Username;
+                    postTag.PostId = newPost.PostId;
+                    postTag.CreatedAt = DateTime.UtcNow;
+
+                    var newPostTag = await _postTagRepository.CreatePostTag(postTag);
+                    if (newPostTag != null)
+                        postTags.Add(newPostTag);
+                }
+            }
+
+            //FINAL: Create data to response
+            PostMapper data = new PostMapper();
+            data.Post = newPost;
+            data.PostTags = postTags;
+            data.PostCategories = postCategories;
+            data.PostImages = postImages;
+            data.HashTags = hashTags;
+
+            return new UpdatePostResponseDTO
+            {
+                Message = "Update post is successfully.",
+                Success = true,
+                Data = data
+            };
+        }
     }
 }

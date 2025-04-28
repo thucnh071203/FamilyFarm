@@ -38,6 +38,17 @@ namespace FamilyFarm.DataAccess.DAOs
             return request;
         }
 
+        public async Task<PostImage?> GetById(string? image_id)
+        {
+            if (string.IsNullOrEmpty(image_id))
+            {
+                return null;
+            }
+
+            var filter = Builders<PostImage>.Filter.Eq(x => x.PostImageId, image_id);
+            return await _postImageCollection.Find(filter).FirstOrDefaultAsync();
+        }
+
         /// <summary>
         ///     Get list category of post id
         /// </summary>
@@ -51,6 +62,48 @@ namespace FamilyFarm.DataAccess.DAOs
                 .ToListAsync();
 
             return imagesOfPost;
+        }
+
+        /// <summary>
+        ///     Delete post image by id
+        /// </summary>
+        public async Task<bool> DeleteImageById(string? image_id)
+        {
+            if (string.IsNullOrEmpty(image_id))
+                return false;
+
+            try
+            {
+                var filter = Builders<PostImage>.Filter.Eq(x => x.PostImageId, image_id);
+                var result = await _postImageCollection.DeleteOneAsync(filter);
+
+                return result.DeletedCount > 0; // true nếu xóa được ít nhất 1 document
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     Delete all post image by post id
+        /// </summary>
+        public async Task<bool> DeleteAllByPostId(string? post_id)
+        {
+            if (!string.IsNullOrEmpty(post_id))
+                return false;
+
+            try
+            {
+                var filter = Builders<PostImage>.Filter.Eq(x => x.PostId, post_id);
+                var result = await _postImageCollection.DeleteManyAsync(filter);
+
+                return result.DeletedCount > 0; // true nếu xóa được ít nhất 1 document
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
     }
 }

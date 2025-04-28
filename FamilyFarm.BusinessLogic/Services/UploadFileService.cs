@@ -18,6 +18,38 @@ namespace FamilyFarm.BusinessLogic.Services
         {
         }
 
+
+        //Method delete file on Firebase based on url in database
+        public async Task<bool> DeleteFile(string? urlFile)
+        {
+            if (string.IsNullOrEmpty(urlFile))
+                return false;
+
+            try
+            {
+                var filePath = GetFilePathFromUrl(urlFile);
+
+                var storage = new FirebaseStorage(
+                    "prn221-69738.appspot.com",
+                    new FirebaseStorageOptions
+                    {
+                        AuthTokenAsyncFactory = () => Task.FromResult(""),
+                        ThrowOnCancel = true
+                    });
+
+                await storage
+                    .Child(filePath)
+                    .DeleteAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting file: {ex.Message}");
+                return false;
+            }
+        }
+
         //Upload image to folder image on Firebase Storage
         public async Task<FileUploadResponseDTO> UploadImage(IFormFile fileImage)
         {
@@ -109,6 +141,21 @@ namespace FamilyFarm.BusinessLogic.Services
                 TypeFile = file.ContentType,
                 CreatedAt = DateTime.UtcNow
             };
+        }
+
+        //Method get file name in Url file 
+        private string GetFilePathFromUrl(string urlFile)
+        {
+            var uri = new Uri(urlFile);
+            var path = Uri.UnescapeDataString(uri.AbsolutePath); // Giải mã %2F -> /
+
+            var index = path.IndexOf("/o/");
+            if (index == -1)
+                throw new Exception("Invalid Firebase Storage URL.");
+
+            var filePath = path.Substring(index + 3); // Lấy phần sau "/o/"
+
+            return filePath;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
 using System;
@@ -19,14 +20,45 @@ namespace FamilyFarm.Repositories.Implementations
             _requestDAO = requestDAO;
         }
 
-        public async Task<List<Friend>> GetSentFriendRequests(string senderId)
+        public async Task<List<Account>> GetSentFriendRequests(string senderId)
         {
             return await _requestDAO.GetSentFriendRequestsAsync(senderId);
         }
-        public async Task<List<Friend>> GetReceiveFriendRequests(string receveiId)
+        public async Task<List<Account>> GetReceiveFriendRequests(string receveiId)
         {
             return await _requestDAO.GetReceiveFriendRequestsAsync(receveiId);
         }
 
+        // Từ chối yêu cầu kết bạn
+        public async Task<bool> AcceptFriendRequestAsync(string friendId)
+        {
+            var friendRequest = await _requestDAO.GetFriendRequestAsync(friendId);
+
+            if (friendRequest == null || friendRequest.Status != "Pending")
+            {
+                return false;
+            }
+
+            return await _requestDAO.AcceptFriendRequestAsync(friendId);
+        }
+
+        // Từ chối yêu cầu kết bạn
+        public async Task<bool> RejectFriendRequestAsync(string friendId)
+        {
+            var friendRequest = await _requestDAO.GetFriendRequestAsync(friendId);
+
+            if (friendRequest == null || friendRequest.Status != "Pending")
+            {
+                return false; 
+            }
+
+            return await _requestDAO.RejectFriendRequestAsync(friendId);
+        }
+
+
+        public async Task<bool> SendFriendRequestAsync(string senderId, string receiverId)
+        {
+            return await _requestDAO.CreateFriendRequestAsync(senderId, receiverId);
+        }
     }
 }

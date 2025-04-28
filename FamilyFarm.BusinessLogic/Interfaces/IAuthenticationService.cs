@@ -23,7 +23,7 @@ namespace FamilyFarm.BusinessLogic
 
         //Param: access token from header
         //Return: Username
-        string? GetDataFromToken();
+        UserClaimsResponseDTO? GetDataFromToken();
         Task<RegisterFarmerResponseDTO?> RegisterFarmer(RegisterFarmerRequestDTO request);
         bool CheckValidEmail(string email);
         bool CheckValidPhoneNumber(string phone);

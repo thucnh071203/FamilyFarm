@@ -51,5 +51,47 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return result;
         }
+
+        /// <summary>
+        ///     Delete hashtag by hashtag id
+        /// </summary>
+        public async Task<bool> DeleteHashTagById(string? hashtag_id)
+        {
+            if (string.IsNullOrEmpty(hashtag_id))
+                return false;
+
+            try
+            {
+                var filter = Builders<HashTag>.Filter.Eq(x => x.HashTagId, hashtag_id);
+                var result = await _hashtagCollection.DeleteOneAsync(filter);
+
+                return result.DeletedCount > 0; // true nếu xóa được ít nhất 1 document
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     Delete all hashtag by post id
+        /// </summary>
+        public async Task<bool> DeleteAllByPostId(string? post_id)
+        {
+            if (!string.IsNullOrEmpty(post_id))
+                return false;
+
+            try
+            {
+                var filter = Builders<HashTag>.Filter.Eq(x => x.PostId, post_id);
+                var result = await _hashtagCollection.DeleteManyAsync(filter);
+
+                return result.DeletedCount > 0; // true nếu xóa được ít nhất 1 document
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

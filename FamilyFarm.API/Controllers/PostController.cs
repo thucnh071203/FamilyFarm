@@ -71,11 +71,36 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult<CreatePostResponseDTO>> CreateNewPost([FromForm] CreatePostRequestDTO request)
         {
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
 
             var result = await _postService.AddPost(username, request);
 
             if (result == null) 
+                return BadRequest();
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpPut("update")]
+        [Authorize]
+        public async Task<ActionResult<UpdatePostResponseDTO>> UpdatePost([FromForm] UpdatePostRequestDTO request)
+        {
+            if (request == null)
+                return BadRequest("Invalid data from request.");
+
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
+
+            if (username == null) 
+                return NotFound("Not found resource for this action.");
+
+            var result = await _postService.UpdatePost(username, request);
+
+            if(result == null) 
                 return BadRequest();
 
             if (result.Success == false)

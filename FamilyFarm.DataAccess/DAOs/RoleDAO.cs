@@ -25,43 +25,49 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Roles.Find(_ => true).ToListAsync();
         }
 
-        public async Task<Role?> GetByIdAsync(string? role_id)
+        public async Task<Role> GetByIdAsync(string? role_id)
         {
-            if (!string.IsNullOrEmpty(role_id))
+            if (!string.IsNullOrEmpty(role_id) && ObjectId.TryParse(role_id, out _))
             {
                 return await _Roles.Find(r => r.RoleId == role_id).FirstOrDefaultAsync();
             }
-            return null;
+            return null; // Return null if role_id is invalid
         }
 
-        public async Task CreateAsync(Role Role)
+        public async Task<bool> CreateAsync(Role role)
         {
-            await _Roles.InsertOneAsync(Role);
+            if (role == null)
+            {
+                return false; // Return false if the role is null.
+            }
+
+            await _Roles.InsertOneAsync(role);
+            return true;
         }
 
-        public async Task UpdateAsync(string role_id, Role role)
+        public async Task<bool> UpdateAsync(string role_id, Role role)
         {
-            if (string.IsNullOrEmpty(role_id))
+            if (string.IsNullOrEmpty(role_id) || role == null || !ObjectId.TryParse(role_id, out _))
             {
-                await _Roles.ReplaceOneAsync(p => p.RoleId == role_id, role);
+                return false; // Return false if the role_id is invalid or ObjectId format is incorrect.
             }
-            else
-            {
-                throw new ArgumentException("Invalid ObjectId format", nameof(role_id));
-            }
+
+            var result = await _Roles.ReplaceOneAsync(r => r.RoleId == role_id, role);
+            return result.ModifiedCount > 0; // Return true if something was modified.
         }
 
-        public async Task DeleteAsync(string? id)
+        public async Task<bool> DeleteAsync(string? id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id) || !ObjectId.TryParse(id, out _))
             {
-                await _Roles.DeleteOneAsync(p => p.RoleId == id);
+                return false; // Return false if the id is invalid or ObjectId format is incorrect.
             }
-            else
-            {
-                throw new ArgumentException("Invalid ObjectId format", nameof(id));
-            }
+
+            var result = await _Roles.DeleteOneAsync(r => r.RoleId == id);
+            return result.DeletedCount > 0; // Return true if something was deleted.
         }
     }
 }
+
+
 

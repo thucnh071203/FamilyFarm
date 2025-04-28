@@ -12,6 +12,7 @@ using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
+using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -26,14 +27,16 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly PasswordHasher _hasher;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IRoleRepository _roleRepository;
 
-        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters, IHttpContextAccessor httpContextAccessor)
+        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters, IHttpContextAccessor httpContextAccessor, IRoleRepository roleRepository)
         {
             _configuration = configuration;
             _accountRepository = accountRepository;
             _hasher = hasher;
             _tokenValidationParameters = tokenValidationParameters;
             _httpContextAccessor = httpContextAccessor;
+            _roleRepository = roleRepository;
         }
 
         public async Task<LoginResponseDTO?> Login(LoginRequestDTO request)
@@ -134,13 +137,41 @@ namespace FamilyFarm.BusinessLogic.Services
             var tokenValidityMins = _configuration.GetValue<int>("JwtSettings:TokenValidMins");
             var tokenExpiryTimeStamp = DateTime.UtcNow.AddMinutes(tokenValidityMins);
 
-            var token = new JwtSecurityToken(issuer,
-                audience, [
-                    new Claim(JwtRegisteredClaimNames.Name, account.Username)
-                    ],
+            var role = await _roleRepository.GetRoleById(account.RoleId);
+
+            if (role == null)
+            {
+                role = new Role
+                {
+                    RoleId = "68007b0387b41211f0af1d56", // RoleId mặc định nếu không tìm thấy
+                    RoleName = "FARMER",              // Role mặc định là "FARMER"
+                    RoleDescription = "farmer"
+                };
+            }
+
+            // Kiểm tra email trước khi tạo token
+            Console.WriteLine("Account Email: " + account.Email);
+
+            var token = new JwtSecurityToken(
+                issuer,
+                audience,
+                claims: new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.Name, account.Username),
+                    new Claim(ClaimTypes.Email, account.Email),
+                    new Claim("AccId", account.AccId),
+                    new Claim("RoleId", account.RoleId),
+                    new Claim(ClaimTypes.Role, role.RoleName) // Sử dụng tên vai trò trong token
+                },
                 expires: tokenExpiryTimeStamp,
-                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha256Signature));
+                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            );
+
+            // Kiểm tra tất cả các claim trong token
+            foreach (var claim in token.Claims)
+            {
+                Console.WriteLine($"{claim.Type}: {claim.Value}");
+            }
 
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
 
@@ -167,7 +198,7 @@ namespace FamilyFarm.BusinessLogic.Services
             return newRefreshToken;
         }
 
-        public string? GetDataFromToken()
+        public UserClaimsResponseDTO? GetDataFromToken()
         {
             var authHeader = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
 
@@ -175,22 +206,37 @@ namespace FamilyFarm.BusinessLogic.Services
                 return null;
 
             var accessToken = authHeader.Substring("Bearer ".Length).Trim();
-
             var tokenHandler = new JwtSecurityTokenHandler();
 
             try
             {
                 var principal = tokenHandler.ValidateToken(accessToken, _tokenValidationParameters, out _);
 
-                var username = principal?.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Name)?.Value;
+                var claims = principal?.Claims;
 
-                return username;
+                // Kiểm tra tất cả các claim
+                foreach (var claim in claims)
+                {
+                    Console.WriteLine($"{claim.Type}: {claim.Value}");
+                }
+
+                var userClaims = new UserClaimsResponseDTO
+                {
+                    Username = claims?.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Name)?.Value,
+                    Email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
+                    AccId = claims?.FirstOrDefault(c => c.Type == "AccId")?.Value,
+                    RoleId = claims?.FirstOrDefault(c => c.Type == "RoleId")?.Value,
+                    RoleName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value
+                };
+
+                return userClaims;
             }
             catch
             {
                 return null;
             }
         }
+
 
 
         public async Task<RegisterExpertReponseDTO?> RegisterExpert(RegisterExpertRequestDTO request)
@@ -512,7 +558,7 @@ namespace FamilyFarm.BusinessLogic.Services
             if (username == null)
                 return null;
 
-           await _accountRepository.DeleteRefreshToken(username);
+            await _accountRepository.DeleteRefreshToken(username);
 
             return new LoginResponseDTO
             {

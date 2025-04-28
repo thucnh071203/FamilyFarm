@@ -3,7 +3,6 @@ using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.DataAccess.DAOs;
-using FamilyFarm.Models.DTOs;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
@@ -43,6 +42,7 @@ namespace FamilyFarm.API.Controllers
                 return StatusCode(423, result);
             }
 
+
             return result is not null ? result : Unauthorized();
         }
 
@@ -50,8 +50,8 @@ namespace FamilyFarm.API.Controllers
         [HttpPost("logout")]
         public async Task<ActionResult<LoginResponseDTO>> Logout()
         {
-            var username = _authenService.GetDataFromToken();
-
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
             if (username == null)
                 return BadRequest();
 
@@ -165,18 +165,18 @@ namespace FamilyFarm.API.Controllers
                             }
         }
 
-        //[HttpPost("login-facebook")]
-        //public async Task<ActionResult<LoginResponseDTO>> LoginFacebook([FromBody] LoginFacebookRequestDTO request)
-        //{
-        //    var result = await _authenService.LoginFacebook(request);
+        [HttpPost("login-facebook")]
+        public async Task<ActionResult<LoginResponseDTO>> LoginFacebook([FromBody] LoginFacebookRequestDTO request)
+        {
+            var result = await _authenService.LoginFacebook(request);
 
-        //    if (result != null && result.Message != null)
-        //    {
-        //        return StatusCode(423, result);
-        //    }
+            if (result != null && result.Message != null)
+            {
+                return StatusCode(423, result);
+            }
 
-        //    return result is not null ? result : Unauthorized();
-        //}
+            return result is not null ? result : Unauthorized();
+        }
 
         [AllowAnonymous]
         [HttpPost("login-google")]
@@ -256,7 +256,7 @@ namespace FamilyFarm.API.Controllers
 
         [AllowAnonymous]
         [HttpPut("forgot-password/{id}")]
-        public async Task<IActionResult> ForfotPassword(string id, [FromBody] ResetPasswordDTO request)
+        public async Task<IActionResult> ForgotPassword(string id, [FromBody] ResetPasswordDTO request)
         {
             var account = await _accountService.GetAccountById(id);
             if (account == null)

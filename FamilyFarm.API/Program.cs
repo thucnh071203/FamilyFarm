@@ -49,6 +49,7 @@ builder.Services.AddScoped<PostTagDAO>();
 builder.Services.AddScoped<FriendDAO>();
 builder.Services.AddScoped<BookingServiceDAO>();
 builder.Services.AddScoped<ServiceDAO>();
+builder.Services.AddScoped<RoleInGroupDAO>();
 
 
 // Repository DI
@@ -70,6 +71,8 @@ builder.Services.AddScoped<IPostTagRepository, PostTagRepository>();
 builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 builder.Services.AddScoped<IBookingServiceRepository, BookingServiceRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IRoleInGroupRepository, RoleInGroupRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -87,6 +90,7 @@ builder.Services.AddScoped<IGroupRoleService, GroupRoleService>();
 builder.Services.AddScoped<IGroupMemberService, GroupMemberService>();
 builder.Services.AddScoped<IFriendService, FriendService>();
 builder.Services.AddScoped<IBookingServiceService, BookingServiceService>();
+builder.Services.AddScoped<IRoleInGroupService, RoleInGroupService>();
 //builder.Services.AddScoped<FirebaseConnection>();
 
 builder.Services.AddHttpContextAccessor();
