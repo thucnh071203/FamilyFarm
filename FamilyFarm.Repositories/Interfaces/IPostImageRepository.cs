@@ -11,5 +11,8 @@ namespace FamilyFarm.Repositories.Interfaces
     {
         Task<PostImage?> CreatePostImage(PostImage? request);
         Task<List<PostImage>?> GetPostImageByPost(string? post_id);
+        Task<bool> DeleteImageById(string? image_id);
+        Task<bool> DeleteAllByPostId(string? post_id);
+        Task<PostImage?> GetPostImageById(string? image_id);
     }
 }

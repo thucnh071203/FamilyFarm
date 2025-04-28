@@ -32,5 +32,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.CreatePost(post);
         }
+
+        public async Task<Post?> UpdatePost(Post? post)
+        {
+            return await _postDAO.UpdatePost(post);
+        }
+
+        public async Task<Post?> GetPostById(string? post_id)
+        {
+            return await _postDAO.GetById(post_id);
+        }
     }
 }
