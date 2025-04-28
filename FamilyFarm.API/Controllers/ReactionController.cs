@@ -1,5 +1,6 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.Request;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,6 +28,7 @@ namespace FamilyFarm.API.Controllers
         /// If reactions exist, returns them with a 200 OK status.
         /// If no reactions are found, it will still return an empty list with a 200 OK status.
         /// </returns>
+        [Authorize (Roles = ("FARMER"))]
         [HttpPost("all-by-post/{postId}")]
         public async Task<IActionResult> GetAllReactionByPost(string postId)
         {
