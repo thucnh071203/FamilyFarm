@@ -92,7 +92,9 @@ namespace FamilyFarm.API.Controllers
             if (request == null)
                 return BadRequest("Invalid data from request.");
 
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
+
             if (username == null) 
                 return NotFound("Not found resource for this action.");
 
