@@ -71,7 +71,8 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult<CreatePostResponseDTO>> CreateNewPost([FromForm] CreatePostRequestDTO request)
         {
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
 
             var result = await _postService.AddPost(username, request);
 

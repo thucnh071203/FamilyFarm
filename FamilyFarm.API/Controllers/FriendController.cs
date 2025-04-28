@@ -40,7 +40,8 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult<FriendResponseDTO>> GetSendRequest()
         {
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
 
             var result = await _friendService.GetAllSendFriendRequests(username);
 
@@ -64,7 +65,8 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult<FriendResponseDTO>> GetReceiveRequest()
         {
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
 
             var result = await _friendService.GetAllReceiveFriendRequests(username);
 
@@ -153,7 +155,8 @@ namespace FamilyFarm.API.Controllers
         {
             //var senderId = User.Identity.Name; // Giả sử bạn có thể lấy senderId từ authentication context.
 
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
 
             var user = await _accountService.GetAccountByUsername(username); // Truy vấn người dùng theo username
 
@@ -202,7 +205,8 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult<FriendResponseDTO>> GetListFriends()
         {
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
 
             var result = await _serviceOfFriend.GetListFriends(username);
 
@@ -234,7 +238,8 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult<FriendResponseDTO>> GetListFollower()
         {
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
 
             var result = await _serviceOfFriend.GetListFollower(username);
 
@@ -251,7 +256,8 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult<FriendResponseDTO>> GetListFollowing()
         {
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
 
             var result = await _serviceOfFriend.GetListFollowing(username);
 
@@ -268,7 +274,8 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult> Unfriend(string receiver)
         {
-            var username = _authenService.GetDataFromToken();
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
 
             var result = await _serviceOfFriend.Unfriend(username, receiver);
 
