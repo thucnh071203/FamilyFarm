@@ -17,7 +17,7 @@ namespace FamilyFarm.Repositories
 
         //Get by Account Id (not check status)
         Task<Account?> GetAccountById(string acc_id);
-        
+
         // Create Account
         Task<Account> CreateAsync(Account account);
         

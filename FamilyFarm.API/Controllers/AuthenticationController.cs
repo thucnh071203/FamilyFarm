@@ -3,7 +3,6 @@ using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.DataAccess.DAOs;
-using FamilyFarm.Models.DTOs;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
@@ -43,6 +42,7 @@ namespace FamilyFarm.API.Controllers
                 return StatusCode(423, result);
             }
 
+
             return result is not null ? result : Unauthorized();
         }
 
@@ -50,8 +50,8 @@ namespace FamilyFarm.API.Controllers
         [HttpPost("logout")]
         public async Task<ActionResult<LoginResponseDTO>> Logout()
         {
-            var username = _authenService.GetDataFromToken();
-
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
             if (username == null)
                 return BadRequest();
 
