@@ -11,5 +11,7 @@ namespace FamilyFarm.Repositories.Interfaces
     {
         Task<HashTag?> CreateHashTag(HashTag? request);
         Task<List<HashTag>?> GetHashTagByPost(string? post_id);
+        Task<bool> DeleteHashTagById(string? hashtag_id);
+        Task<bool> DeleteAllByPostId(string? post_id);
     }
 }
