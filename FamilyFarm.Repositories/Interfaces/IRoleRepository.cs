@@ -7,7 +7,7 @@ using FamilyFarm.Models.Models;
 
 namespace FamilyFarm.Repositories.Interfaces
 {
-    interface IRoleRepository
+    public interface IRoleRepository
     {
         Task<List<Role>> GetAllRole();
         Task<Role> GetRoleById(string role_id);
