@@ -80,11 +80,11 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("list-friend-other")]
+        [HttpGet("list-friend-other/{usernameOther}")]
         [Authorize]
-        public async Task<ActionResult<FriendResponseDTO>> GetListFriends(string username)
+        public async Task<ActionResult<FriendResponseDTO>> GetListFriends(string usernameOther)
         {
-            var result = await _serviceOfFriend.GetListFriends(username);
+            var result = await _serviceOfFriend.GetListFriends(usernameOther);
 
             if (result == null)
                 return BadRequest();
@@ -129,13 +129,13 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("unfriend")]
+        [HttpDelete("unfriend/{usernameOther}")]
         [Authorize]
-        public async Task<ActionResult> Unfriend(string receiver)
+        public async Task<ActionResult> Unfriend(string usernameOther)
         {
             var username = _authenService.GetDataFromToken();
 
-            var result = await _serviceOfFriend.Unfriend(username, receiver);
+            var result = await _serviceOfFriend.Unfriend(username, usernameOther);
 
             if (result == false)
                 return BadRequest();
