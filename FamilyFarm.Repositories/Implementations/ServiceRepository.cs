@@ -29,7 +29,7 @@ namespace FamilyFarm.Repositories.Implementations
 
         public async Task<Service?> GetByIdAsync(string serviceId)
         {
-           return await serviceDAO.GetByIdAsync(serviceId); ;
+           return await serviceDAO.GetByIdAsync(serviceId); 
         }
     }
 }

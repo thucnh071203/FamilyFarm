@@ -10,7 +10,7 @@ using MongoDB.Driver;
 
 namespace FamilyFarm.DataAccess.DAOs
 {
-    public class ServiceDAO
+    public class ServiceDAO:SingletonBase
     {
         private readonly IMongoCollection<Service> _Services;
 
@@ -44,7 +44,7 @@ namespace FamilyFarm.DataAccess.DAOs
         public async Task<Service?> GetByIdAsync(string serviceId)
         {
             var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId) &
-                         Builders<Service>.Filter.Ne(s => s.IsDeleted, true);
+                         Builders<Service>.Filter.Ne(s => s.IsDeleted, true); 
 
             return await _Services.Find(filter).FirstOrDefaultAsync();
         }

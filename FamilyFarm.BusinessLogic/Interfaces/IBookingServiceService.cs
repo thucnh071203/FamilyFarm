@@ -11,12 +11,13 @@ namespace FamilyFarm.BusinessLogic.Interfaces
     public interface IBookingServiceService
     {
         Task<BookingService?> GetById(string id);
-        Task<List<BookingServiceResponseDTO>?> GetAllBookingOfExpert(string id);
-        Task<List<BookingServiceResponseDTO>?> GetAllBookingOfFarmer(string id);
-        Task<List<BookingServiceResponseDTO>?> GetRequestBookingOfExpert(string id);
-        Task<List<BookingServiceResponseDTO>?> GetRequestBookingOfFarmer(string id);
-        Task<List<BookingServiceResponseDTO>?> ExpertResponseBookingService (string id);
-        Task<List<BookingService>?> CancelBookingService(string id);
+        Task<BookingServiceResponseDTO?> GetAllBookingOfExpert(string expertId);
+        Task<BookingServiceResponseDTO?> GetAllBookingOfFarmer(string farmerId);
+        Task<BookingServiceResponseDTO?> GetRequestBookingOfExpert(string expertId);
+        Task<BookingServiceResponseDTO?> GetRequestBookingOfFarmer(string farmerId);
+        Task<bool?> ExpertAcceptBookingService (string bookingServiceId);
+        Task<bool?> ExpertRejectBookingService(string bookingServiceId);
+        Task<bool?> CancelBookingService(string bookingServiceId);
         Task<bool?> SendRequestBooking(string username, string serviceId);
     }
 }
