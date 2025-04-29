@@ -90,7 +90,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
             var listBooking = new List<BookingService>();
 
-            if (listService.Count == 0) return new BookingServiceResponseDTO
+            if (listService.Count == 0 || listService == null) return new BookingServiceResponseDTO
             {
                 Success = false,
                 Message = "You dont have service!"
@@ -101,7 +101,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 var service = await _repository.GetAllBookingByServiceId(item.ServiceId);
                 listBooking.AddRange(service);
             }
-            if (listBooking.Count == 0) return new BookingServiceResponseDTO
+            if (listBooking.Count == 0 || listBooking == null) return new BookingServiceResponseDTO
             {
                 Success = false,
                 Message = "Your services dont have booking!"
@@ -210,7 +210,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
             var listBooking = new List<BookingService>();
 
-            if (listService.Count == 0) return new BookingServiceResponseDTO
+            if (listService.Count == 0 || listService == null) return new BookingServiceResponseDTO
             {
                 Success = false,
                 Message = "You dont have service!"
@@ -221,7 +221,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 var service = await _repository.GetListRequestBookingByServiceId(item.ServiceId);
                 listBooking.AddRange(service);
             }
-            if (listBooking.Count == 0) return new BookingServiceResponseDTO
+            if (listBooking.Count == 0 || listBooking == null) return new BookingServiceResponseDTO
             {
                 Success = false,
                 Message = "Your services dont have booking!"
