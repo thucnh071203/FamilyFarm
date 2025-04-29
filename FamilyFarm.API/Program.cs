@@ -49,9 +49,12 @@ builder.Services.AddScoped<PostCategoryDAO>();
 builder.Services.AddScoped<PostImageDAO>();
 builder.Services.AddScoped<PostTagDAO>();
 builder.Services.AddScoped<FriendDAO>();
+builder.Services.AddScoped<BookingServiceDAO>();
+builder.Services.AddScoped<ServiceDAO>();
 builder.Services.AddScoped<RoleInGroupDAO>();
 builder.Services.AddScoped<ChatDetailDAO>();
 builder.Services.AddScoped<ChatDAO>();
+
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -70,6 +73,8 @@ builder.Services.AddScoped<IPostCategoryRepository, PostCategoryRepository>();
 builder.Services.AddScoped<IPostImageRepository, PostImageRepository>();
 builder.Services.AddScoped<IPostTagRepository, PostTagRepository>();
 builder.Services.AddScoped<IFriendRepository, FriendRepository>();
+builder.Services.AddScoped<IBookingServiceRepository, BookingServiceRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IRoleInGroupRepository, RoleInGroupRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
@@ -90,6 +95,7 @@ builder.Services.AddScoped<IFriendRequestService, FriendRequestService>();
 builder.Services.AddScoped<IGroupRoleService, GroupRoleService>();
 builder.Services.AddScoped<IGroupMemberService, GroupMemberService>();
 builder.Services.AddScoped<IFriendService, FriendService>();
+builder.Services.AddScoped<IBookingServiceService, BookingServiceService>();
 builder.Services.AddScoped<IRoleInGroupService, RoleInGroupService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();

@@ -30,6 +30,9 @@ namespace FamilyFarm.API.Controllers
             if (addGroupMember == null)
                 return BadRequest("addGroupMember object is null");
 
+            // Xác định là Role "Member"
+            addGroupMember.GroupRoleId = "680cebdfac700e1cb4c165b2";
+
             await _groupMemberService.AddGroupMember(addGroupMember);
 
             return CreatedAtAction(nameof(GetGroupMemberById), new { groupMemberId = addGroupMember.GroupMemberId }, addGroupMember);

@@ -23,6 +23,7 @@ namespace FamilyFarm.Models.Models
         public DateTime? BookingServiceAt { get; set; }
         public required string? BookingServiceStatus { get; set; }
         public DateTime? CancelServiceAt { get; set; }
+        public DateTime? RejectServiceAt { get; set; }
         public required decimal? FirstPayment { get; set; }
         public DateTime? FirstPaymentAt { get; set; }
         public required decimal? SecondPayment { get; set; }

@@ -37,7 +37,7 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.UpdateAsync(groupRoleId, item);
         }
 
-        public async Task<RoleInGroup> DeleteRoleInGroup(string groupRoleId)
+        public async Task<long> DeleteRoleInGroup(string groupRoleId)
         {
             return await _dao.DeleteAsync(groupRoleId);
         }

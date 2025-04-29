@@ -60,26 +60,29 @@ namespace FamilyFarm.DataAccess.DAOs
             return updateGroup;
         }
 
-        public async Task<Group> DeleteAsync(string groupId)
+        public async Task<long> DeleteAsync(string groupId)
         {
-            if (!ObjectId.TryParse(groupId, out _)) return null;
+            if (!ObjectId.TryParse(groupId, out _)) return 0;
 
             var filter = Builders<Group>.Filter.Eq(g => g.GroupId, groupId);
-
-            if (filter == null) return null;
 
             var update = Builders<Group>.Update
                 .Set(g => g.DeletedAt, DateTime.UtcNow)
                 .Set(g => g.IsDeleted, true);
-                
+
             var result = await _Groups.UpdateOneAsync(filter, update);
 
-            if (result.MatchedCount > 0 && result.ModifiedCount > 0)
-            {
-                return await GetByIdAsync(groupId);
-            }
-
-            return null;
+            return result.ModifiedCount;
         }
+
+        public async Task<Group> GetLatestByCreatorAsync(string creatorId)
+        {
+            if (!ObjectId.TryParse(creatorId, out _)) return null;
+
+            return await _Groups.Find(g => g.OwnerId == creatorId && g.IsDeleted != true)
+                                .SortByDescending(g => g.CreatedAt)
+                                .FirstOrDefaultAsync();
+        }
+
     }
 }
