@@ -38,7 +38,7 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _roleInGroupRepository.UpdateRoleInGroup(groupRoleId, item);
         }
 
-        public async Task<RoleInGroup> DeleteRoleInGroup(string groupRoleId)
+        public async Task<long> DeleteRoleInGroup(string groupRoleId)
         {
             return await _roleInGroupRepository.DeleteRoleInGroup(groupRoleId);
         }

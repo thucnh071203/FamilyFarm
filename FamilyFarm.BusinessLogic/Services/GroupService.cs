@@ -12,10 +12,12 @@ namespace FamilyFarm.BusinessLogic.Services
     public class GroupService : IGroupService
     {
         private readonly IGroupRepository _groupRepository;
+        private readonly IGroupMemberRepository _memberRepository;
 
-        public GroupService(IGroupRepository groupRepository)
+        public GroupService(IGroupRepository groupRepository, IGroupMemberRepository memberRepository)
         {
             _groupRepository = groupRepository;
+            _memberRepository = memberRepository;
         }
 
         public async Task<List<Group>> GetAllGroup()
@@ -30,7 +32,30 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<Group> CreateGroup(Group item)
         {
-            return await _groupRepository.CreateGroup(item);
+            var result = await _groupRepository.CreateGroup(item);
+
+            if (result == null) return null;
+
+            var getLastestGroup = await _groupRepository.GetLatestGroupByCreator(item.OwnerId);
+
+            // Thêm người tạo group vào group
+            var newOwnerMember = new GroupMember
+            {
+                GroupMemberId = null,
+                GroupRoleId = "680ce8722b3eec497a30201e",
+                GroupId = getLastestGroup.GroupId,
+                AccId = item.OwnerId,
+                JointAt = DateTime.UtcNow,
+                MemberStatus = "Accept",
+                InviteByAccId = null,
+                LeftAt = null
+            };
+
+            var addOwnerToGroup = await _memberRepository.AddGroupMember(newOwnerMember);
+
+            if (addOwnerToGroup == null) return null;
+
+            return item;
         }
 
         public async Task<Group> UpdateGroup(string groupId, Group item)
@@ -38,9 +63,18 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _groupRepository.UpdateGroup(groupId, item);
         }
 
-        public async Task<Group> DeleteGroup(string groupId)
+        public async Task<long> DeleteGroup(string groupId)
         {
-            return await _groupRepository.DeleteGroup(groupId);
+            var result = await _groupRepository.DeleteGroup(groupId);
+
+            if (result == null) return 0;
+
+            // Xóa tất cả thành viên khi xóa group
+            var deleteAllMember = await _memberRepository.DeleteAllGroupMember(groupId);
+
+            if (deleteAllMember <= 0) return 0;
+
+            return result;
         }
     }
 }

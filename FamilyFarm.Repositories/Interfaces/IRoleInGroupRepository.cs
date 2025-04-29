@@ -13,6 +13,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<RoleInGroup> GetRoleInGroupById(string groupRoleId);
         Task<RoleInGroup> CreateRoleInGroup(RoleInGroup item);
         Task<RoleInGroup> UpdateRoleInGroup(string groupRoleId, RoleInGroup item);
-        Task<RoleInGroup> DeleteRoleInGroup(string groupRoleId);
+        Task<long> DeleteRoleInGroup(string groupRoleId);
     }
 }

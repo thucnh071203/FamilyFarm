@@ -72,6 +72,7 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("Group not found");
 
             await _groupService.DeleteGroup(groupId);
+
             return Ok("Delete successfully!");
         }
     }
