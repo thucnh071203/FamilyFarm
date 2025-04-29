@@ -205,8 +205,8 @@ namespace FamilyFarm.BusinessLogic.Services
             // Check if both keyword and categoryIds are empty or null
             if (string.IsNullOrWhiteSpace(keyword) && (categoryIds == null || categoryIds.Count == 0))
             {
-                // If neither is provided, throw an exception
-                throw new ArgumentException("At least one keyword or category must be provided for the search.");
+                // If neither is provided, return new Emplty List
+                return new List<Post>();
             }
 
             List<Post> posts;

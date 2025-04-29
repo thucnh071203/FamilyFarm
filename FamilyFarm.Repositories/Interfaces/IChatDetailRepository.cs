@@ -1,0 +1,19 @@
+﻿using FamilyFarm.Models.Models;
+using MongoDB.Driver;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FamilyFarm.Repositories.Interfaces
+{
+    public interface IChatDetailRepository
+    {
+        Task<ChatDetail> CreateChatDetailAsync(ChatDetail chatDetail);
+        Task<List<ChatDetail>> GetChatDetailsByChatIdAsync(string chatId);
+        Task<ChatDetail> UpdateIsSeenAsync(string chatDetailId);
+        Task<ChatDetail> RevokeChatDetailByIdAsync(string chatDetailId);
+        Task DeleteChatDetailsByChatIdAsync(string chatId);
+    }
+}
