@@ -11,6 +11,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
     {
         Task<GroupMember> GetGroupMemberById(string groupMemberId);
         Task<GroupMember> AddGroupMember(GroupMember groupMember);
-        Task<GroupMember> DeleteGroupMember(string groupMemberId);
+        Task<long> DeleteGroupMember(string groupMemberId);
     }
 }

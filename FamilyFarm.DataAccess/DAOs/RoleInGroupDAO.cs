@@ -50,21 +50,16 @@ namespace FamilyFarm.DataAccess.DAOs
             return updateRoleInGroup;
         }
 
-        public async Task<RoleInGroup> DeleteAsync(string groupRoleId)
+        public async Task<long> DeleteAsync(string groupRoleId)
         {
-            if (!ObjectId.TryParse(groupRoleId, out _)) return null;
+            if (!ObjectId.TryParse(groupRoleId, out _)) return 0;
 
             var existing = await _RoleInGroups.Find(g => g.GroupRoleId == groupRoleId).FirstOrDefaultAsync();
-            if (existing == null) return null;
+            if (existing == null) return 0;
 
             var deleteResult = await _RoleInGroups.DeleteOneAsync(g => g.GroupRoleId == groupRoleId);
 
-            if (deleteResult.DeletedCount > 0)
-            {
-                return existing;
-            }
-
-            return null;
+            return deleteResult.DeletedCount;
         }
     }
 }

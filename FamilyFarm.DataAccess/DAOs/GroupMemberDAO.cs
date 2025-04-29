@@ -29,7 +29,7 @@ namespace FamilyFarm.DataAccess.DAOs
         public async Task<GroupMember> AddAsync(GroupMember groupMember)
         {
             groupMember.GroupMemberId = ObjectId.GenerateNewId().ToString();
-            groupMember.GroupRoleId = "680cebdfac700e1cb4c165b2";
+            groupMember.GroupRoleId = groupMember.GroupRoleId;
             groupMember.GroupId = groupMember.GroupId;
             groupMember.AccId = groupMember.AccId;
             groupMember.JointAt = DateTime.UtcNow;
@@ -48,14 +48,14 @@ namespace FamilyFarm.DataAccess.DAOs
             return groupMember;
         }
 
-        public async Task<GroupMember> DeleteAsync(string groupMemberId)
+        public async Task<long> DeleteAsync(string groupMemberId)
         {
-            if (!ObjectId.TryParse(groupMemberId, out _)) return null;
+            if (!ObjectId.TryParse(groupMemberId, out _)) return 0;
 
             var filter = Builders<GroupMember>.Filter.Eq(g => g.GroupMemberId, groupMemberId) &
                          Builders<GroupMember>.Filter.Eq(g => g.MemberStatus, "Accept");
 
-            if (filter == null) return null;
+            if (filter == null) return 0;
 
             var update = Builders<GroupMember>.Update
                 .Set(g => g.MemberStatus, "Left")
@@ -63,12 +63,23 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var result = await _GroupMembers.UpdateOneAsync(filter, update);
 
-            if (result.MatchedCount > 0 && result.ModifiedCount > 0)
-            {
-                return await GetByIdAsync(groupMemberId);
-            }
+            return result.ModifiedCount;
+        }
 
-            return null;
+        public async Task<long> DeleteAllAsync(string groupId)
+        {
+            if (!ObjectId.TryParse(groupId, out _)) return 0;
+
+            var filter = Builders<GroupMember>.Filter.Eq(g => g.GroupId, groupId) &
+                         Builders<GroupMember>.Filter.Eq(g => g.MemberStatus, "Accept");
+
+            var update = Builders<GroupMember>.Update
+                .Set(g => g.MemberStatus, "Left")
+                .Set(g => g.LeftAt, DateTime.UtcNow);
+
+            var result = await _GroupMembers.UpdateManyAsync(filter, update);
+
+            return result.ModifiedCount;
         }
     }
 }

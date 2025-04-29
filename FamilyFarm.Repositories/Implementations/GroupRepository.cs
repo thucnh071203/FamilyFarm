@@ -37,9 +37,13 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.UpdateAsync(groupId, item);
         }
 
-        public async Task<Group> DeleteGroup(string groupId)
+        public async Task<long> DeleteGroup(string groupId)
         {
             return await _dao.DeleteAsync(groupId);
+        }
+        public async Task<Group> GetLatestGroupByCreator(string creatorId)
+        {
+            return await _dao.GetLatestByCreatorAsync(creatorId);
         }
     }
 }

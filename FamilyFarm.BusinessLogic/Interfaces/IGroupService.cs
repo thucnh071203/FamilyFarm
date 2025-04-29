@@ -13,6 +13,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<Group> GetGroupById(string groupId);
         Task<Group> CreateGroup(Group item);
         Task<Group> UpdateGroup(string groupId, Group item);
-        Task<Group> DeleteGroup(string groupId);
+        Task<long> DeleteGroup(string groupId);
     }
 }
