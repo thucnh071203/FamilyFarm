@@ -13,6 +13,8 @@ using FamilyFarm.BusinessLogic.Config;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Repositories.Interfaces;
 using FamilyFarm.Repositories.Implementations;
+using FamilyFarm.BusinessLogic.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,6 +53,9 @@ builder.Services.AddScoped<BookingServiceDAO>();
 builder.Services.AddScoped<ServiceDAO>();
 builder.Services.AddScoped<RoleInGroupDAO>();
 builder.Services.AddScoped<SearchHistoryDAO>();
+builder.Services.AddScoped<ChatDetailDAO>();
+builder.Services.AddScoped<ChatDAO>();
+
 
 
 // Repository DI
@@ -75,6 +80,9 @@ builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IRoleInGroupRepository, RoleInGroupRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
+builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IChatDetailRepository, ChatDetailRepository>();
+
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -93,7 +101,24 @@ builder.Services.AddScoped<IFriendService, FriendService>();
 builder.Services.AddScoped<IBookingServiceService, BookingServiceService>();
 builder.Services.AddScoped<IRoleInGroupService, RoleInGroupService>();
 builder.Services.AddScoped<ISearchHistoryService, SearchHistoryService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+
 //builder.Services.AddScoped<FirebaseConnection>();
+
+// Cấu hình CORS nếu cần (cho phép client kết nối SignalR)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.WithOrigins("http://127.0.0.1:5500") // thay bằng đúng origin đang test
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // khi dùng SignalR
+    });
+});
+builder.Services.AddSignalR();
+
 
 builder.Services.AddHttpContextAccessor();
 
@@ -170,11 +195,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowAll"); 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.Run();
+app.MapHub<ChatHub>("/chatHub");
+app.Run();  

@@ -62,6 +62,8 @@ namespace FamilyFarm.API.Controllers
         {
             // Call the service method to perform the search
             var posts = await _postService.SearchPosts(keyword, categoryIds, isAndLogic);
+            if (!posts.Any())
+                return NotFound("No post found!");
 
             // Return the posts wrapped in an OK response if search is successful
             return Ok(posts);
@@ -86,6 +88,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpPut("update")]
+        //[HttpPut("update/{id}")]
         [Authorize]
         public async Task<ActionResult<UpdatePostResponseDTO>> UpdatePost([FromForm] UpdatePostRequestDTO request)
         {
