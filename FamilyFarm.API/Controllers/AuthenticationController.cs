@@ -192,10 +192,12 @@ namespace FamilyFarm.API.Controllers
             return result is not null ? result : Unauthorized();
         }
 
-        [AllowAnonymous]
+        [Authorize]
         [HttpPut("set-password/{id}")]
-        public async Task<IActionResult> SetPassword(string id, [FromBody] SetPasswordDTO request)
+        public async Task<IActionResult> SetPassword([FromBody] SetPasswordDTO request)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var id = userClaims?.AccId;
             var account = await _accountService.GetAccountById(id);
             if (account == null)
                 return NotFound("Account not found");
@@ -209,10 +211,13 @@ namespace FamilyFarm.API.Controllers
             return Ok("Password setted successfully!");
         }
 
-        [AllowAnonymous]
+        [Authorize]
         [HttpPut("change-password/{id}")]
-        public async Task<IActionResult> ChangePassword(string id, [FromBody] ChangePasswordDTO request)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO request)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var id = userClaims.AccId;
+
             var account = await _accountService.GetAccountById(id);
             if (account == null)
                 return NotFound("Account not found");

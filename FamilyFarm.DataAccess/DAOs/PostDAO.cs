@@ -11,12 +11,12 @@ namespace FamilyFarm.DataAccess.DAOs
 {
     public class PostDAO
     {
-        private readonly IMongoCollection<Post> _postCollection;
+        private readonly IMongoCollection<Post> _post;
         private readonly IMongoCollection<PostCategory> _postCategoryCollection;
 
         public PostDAO(IMongoDatabase database)
         {
-            _postCollection = database.GetCollection<Post>("Post");
+            _post = database.GetCollection<Post>("Post");
             _postCategoryCollection = database.GetCollection<PostCategory>("PostCategory");
         }
 
@@ -41,7 +41,7 @@ namespace FamilyFarm.DataAccess.DAOs
                          filterBuilder.Regex(p => p.PostContent, new BsonRegularExpression(keyword, "i"));
 
             // Execute the query on the Post collection and return the results as a list.
-            return await _postCollection
+            return await _post
                 .Find(filter)
                 .ToListAsync();
         }
@@ -103,7 +103,7 @@ namespace FamilyFarm.DataAccess.DAOs
                 return new List<Post>();
 
             // Retrieve the posts from the Post collection that match the valid PostIds, are not deleted, and are public.
-            return await _postCollection
+            return await _post
                 .Find(p => validPostIds.Contains(p.PostId) && p.IsDeleted == false && p.PostScope == "Public")
                 .ToListAsync();
         }
@@ -124,7 +124,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
             request.CreatedAt = DateTime.UtcNow;
 
-            await _postCollection.InsertOneAsync(request);
+            await _post.InsertOneAsync(request);
 
             return request;
         }
@@ -150,12 +150,12 @@ namespace FamilyFarm.DataAccess.DAOs
                     .Set(x => x.UpdatedAt, DateTime.UtcNow);
                 // Thêm các field khác bạn muốn update ở đây
 
-                var result = await _postCollection.UpdateOneAsync(filter, update);
+                var result = await _post.UpdateOneAsync(filter, update);
 
                 if (result.ModifiedCount > 0)
                 {
                     // Sau khi update, lấy lại Post mới nhất để trả về
-                    var updatedPost = await _postCollection.Find(filter).FirstOrDefaultAsync();
+                    var updatedPost = await _post.Find(filter).FirstOrDefaultAsync();
                     return updatedPost;
                 }
                 else
@@ -179,7 +179,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
             try
             {
-                var post = await _postCollection.Find(filter).FirstOrDefaultAsync();
+                var post = await _post.Find(filter).FirstOrDefaultAsync();
                 return post;
             }
             catch (Exception ex)

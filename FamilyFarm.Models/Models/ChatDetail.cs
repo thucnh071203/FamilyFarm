@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
+using System.ComponentModel;
 
 namespace FamilyFarm.Models.Models
 {
@@ -17,6 +18,9 @@ namespace FamilyFarm.Models.Models
         public string? FileUrl { get; set; }
         public string? FileType { get; set; }
         public DateTime SendAt { get; set; }
+        [DefaultValue(false)] 
+        public bool? IsRevoked{ get; set; }
+        [DefaultValue(false)]
         public bool IsSeen { get; set; } = false;
         [BsonRepresentation(BsonType.ObjectId)]
         public required string ChatId { get; set; }
