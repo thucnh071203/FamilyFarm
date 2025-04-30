@@ -8,7 +8,7 @@ namespace FamilyFarm.Models.DTOs.Request
 {
     public class StartChatRequestDTO
     {
-        public required string User1Id { get; set; }
-        public required string User2Id { get; set; }
+        public required string Acc1Id { get; set; }
+        public required string Acc2Id { get; set; }
     }
 }

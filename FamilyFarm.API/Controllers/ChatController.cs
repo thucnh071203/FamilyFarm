@@ -1,5 +1,7 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -10,73 +12,90 @@ namespace FamilyFarm.API.Controllers
 {
     [Route("api/chat")]
     [ApiController]
+    [Authorize]
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
+        private readonly IAuthenticationService _authenService;
 
-        public ChatController(IChatService chatService)
+        public ChatController(IChatService chatService, IAuthenticationService authenService)
         {
             _chatService = chatService;
+            _authenService = authenService;
         }
 
         /// <summary>
-        /// Starts a new chat between two users by their UserIds.
-        /// If any of the UserIds is invalid, it returns a BadRequest error.
+        /// Starts a new chat between two users by their AccIds.
+        /// If any of the AccIds is invalid, it returns a BadRequest error.
         /// </summary>
         /// <param name="request">The request data containing the User1Id and User2Id for starting the chat.</param>
         /// <returns>
         /// Returns an HTTP 200 status with the created chat object if successful,
-        /// or a BadRequest with an error message if the UserIds are invalid.
+        /// or a BadRequest with an error message if the AccIds are invalid.
         /// </returns>
         [HttpPost("start")]
         public async Task<IActionResult> StartChat([FromBody] StartChatRequestDTO request)
         {
-            if (!ObjectId.TryParse(request.User1Id, out _) || !ObjectId.TryParse(request.User2Id, out _))
-                return BadRequest("Invalid UserId.");
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
 
-            var chat = await _chatService.StartChatAsync(request.User1Id, request.User2Id);
+            if (!ObjectId.TryParse(account.AccId, out _) || !ObjectId.TryParse(request.Acc2Id, out _))
+                return BadRequest("Invalid AccIds.");
+
+            var chat = await _chatService.StartChatAsync(account.AccId, request.Acc2Id);
+
             return Ok(chat);
         }
 
         /// <summary>
-        /// Retrieves all chats for a specific user by their UserId.
+        /// Retrieves all chats for a specific user by their accId.
         /// If no chats are found, it returns a NotFound status.
         /// </summary>
-        /// <param name="userId">The UserId for which to fetch the chats.</param>
+        /// <param name="accId">The accId for which to fetch the chats.</param>
         /// <returns>
         /// Returns an HTTP 200 status with the list of chats if successful,
-        /// or a NotFound status if no chats are found for the given UserId.
+        /// or a NotFound status if no chats are found for the given accId.
         /// </returns>
-        [HttpGet("get-by-user/{userId}")]
-        public async Task<IActionResult> GetUserChats(string userId)
+        [HttpGet("get-by-user")]
+        public async Task<IActionResult> GetUserChats()
         {
-            var chats = await _chatService.GetUserChatsAsync(userId);
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            var chats = await _chatService.GetUserChatsAsync(account.AccId);
             if (chats == null)
                 return NotFound("No chats found!");
+
             return Ok(chats);
-        }
+        }   
 
         /// <summary>
         /// Searches for chats by a user's full name.
         /// If no chats are found, it returns a NotFound status.
         /// </summary>
-        /// <param name="userId">The UserId of the user performing the search.</param>
+        /// <param name="accId">The accId of the user performing the search.</param>
         /// <param name="fullName">The full name to search for in chats.</param>
         /// <returns>
         /// Returns an HTTP 200 status with the search results if successful,
         /// or a NotFound status if no chats are found for the given full name.
         /// </returns>
-        [HttpGet("search-by-fullname/{userId}")]
-        public async Task<IActionResult> SearchChats(string userId, [FromQuery] string fullName)
+        [HttpGet("search-by-fullname/{fullName}")]
+        public async Task<IActionResult> SearchChatsByFullName(string fullName)
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
             if (string.IsNullOrEmpty(fullName))
-            {
                 return BadRequest("FullName is required.");
-            }
-            var chats = await _chatService.SearchChatsByFullNameAsync(userId, fullName);
+
+            var chats = await _chatService.SearchChatsByFullNameAsync(account.AccId, fullName);
 
             if (chats == null)
                 return NotFound("No chats found!");
+
             return Ok(chats);
         }
 
@@ -90,29 +109,21 @@ namespace FamilyFarm.API.Controllers
         /// or a BadRequest status if the message cannot be sent.
         /// </returns>
         [HttpPost("send-message")]
-        public async Task<IActionResult> SendMessage([FromBody] ChatDetail chatDetail)
+        public async Task<IActionResult> SendMessage([FromBody] SendMessageRequestDTO request)
         {
-            if (chatDetail == null)
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (request == null)
                 return BadRequest("No message data provided.");
 
-            try
-            {
-                var result = await _chatService.SendMessageAsync(chatDetail);
+            var result = await _chatService.SendMessageAsync(account.AccId, request);
 
-                if (result == null)
-                {
-                    // Nếu không tạo được message, trả về BadRequest.
-                    return BadRequest("Failed to send the message.");
-                }
+            if (!result.Success.GetValueOrDefault())
+                return BadRequest(result);
 
-                // Nếu thành công, trả về Ok.
-                return Ok(result); // hoặc Ok(chatDetail) nếu bạn muốn trả về tin nhắn gốc.
-            }
-            catch (Exception ex)
-            {
-                // Xử lý lỗi nếu có
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            return Ok(result);
         }
 
         /// <summary>
@@ -128,8 +139,10 @@ namespace FamilyFarm.API.Controllers
         public async Task<IActionResult> GetMessages(string chatId)
         {
             var messages = await _chatService.GetChatMessagesAsync(chatId);
+
             if (messages == null)
                 return NotFound("No chats found!");
+
             return Ok(messages);
         }
 
@@ -143,10 +156,11 @@ namespace FamilyFarm.API.Controllers
         /// Returns an HTTP 200 status with the updated ChatDetail if successful, 
         /// or an HTTP 404 status with an error message if the chat detail is not found.
         /// </returns>
-        [HttpPut("seen/{chatDetailId}")]
+        [HttpPut("mark-as-seen/{chatDetailId}")]
         public async Task<IActionResult> MarkAsSeen(string chatDetailId)
         {
             var chatDetail = await _chatService.MarkAsSeenAsync(chatDetailId);
+
             if (chatDetail == null)
                 return NotFound("No chat details found!");  // If no chat detail is found, return 404 with an error message.
 
@@ -165,13 +179,13 @@ namespace FamilyFarm.API.Controllers
         /// If no message is found with the provided ID, returns NotFound with a "No message found!" message.
         /// </returns>
         [HttpPut("revoke-message/{chatDetailId}")]
-        public async Task<IActionResult> RevokeMessage(string chatDetailId)
+        public async Task<IActionResult> RevokeChatMessage(string chatDetailId)
         {
-            var deleted = await _chatService.RevokeChatDetailByIdAsync(chatDetailId);
-            if (deleted == null)
+            var revoked = await _chatService.RevokeChatDetailByIdAsync(chatDetailId);
+            if (revoked == null)
                 return NotFound("No message found!");  // If no message is found, return NotFound response.
 
-            return Ok(deleted);  // If the message is successfully revoked, return Ok with the updated message.
+            return Ok(revoked);  // If the message is successfully revoked, return Ok with the updated message.
         }
 
 

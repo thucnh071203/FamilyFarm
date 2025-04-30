@@ -17,10 +17,8 @@ namespace FamilyFarm.Models.Models
         public string? Message { get; set; }
         public string? FileUrl { get; set; }
         public string? FileType { get; set; }
-        public DateTime SendAt { get; set; }
-        [DefaultValue(false)] 
-        public bool? IsRevoked{ get; set; }
-        [DefaultValue(false)]
+        public DateTime SendAt { get; set; } = DateTime.UtcNow;
+        public bool? IsRevoked{ get; set; } = false;
         public bool IsSeen { get; set; } = false;
         [BsonRepresentation(BsonType.ObjectId)]
         public required string ChatId { get; set; }
