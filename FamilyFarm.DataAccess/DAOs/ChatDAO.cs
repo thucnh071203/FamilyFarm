@@ -49,15 +49,15 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         /// Retrieves a chat between two users based on their user IDs.
         /// </summary>
-        /// <param name="user1Id">The user ID of the first user.</param>
-        /// <param name="user2Id">The user ID of the second user.</param>
+        /// <param name="acc1Id">The user ID of the first user.</param>
+        /// <param name="acc2Id">The user ID of the second user.</param>
         /// <returns>Returns the chat if found, or null if not found.</returns>
-        public async Task<Chat> GetChatByUsersAsync(string user1Id, string user2Id)
+        public async Task<Chat> GetChatByUsersAsync(string acc1Id, string acc2Id)
         {
             // Search for a chat where either user1 is User1 and user2 is User2, or vice versa.
             return await _chats.Find(c =>
-                (c.User1Id == user1Id && c.User2Id == user2Id) ||
-                (c.User1Id == user2Id && c.User2Id == user1Id))
+                (c.Acc1Id == acc1Id && c.Acc2Id == acc2Id) ||
+                (c.Acc1Id == acc2Id && c.Acc2Id == acc1Id))
                 .FirstOrDefaultAsync();  // Return the first matching chat, or null if not found.
         }
 
@@ -66,26 +66,26 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         /// Retrieves all chats associated with a given user.
         /// </summary>
-        /// <param name="userId">The user ID of the user.</param>
+        /// <param name="accId">The user ID of the user.</param>
         /// <returns>Returns a list of chats the user is part of.</returns>
-        public async Task<List<Chat>> GetChatsByUserAsync(string userId)
+        public async Task<List<Chat>> GetChatsByUserAsync(string accId)
         {
-            if (!ObjectId.TryParse(userId, out _))
+            if (!ObjectId.TryParse(accId, out _))
                 return null;
             // Search for chats where the user is either User1 or User2.
-            return await _chats.Find(c => c.User1Id == userId || c.User2Id == userId)
+            return await _chats.Find(c => c.Acc1Id == accId || c.Acc2Id == accId)
                 .ToListAsync();  // Return the list of matching chats.
         }
 
         /// <summary>
         /// Searches for chats associated with a user by matching the full name of the other user in the chat.
         /// </summary>
-        /// <param name="userId">The user ID of the searching user.</param>
+        /// <param name="accId">The user ID of the searching user.</param>
         /// <param name="fullName">The full name of the user to search for in the chats.</param>
         /// <returns>Returns a list of chats where the other user has a full name matching the search term.</returns>
-        public async Task<List<Chat>> SearchChatsByFullNameAsync(string userId, string fullName)
+        public async Task<List<Chat>> SearchChatsByFullNameAsync(string accId, string fullName)
         {
-            if (!ObjectId.TryParse(userId, out _))
+            if (!ObjectId.TryParse(accId, out _))
                 return null;
 
             // Use a case-insensitive regex to search for accounts with a full name matching the search term.
@@ -100,8 +100,8 @@ namespace FamilyFarm.DataAccess.DAOs
 
             // Search for chats where the user is part of the chat and the other participant is in the matching accounts.
             return await _chats.Find(c =>
-                (c.User1Id == userId && accountIds.Contains(c.User2Id)) ||
-                (c.User2Id == userId && accountIds.Contains(c.User1Id)))
+                (c.Acc1Id == accId && accountIds.Contains(c.Acc2Id)) ||
+                (c.Acc2Id == accId && accountIds.Contains(c.Acc1Id)))
                 .ToListAsync();  // Return the list of matching chats.
         }
 

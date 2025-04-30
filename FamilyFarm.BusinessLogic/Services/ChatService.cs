@@ -1,5 +1,8 @@
-﻿using FamilyFarm.BusinessLogic.Hubs;
+﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
@@ -16,7 +19,8 @@ namespace FamilyFarm.BusinessLogic.Services
     {
         private readonly IChatRepository _chatRepository; 
         private readonly IChatDetailRepository _chatDetailRepository;  
-        private readonly IHubContext<ChatHub> _chatHubContext; 
+        private readonly IHubContext<ChatHub> _chatHubContext;
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Constructor to initialize the chat service with required repositories and SignalR context.
@@ -24,11 +28,12 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <param name="chatRepository">The repository for managing chat data.</param>
         /// <param name="chatDetailRepository">The repository for managing chat messages (chat details).</param>
         /// <param name="chatHubContext">The SignalR hub context to send notifications to clients.</param>
-        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext)
+        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper)
         {
             _chatRepository = chatRepository;
             _chatDetailRepository = chatDetailRepository;
             _chatHubContext = chatHubContext;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -51,8 +56,8 @@ namespace FamilyFarm.BusinessLogic.Services
             var chat = new Chat
             {
                 ChatId = ObjectId.GenerateNewId().ToString(),  // Generate a new unique chat ID.
-                User1Id = accId1,
-                User2Id = accId2,
+                Acc1Id = accId1,
+                Acc2Id = accId2,
                 CreateAt = DateTime.UtcNow  // Set the creation timestamp.
             };
 
@@ -93,28 +98,68 @@ namespace FamilyFarm.BusinessLogic.Services
         }
 
         /// <summary>
-        /// Sends a new message in a chat and notifies both users in real-time using SignalR.
+        /// Sends a message in a chat by mapping the request to a ChatDetail object, 
+        /// notifying users via SignalR, and saving the message to the database.
+        /// This method validates the input, assigns the sender ID, and returns a response indicating success or failure.
         /// </summary>
-        /// <param name="chatDetail">The chat detail (message) to send.</param>
-        /// <returns>Returns a task representing the asynchronous operation.</returns>
-        public async Task<ChatDetail> SendMessageAsync(ChatDetail chatDetail)
+        /// <param name="senderId">The unique identifier of the sender, typically extracted from the authenticated user's token (e.g., account.AccId).</param>
+        /// <param name="request">The DTO containing message details such as the message content, chat ID, and receiver ID.</param>
+        /// <returns>
+        /// A <see cref="SendMessageResponseDTO"/> object indicating the result of the operation. 
+        /// If successful, it contains the saved message details in the <see cref="SendMessageResponseDTO.Data"/> property, 
+        /// along with a success message and <c>Success</c> set to <c>true</c>. 
+        /// If failed, it contains an error message and <c>Success</c> set to <c>false</c>.
+        /// </returns>
+        public async Task<SendMessageResponseDTO> SendMessageAsync(string senderId, SendMessageRequestDTO request)
         {
-            chatDetail.ChatDetailId = ObjectId.GenerateNewId().ToString();  // Generate a new unique ID for the chat message.
-            chatDetail.SendAt = DateTime.UtcNow;  // Set the timestamp when the message is sent.
-
-            // Notify both users via SignalR that a new message has been sent.
-            await _chatHubContext.Clients.Users(new[] { chatDetail.SenderId, chatDetail.ReceiverId })
-                                       .SendAsync("ReceiveMessage", chatDetail);  // Send the message to both the sender and receiver.
-
-            // Save the message to the repository.
-            var savedMessage = await _chatDetailRepository.CreateChatDetailAsync(chatDetail);  // Save the message to the repository.
-
-            if (savedMessage == null)
+            // Validate the input: Check if the request is null or if required fields (ChatId, ReceiverId) are missing.
+            if (request == null || string.IsNullOrEmpty(request.ChatId) || string.IsNullOrEmpty(request.ReceiverId))
             {
-                throw new InvalidOperationException("Failed to save the message."); // Handle failure to save message.
+                // Return a failure response if validation fails.
+                return new SendMessageResponseDTO
+                {
+                    Message = "Invalid message data: ChatId, and ReceiverId are required.",
+                    Success = false
+                };
             }
 
-            return savedMessage; // Return the saved message if successful.
+            // Map the SendMessageRequestDTO to a ChatDetail object using AutoMapper.
+            // The mapping automatically assigns default values for ChatDetailId, SendAt (via MappingProfile),
+            // and IsRevoked, IsSeen (via ChatDetail model defaults).
+            var chatDetail = _mapper.Map<ChatDetail>(request);
+
+            // Assign the SenderId to the ChatDetail object, using the senderId parameter provided by the controller.
+            chatDetail.SenderId = senderId;
+
+            // Notify both the sender and receiver via SignalR by sending the "ReceiveMessage" event.
+            // This ensures real-time updates for both users involved in the chat.
+            await _chatHubContext.Clients.Users(new[] { chatDetail.SenderId, chatDetail.ReceiverId })
+                                 .SendAsync("ReceiveMessage", chatDetail);
+
+            // Save the chat message to the database using the repository.
+            var savedMessage = await _chatDetailRepository.CreateChatDetailAsync(chatDetail);
+
+            // Check if the message was saved successfully.
+            if (savedMessage == null)
+            {
+                // Return a failure response if the message could not be saved.
+                // This typically happens if the ChatId, SenderId, or ReceiverId is not a valid ObjectId.
+                return new SendMessageResponseDTO
+                {
+                    Message = "Failed to send the message.",
+                    Success = false
+                };
+            }
+
+            // Map the saved ChatDetail object to a SendMessageResponseDTO for the response.
+            var response = _mapper.Map<SendMessageResponseDTO>(savedMessage);
+
+            // Set the success message and status in the response.
+            response.Message = "Message sent successfully.";
+            response.Success = true;
+
+            // Return the response containing the saved message details.
+            return response;
         }
 
         /// <summary>
@@ -144,7 +189,7 @@ namespace FamilyFarm.BusinessLogic.Services
             var chat = await _chatRepository.GetChatByIdAsync(chatId);
             if (chat != null)
             {
-                await _chatHubContext.Clients.Users(new[] { chat.User1Id, chat.User2Id })
+                await _chatHubContext.Clients.Users(new[] { chat.Acc1Id, chat.Acc2Id })
                     .SendAsync("ChatHistoryDeleted", chatId);
             }
         }
@@ -169,7 +214,7 @@ namespace FamilyFarm.BusinessLogic.Services
             if (chat != null)
             {
                 // Notify both users that the chat history (message) has been revoked
-                await _chatHubContext.Clients.Users(new[] { chat.User1Id, chat.User2Id })
+                await _chatHubContext.Clients.Users(new[] { chat.Acc1Id, chat.Acc2Id })
                     .SendAsync("ChatRevoked", revokedChatDetail.ChatId);
             }
 

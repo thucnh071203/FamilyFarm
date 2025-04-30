@@ -15,6 +15,7 @@ using FamilyFarm.Repositories.Interfaces;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.BusinessLogic.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using FamilyFarm.Models.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,7 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
 });
 
 // DAO DI
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 builder.Services.AddScoped<PasswordHasher>();
 builder.Services.AddScoped<RoleDAO>();
 builder.Services.AddScoped<AccountDAO>();
