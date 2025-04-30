@@ -86,7 +86,7 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             if (string.IsNullOrEmpty(expertId)) return null;
 
-            var listService = await _serviceRepository.GetAllByProviderIdAsync(expertId);
+            var listService = await _serviceRepository.GetAllServiceByProvider(expertId);
 
             var listBooking = new List<BookingService>();
 
@@ -110,7 +110,7 @@ namespace FamilyFarm.BusinessLogic.Services
             List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
             foreach (var item in listBooking)
             {
-                var service = await _serviceRepository.GetByIdAsync(item.ServiceId);
+                var service = await _serviceRepository.GetServiceById(item.ServiceId);
                 var farmer = await _accountRepository.GetAccountById(item.AccId);
                 var mapper = new BookingServiceMapper
                 {
@@ -159,7 +159,7 @@ namespace FamilyFarm.BusinessLogic.Services
             List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
             foreach (var item in listBooking)
             {
-                var service = await _serviceRepository.GetByIdAsync(item.ServiceId);
+                var service = await _serviceRepository.GetServiceById(item.ServiceId);
                 var expert = await _accountRepository.GetAccountById(service.ProviderId);
                 var mapper = new BookingServiceMapper
                 {
@@ -206,7 +206,7 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             if (string.IsNullOrEmpty(expertId)) return null;
 
-            var listService = await _serviceRepository.GetAllByProviderIdAsync(expertId);
+            var listService = await _serviceRepository.GetAllServiceByProvider(expertId);
 
             var listBooking = new List<BookingService>();
 
@@ -230,7 +230,7 @@ namespace FamilyFarm.BusinessLogic.Services
             List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
             foreach (var item in listBooking)
             {
-                var service = await _serviceRepository.GetByIdAsync(item.ServiceId);
+                var service = await _serviceRepository.GetServiceById(item.ServiceId);
                 var farmer = await _accountRepository.GetAccountById(item.AccId);
                 var mapper = new BookingServiceMapper
                 {
@@ -280,7 +280,7 @@ namespace FamilyFarm.BusinessLogic.Services
             List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
             foreach (var item in listBooking)
             {
-                var service = await _serviceRepository.GetByIdAsync(item.ServiceId);
+                var service = await _serviceRepository.GetServiceById(item.ServiceId);
                 var expert = await _accountRepository.GetAccountById(service.ProviderId);
                 var mapper = new BookingServiceMapper
                 {
@@ -322,7 +322,7 @@ namespace FamilyFarm.BusinessLogic.Services
         public async Task<bool?> SendRequestBooking(string username, string serviceId)
         {
             if (string.IsNullOrEmpty(serviceId) || string.IsNullOrEmpty(username)) return null;
-            var service = await _serviceRepository.GetByIdAsync(serviceId);
+            var service = await _serviceRepository.GetServiceById(serviceId);
             var farmer = await _accountRepository.GetAccountByUsername(username);
 
             if (farmer == null || service == null) return null;

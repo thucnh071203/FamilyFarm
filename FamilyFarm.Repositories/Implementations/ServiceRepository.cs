@@ -9,27 +9,42 @@ using System.Threading.Tasks;
 
 namespace FamilyFarm.Repositories.Implementations
 {
-    public class ServiceRepository:IServiceRepository
+    public class ServiceRepository : IServiceRepository
     {
-        private readonly ServiceDAO serviceDAO;
-        public ServiceRepository(ServiceDAO serviceDAO)
+        private readonly ServiceDAO _dao;
+        public ServiceRepository(ServiceDAO dao)
         {
-            this.serviceDAO = serviceDAO;
+            _dao = dao;
         }
 
-        public async Task<List<Service>> GetAllAsync()
+        public async Task<List<Service>> GetAllService()
         {
-            return await serviceDAO.GetAllAsync();
+            return await _dao.GetAllAsync();
         }
 
-        public async Task<List<Service>> GetAllByProviderIdAsync(string providerId)
+        public async Task<List<Service>> GetAllServiceByProvider(string providerId)
         {
-            return await serviceDAO.GetAllByProviderIdAsync(providerId);
+            return await _dao.GetAllByProviderIdAsync(providerId);
         }
 
-        public async Task<Service?> GetByIdAsync(string serviceId)
+        public async Task<Service> GetServiceById(string serviceId)
         {
-           return await serviceDAO.GetByIdAsync(serviceId); 
+            return await _dao.GetByIdAsync(serviceId); 
+        }
+
+        public async Task<Service> CreateService(Service item)
+        {
+            return await _dao.CreateAsync(item);
+        }
+
+        public async Task<Service> UpdateService(string serviceId, Service item)
+        {
+            return await _dao.UpdateAsync(serviceId, item);
+        }
+
+        public async Task<long> DeleteService(string serviceId)
+        {
+            return await _dao.DeleteAsync(serviceId);
         }
     }
 }
