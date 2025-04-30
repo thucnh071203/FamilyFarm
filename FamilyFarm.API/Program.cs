@@ -54,8 +54,10 @@ builder.Services.AddScoped<FriendDAO>();
 builder.Services.AddScoped<BookingServiceDAO>();
 builder.Services.AddScoped<ServiceDAO>();
 builder.Services.AddScoped<RoleInGroupDAO>();
+builder.Services.AddScoped<SearchHistoryDAO>();
 builder.Services.AddScoped<ChatDetailDAO>();
 builder.Services.AddScoped<ChatDAO>();
+
 
 
 // Repository DI
@@ -79,6 +81,7 @@ builder.Services.AddScoped<IBookingServiceRepository, BookingServiceRepository>(
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IRoleInGroupRepository, RoleInGroupRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IChatDetailRepository, ChatDetailRepository>();
 
@@ -99,6 +102,7 @@ builder.Services.AddScoped<IGroupMemberService, GroupMemberService>();
 builder.Services.AddScoped<IFriendService, FriendService>();
 builder.Services.AddScoped<IBookingServiceService, BookingServiceService>();
 builder.Services.AddScoped<IRoleInGroupService, RoleInGroupService>();
+builder.Services.AddScoped<ISearchHistoryService, SearchHistoryService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 
