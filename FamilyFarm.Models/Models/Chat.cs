@@ -15,10 +15,10 @@ namespace FamilyFarm.Models.Models
         public required string ChatId { get; set; }
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string User1Id { get; set; }
+        public required string Acc1Id { get; set; }
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string User2Id { get; set; }
+        public required string Acc2Id { get; set; }
         public required DateTime? CreateAt { get; set; }
     }
 }

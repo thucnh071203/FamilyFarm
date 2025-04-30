@@ -36,7 +36,7 @@ namespace FamilyFarm.DataAccess.DAOs
             {
                 return null;
             }
-
+            chatDetail.ChatDetailId = ObjectId.GenerateNewId().ToString();
             await _chatDetails.InsertOneAsync(chatDetail);  // Insert the new chat detail into the collection.
             return chatDetail;  // Return the same object after insertion
         }

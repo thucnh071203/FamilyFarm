@@ -1,4 +1,6 @@
-﻿using FamilyFarm.Models.Models;
+﻿using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +15,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<List<Chat>> GetUserChatsAsync(string userId);
         Task<List<Chat>> SearchChatsByFullNameAsync(string userId, string fullName);
         Task<List<ChatDetail>> GetChatMessagesAsync(string chatId);
-        Task<ChatDetail> SendMessageAsync(ChatDetail chatDetail);
+        Task<SendMessageResponseDTO> SendMessageAsync(string senderId, SendMessageRequestDTO request);
         Task<ChatDetail> MarkAsSeenAsync(string chatDetailId);
         Task<ChatDetail> RevokeChatDetailByIdAsync(string chatDetailId);
         Task DeleteChatHistoryAsync(string chatDetailId);
