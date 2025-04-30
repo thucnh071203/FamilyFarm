@@ -57,7 +57,10 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Set(g => g.UpdatedAt, DateTime.UtcNow);
 
             var result = await _Groups.UpdateOneAsync(filter, update);
-            return updateGroup;
+
+            var updatedGroup = await _Groups.Find(g => g.GroupId == groupId && g.IsDeleted != true).FirstOrDefaultAsync();
+
+            return updatedGroup;
         }
 
         public async Task<long> DeleteAsync(string groupId)

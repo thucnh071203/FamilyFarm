@@ -10,12 +10,12 @@ namespace FamilyFarm.Repositories.Interfaces
 {
     public interface IServiceRepository
     {
-        Task<List<Service>> GetAllAsync();
-        Task<List<Service>> GetAllByProviderIdAsync(string providerId);
-        Task<Service?> GetByIdAsync(string serviceId);
-        //Task<Service> InsertAsync(Service item);
-        //Task<bool> UpdateAsync(string serviceId, Service item);
-        //Task<bool> DeleteAsync(string serviceId);
+        Task<List<Service>> GetAllService();
+        Task<List<Service>> GetAllServiceByProvider(string providerId);
+        Task<Service> GetServiceById(string serviceId);
+        Task<Service> CreateService(Service service);
+        Task<Service> UpdateService(string serviceId, Service service);
+        Task<long> DeleteService(string serviceId);
         //Task<List<Service>> GetAllPagPageAsync(int pageNumber, int pageSize);
         //Task<long> GetTotalAllCountAsync();
     }
