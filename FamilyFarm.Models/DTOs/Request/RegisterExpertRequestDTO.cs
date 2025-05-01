@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace FamilyFarm.Models.DTOs.Request
         public string Password { get; set; }
         [Required]
         public string Fullname { get; set; }
-        public string? Avatar {  get; set; }
+        public IFormFile? Avatar {  get; set; }
         [Required]
         public string Email { get; set; }
         [Required]
@@ -32,7 +33,7 @@ namespace FamilyFarm.Models.DTOs.Request
         [Required]
         public string Country { get; set; }
         [Required]
-        public string Certificate { get; set; }
+        public IFormFile Certificate { get; set; }
 
     }
 }

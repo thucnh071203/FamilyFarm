@@ -12,6 +12,7 @@ using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -28,8 +29,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IRoleRepository _roleRepository;
+        private readonly IUploadFileService _uploadFileService;
 
-        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters, IHttpContextAccessor httpContextAccessor, IRoleRepository roleRepository)
+        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters, IHttpContextAccessor httpContextAccessor, IRoleRepository roleRepository, IUploadFileService uploadFileService)
         {
             _configuration = configuration;
             _accountRepository = accountRepository;
@@ -37,6 +39,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _tokenValidationParameters = tokenValidationParameters;
             _httpContextAccessor = httpContextAccessor;
             _roleRepository = roleRepository;
+            _uploadFileService = uploadFileService;
         }
 
         public async Task<LoginResponseDTO?> Login(LoginRequestDTO request)
@@ -278,6 +281,35 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 try
                 {
+                    var avatar = "";
+                    var certificate = "";
+                   
+
+                    if (request.Avatar != null)
+                    {
+                        //Goi method upload List image tu Upload file service
+                        var ImageUrl = await _uploadFileService.UploadImage(request.Avatar);
+
+                        if (ImageUrl != null)
+                        {
+                            avatar = ImageUrl.UrlFile ?? "";
+                            
+                        }
+                    }
+
+                    if (certificate != null)
+                    {
+                        //Goi method upload List image tu Upload file service
+                        var ImageUrl = await _uploadFileService.UploadImage(request.Certificate);
+
+                        if (ImageUrl != null)
+                        {
+                            certificate = ImageUrl.UrlFile ?? "";
+
+                        }
+                    }
+
+
                     await _accountRepository.CreateAccount(new Account
                     {
                         AccId = "",
@@ -293,9 +325,9 @@ namespace FamilyFarm.BusinessLogic.Services
                         Country = request.Country,
                         IdentifierNumber = request.Identifier,
                         Address = request.Address,
-                        Avatar = request.Avatar,
+                        Avatar = avatar,
                         Background = null,
-                        Certificate = request.Certificate,
+                        Certificate = certificate,
                         WorkAt = null,
                         StudyAt = null,
                         RefreshToken = null,
