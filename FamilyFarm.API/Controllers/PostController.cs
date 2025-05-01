@@ -15,11 +15,13 @@ namespace FamilyFarm.API.Controllers
     {
         private readonly IPostService _postService;
         private readonly IAuthenticationService _authenService;
+        private readonly ISearchHistoryService _searchHistoryService;
 
-        public PostController(IPostService postService, IAuthenticationService authenService)
+        public PostController(IPostService postService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService)
         {
             _postService = postService;
             _authenService = authenService;
+            _searchHistoryService = searchHistoryService;
         }
 
         ///// <summary>
@@ -58,10 +60,16 @@ namespace FamilyFarm.API.Controllers
         /// for filtering posts based on category membership. Defaults to false (OR logic).</param>
         /// <returns>A response containing the list of posts that match the search criteria, or an error message in case of failure.</returns>
         [HttpGet("search")]
+        [Authorize]
         public async Task<IActionResult> SearchPosts([FromQuery] string? keyword, [FromQuery] List<string>? categoryIds, [FromQuery] bool isAndLogic = false)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
             // Call the service method to perform the search
             var posts = await _postService.SearchPosts(keyword, categoryIds, isAndLogic);
+            if (keyword != null){
+                var search = await _searchHistoryService.AddSearchHistory(accId, keyword);
+            }
             if (!posts.Any())
                 return NotFound("No post found!");
 

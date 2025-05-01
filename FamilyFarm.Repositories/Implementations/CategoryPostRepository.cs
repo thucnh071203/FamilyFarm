@@ -22,5 +22,21 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetCategoryById(category_id);
         }
+        public async Task<List<Category>?> GetListCategory()
+        {
+            return await _dao.GetListCategory();
+        }
+        public async Task<bool> Delete(string categoryId)
+        {
+            return await _dao.Delete(categoryId);
+        }
+        public async Task<bool> Update(Category category)
+        {
+            return await _dao.Update(category);
+        }
+        public async Task<Category?> Create(Category category)
+        {
+            return await _dao.Create(category);
+        }
     }
 }
