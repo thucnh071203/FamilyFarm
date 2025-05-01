@@ -152,9 +152,6 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            // Kiểm tra email trước khi tạo token
-            Console.WriteLine("Account Email: " + account.Email);
-
             var token = new JwtSecurityToken(
                 issuer,
                 audience,
@@ -169,12 +166,6 @@ namespace FamilyFarm.BusinessLogic.Services
                 expires: tokenExpiryTimeStamp,
                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             );
-
-            // Kiểm tra tất cả các claim trong token
-            foreach (var claim in token.Claims)
-            {
-                Console.WriteLine($"{claim.Type}: {claim.Value}");
-            }
 
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
 
@@ -216,12 +207,6 @@ namespace FamilyFarm.BusinessLogic.Services
                 var principal = tokenHandler.ValidateToken(accessToken, _tokenValidationParameters, out _);
 
                 var claims = principal?.Claims;
-
-                // Kiểm tra tất cả các claim
-                foreach (var claim in claims)
-                {
-                    Console.WriteLine($"{claim.Type}: {claim.Value}");
-                }
 
                 var userClaims = new UserClaimsResponseDTO
                 {

@@ -34,9 +34,9 @@ namespace FamilyFarm.Repositories.Implementations
             return await _chatDetailDAO.UpdateIsSeenAsync(chatDetailId);
         }
 
-        public async Task<ChatDetail> RevokeChatDetailByIdAsync(string chatDetailId)
+        public async Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId)
         {
-            return await _chatDetailDAO.RevokeChatDetailByIdAsync(chatDetailId);
+            return await _chatDetailDAO.RecallChatDetailByIdAsync(chatDetailId);
         }
 
         public async Task DeleteChatDetailsByChatIdAsync(string chatId)

@@ -17,7 +17,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<List<ChatDetail>> GetChatMessagesAsync(string chatId);
         Task<SendMessageResponseDTO> SendMessageAsync(string senderId, SendMessageRequestDTO request);
         Task<ChatDetail> MarkAsSeenAsync(string chatDetailId);
-        Task<ChatDetail> RevokeChatDetailByIdAsync(string chatDetailId);
+        Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId);
         Task DeleteChatHistoryAsync(string chatDetailId);
     }
 }

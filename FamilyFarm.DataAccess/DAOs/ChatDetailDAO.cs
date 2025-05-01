@@ -103,7 +103,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         /// <param name="chatDetailId">The ID of the chat detail to be marked as revoked.</param>
         /// <returns>The updated <see cref="ChatDetail"/> if found; otherwise, null.</returns>
-        public async Task<ChatDetail> RevokeChatDetailByIdAsync(string chatDetailId)
+        public async Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId)
         {
             if (!ObjectId.TryParse(chatDetailId, out _))
                 return null;
@@ -116,11 +116,11 @@ namespace FamilyFarm.DataAccess.DAOs
                 return null;
 
             // Update IsRevoked to true
-            var update = Builders<ChatDetail>.Update.Set(cd => cd.IsRevoked, true);
+            var update = Builders<ChatDetail>.Update.Set(cd => cd.IsRecalled, true);
             await _chatDetails.UpdateOneAsync(filter, update);
 
             // Update the in-memory object to reflect the change
-            chatDetail.IsRevoked = true;
+            chatDetail.IsRecalled = true;
 
             return chatDetail;
         }
