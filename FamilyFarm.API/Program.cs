@@ -57,8 +57,8 @@ builder.Services.AddScoped<RoleInGroupDAO>();
 builder.Services.AddScoped<SearchHistoryDAO>();
 builder.Services.AddScoped<ChatDetailDAO>();
 builder.Services.AddScoped<ChatDAO>();
-
-
+builder.Services.AddScoped<ServiceDAO>();
+builder.Services.AddScoped<CategoryServiceDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -84,6 +84,8 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IChatDetailRepository, ChatDetailRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<ICategoryServiceRepository, CategoryServiceRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -105,6 +107,8 @@ builder.Services.AddScoped<IRoleInGroupService, RoleInGroupService>();
 builder.Services.AddScoped<ISearchHistoryService, SearchHistoryService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+builder.Services.AddScoped<IServicingService, ServicingService>();
+builder.Services.AddScoped<ICategoryServicingService, CategoryServicingService>();
 
 //builder.Services.AddScoped<FirebaseConnection>();
 

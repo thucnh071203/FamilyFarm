@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FamilyFarm.Models.Models;
 using MongoDB.Bson;
@@ -41,53 +42,67 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Get service by Id
         /// </summary>
-        public async Task<Service?> GetByIdAsync(string serviceId)
+        public async Task<Service> GetByIdAsync(string serviceId)
         {
-            var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId) &
-                         Builders<Service>.Filter.Ne(s => s.IsDeleted, true); 
+            if (!ObjectId.TryParse(serviceId, out _)) return null;
 
-            return await _Services.Find(filter).FirstOrDefaultAsync();
+            return await _Services.Find(g => g.ServiceId == serviceId && g.IsDeleted != true).FirstOrDefaultAsync();
         }
 
         /// <summary>
         ///     Add new service
         /// </summary>
-        public async Task<Service> InsertAsync(Service item)
+        public async Task<Service> CreateAsync(Service service)
         {
-            await _Services.InsertOneAsync(item);
-            return item;
+            service.ServiceId = ObjectId.GenerateNewId().ToString();
+            service.CreateAt = DateTime.UtcNow;
+            service.UpdateAt = null;
+            service.IsDeleted = false;
+
+            await _Services.InsertOneAsync(service);
+            return service;
         }
 
         /// <summary>
         ///     Update existing service
         /// </summary>
-        public async Task<bool> UpdateAsync(string serviceId, Service item)
+        public async Task<Service> UpdateAsync(string serviceId, Service item)
         {
-            var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId);
+            if (!ObjectId.TryParse(serviceId, out _)) return null;
+
+            var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId) &
+                         Builders<Service>.Filter.Eq(s => s.IsDeleted, false);
+
+            if (filter == null) return null;
 
             var update = Builders<Service>.Update
                 .Set(s => s.ServiceName, item.ServiceName)
+                .Set(s => s.CategoryServiceId, item.CategoryServiceId)
                 .Set(s => s.ServiceDescription, item.ServiceDescription)
                 .Set(s => s.Price, item.Price)
                 .Set(s => s.ImageUrl, item.ImageUrl)
-                .Set(s => s.CategoryServiceId, item.CategoryServiceId)
                 .Set(s => s.UpdateAt, item.UpdateAt);
 
             var result = await _Services.UpdateOneAsync(filter, update);
-            return result.MatchedCount > 0;
+
+            var updatedService = await _Services.Find(g => g.ServiceId == serviceId && g.IsDeleted != true).FirstOrDefaultAsync();
+
+            return updatedService;
         }
 
         /// <summary>
         ///     Delete service
         /// </summary>
-        public async Task<bool> DeleteAsync(string serviceId)
+        public async Task<long> DeleteAsync(string serviceId)
         {
+            if (!ObjectId.TryParse(serviceId, out _)) return 0;
+
             var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId);
             var update = Builders<Service>.Update
                 .Set(s => s.IsDeleted, true);
 
             var result = await _Services.UpdateOneAsync(filter, update);
-            return result.ModifiedCount > 0;
+            return result.ModifiedCount;
         }
 
         /// <summary>
