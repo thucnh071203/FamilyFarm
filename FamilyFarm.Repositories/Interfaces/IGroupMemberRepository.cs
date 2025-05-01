@@ -13,5 +13,8 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<GroupMember> AddGroupMember(GroupMember groupMember);
         Task<long> DeleteGroupMember(string groupMemberId);
         Task<long> DeleteAllGroupMember(string groupId);
+
+        Task<List<Account>> GetUsersInGroupAsync(string groupId);
+        Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword);
     }
 }

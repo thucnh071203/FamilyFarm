@@ -48,5 +48,31 @@ namespace FamilyFarm.API.Controllers
             await _groupMemberService.DeleteGroupMember(groupMemberId);
             return Ok("Delete successfully!");
         }
+
+        [HttpGet("users/in-group/{groupId}")]
+        public async Task<IActionResult> GetUsersByGroupId(string groupId)
+        {
+            var users = await _groupMemberService.GetUsersInGroupAsync(groupId);
+            if (users == null || users.Count == 0)
+                return NotFound("No users found in this group.");
+
+            return Ok(users);
+        }
+
+        [HttpGet("search-user-in-group/{groupId}")]
+        public async Task<IActionResult> SearchUsersInGroup(string groupId, [FromQuery] string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return BadRequest("Keyword is required.");
+
+            var users = await _groupMemberService.SearchUsersInGroupAsync(groupId, keyword);
+
+            if (users.Count == 0)
+                return NotFound("Not found members.");
+
+            return Ok(users);
+        }
+
+
     }
 }

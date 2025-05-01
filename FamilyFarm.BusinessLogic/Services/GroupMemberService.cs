@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 
 namespace FamilyFarm.BusinessLogic.Services
@@ -32,5 +33,14 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await _groupMemberRepository.DeleteGroupMember(groupMemberId);
         }
+        public async Task<List<Account>> GetUsersInGroupAsync(string groupId)
+        {
+            return await _groupMemberRepository.GetUsersInGroupAsync(groupId);
+        }
+        public async Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword)
+        {
+            return await _groupMemberRepository.SearchUsersInGroupAsync(groupId, keyword);
+        }
+
     }
 }

@@ -111,5 +111,20 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("search-posts-in-group/{groupId}")]
+        public async Task<IActionResult> SearchPostsInGroup(string groupId, [FromQuery] string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return BadRequest("Keyword is required.");
+
+            var posts = await _postService.SearchPostsInGroupAsync(groupId, keyword);
+
+            if (posts.Count == 0)
+                return NotFound("No found posts.");
+
+            return Ok(posts);
+        }
+
     }
 }

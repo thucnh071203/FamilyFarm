@@ -36,5 +36,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.DeleteAllAsync(groupId);
         }
+
+        public async Task<List<Account>> GetUsersInGroupAsync(string groupId)
+        {
+            return await _dao.GetUsersInGroupAsync(groupId);
+        }
+        public async Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword)
+        {
+            return await _dao.SearchUsersInGroupAsync(groupId, keyword);
+        }
+
     }
 }

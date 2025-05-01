@@ -13,11 +13,13 @@ namespace FamilyFarm.DataAccess.DAOs
     public class GroupMemberDAO
     {
         private readonly IMongoCollection<GroupMember> _GroupMembers;
-
+        private readonly IMongoCollection<Account> _Accounts;
         public GroupMemberDAO(IMongoDatabase database)
         {
             _GroupMembers = database.GetCollection<GroupMember>("GroupMember");
+            _Accounts = database.GetCollection<Account>("Account");
         }
+
 
         public async Task<GroupMember> GetByIdAsync(string groupMemberId)
         {
@@ -81,5 +83,41 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return result.ModifiedCount;
         }
+
+
+        public async Task<List<Account>> GetUsersInGroupAsync(string groupId)
+        {
+            if (!ObjectId.TryParse(groupId, out _)) return new List<Account>();
+
+            var members = await _GroupMembers
+                .Find(gm => gm.GroupId == groupId && gm.MemberStatus == "Accept")
+                .ToListAsync();
+
+            var accIds = members.Select(m => m.AccId).ToList();
+
+            var usersInGroup = await _Accounts
+                .Find(acc => accIds.Contains(acc.AccId))
+                .ToListAsync();
+
+            return usersInGroup;
+        }
+        public async Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword)
+        {
+            if (!ObjectId.TryParse(groupId, out _)) return new List<Account>();
+
+            var members = await _GroupMembers
+                .Find(gm => gm.GroupId == groupId && gm.MemberStatus == "Accept")
+                .ToListAsync();
+
+            var accIds = members.Select(m => m.AccId).ToList();
+
+            var filterBuilder = Builders<Account>.Filter;
+            var filter = filterBuilder.In(a => a.AccId, accIds) &
+                         filterBuilder.Regex(a => a.FullName, new BsonRegularExpression(keyword, "i"));
+
+            var matchedUsers = await _Accounts.Find(filter).ToListAsync();
+            return matchedUsers;
+        }
+
     }
 }
