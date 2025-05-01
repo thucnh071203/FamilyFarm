@@ -24,7 +24,6 @@ namespace FamilyFarm.BusinessLogic.Hubs
             // If the account ID is not present, reject the connection and log a message.
             if (string.IsNullOrEmpty(accId))
             {
-                Console.WriteLine("Connection rejected: Missing AccId in query string.");
                 return;
             }
 
@@ -38,9 +37,6 @@ namespace FamilyFarm.BusinessLogic.Hubs
                 }
                 // Add the current connection ID to the list for the account.
                 _accConnections[accId].Add(Context.ConnectionId);
-
-                // Log the connection details.
-                Console.WriteLine($"AccId {accId} connected. ConnectionId: {Context.ConnectionId}, Total connections: {_accConnections[accId].Count}");
             }
 
             // Call the base method to complete the connection process.
@@ -66,9 +62,6 @@ namespace FamilyFarm.BusinessLogic.Hubs
                     // Remove the current connection ID from the list for the account.
                     _accConnections[accId].Remove(Context.ConnectionId);
 
-                    // Log the disconnection details.
-                    Console.WriteLine($"AccId {accId} disconnected. ConnectionId: {Context.ConnectionId}, Remaining connections: {_accConnections[accId].Count}");
-
                     // If there are no remaining connections for the account, remove the account from the dictionary.
                     if (_accConnections[accId].Count == 0)
                     {
@@ -76,14 +69,24 @@ namespace FamilyFarm.BusinessLogic.Hubs
                     }
                 }
             }
-            else
-            {
-                // If the connection ID is not associated with any account, log that information.
-                Console.WriteLine($"Disconnected ConnectionId {Context.ConnectionId} not associated with any AccId.");
-            }
 
             // Call the base method to complete the disconnection process.
             await base.OnDisconnectedAsync(exception);
+        }
+
+        /// <summary>
+        /// This method is called to notify users that a new message has been sent.
+        /// It sends the "ReceiveMessage" event to both the sender and receiver.
+        /// </summary>
+        /// <param name="chatDetail">The chat message details to be sent to the clients.</param>
+        /// <param name="senderId">The ID of the sender.</param>
+        /// <param name="receiverId">The ID of the receiver.</param>
+        /// <returns></returns>
+        public async Task SendMessage(ChatDetail chatDetail, string senderId, string receiverId)
+        {
+            // Send the "ReceiveMessage" event to both the sender and receiver
+            await Clients.Users(new[] { senderId, receiverId }).SendAsync("ReceiveMessage", chatDetail);
+
         }
 
         /// <summary>
@@ -99,9 +102,6 @@ namespace FamilyFarm.BusinessLogic.Hubs
             // Define the target account IDs to notify.
             var targetAccIds = new[] { accId1, accId2 };
 
-            // Log the notification details.
-            Console.WriteLine($"Notifying ChatHistoryDeleted for ChatId: {chatId}, AccIds: {accId1}, {accId2}");
-
             // Send the "ChatHistoryDeleted" notification to the target users.
             await Clients.Users(targetAccIds).SendAsync("ChatHistoryDeleted", chatId);
         }
@@ -114,16 +114,13 @@ namespace FamilyFarm.BusinessLogic.Hubs
         /// <param name="accId2">The second user's ID</param>
         /// <param name="chatDetailId">The ID of the chat message being revoked</param>
         /// <returns></returns>
-        public async Task ChatRevoked(string chatId, string accId1, string accId2, string chatDetailId)
+        public async Task ChatCalled(string chatId, string accId1, string accId2, string chatDetailId)
         {
             // Target both users in the chat to notify about the message revocation
             var targetAccIds = new[] { accId1, accId2 };
 
-            // Log the details of the notification
-            Console.WriteLine($"Notifying ChatRevoked for ChatId: {chatId}, ChatDetailId: {chatDetailId}, AccIds: {accId1}, {accId2}");
-
-            // Send the "ChatRevoked" event to the users involved in the chat
-            await Clients.Users(targetAccIds).SendAsync("ChatRevoked", chatId, chatDetailId);
+            // Send the "ChatCalled" event to the users involved in the chat
+            await Clients.Users(targetAccIds).SendAsync("ChatCalled", chatId, chatDetailId);
         }
 
         /// <summary>
@@ -135,12 +132,9 @@ namespace FamilyFarm.BusinessLogic.Hubs
         /// <returns></returns>
         public async Task SendTypingNotification(string senderId, string receiverId)
         {
-            // Check if the receiver is connected.
             if (_accConnections.ContainsKey(receiverId))
             {
                 var receiverConnections = _accConnections[receiverId];
-
-                // Loop through each connection ID for the receiver and send the typing notification.
                 foreach (var connectionId in receiverConnections)
                 {
                     await Clients.Client(connectionId).SendAsync("ReceiveTypingNotification", senderId);
@@ -150,12 +144,12 @@ namespace FamilyFarm.BusinessLogic.Hubs
 
         /// <summary>
         /// This method is called to notify the recipient that the sender has stopped typing.
-        /// It sends the "StopTypingNotification" to the recipient.
+        /// It sends the "StopTyping" to the recipient.
         /// </summary>
         /// <param name="senderId"></param>
         /// <param name="receiverId"></param>
         /// <returns></returns>
-        public async Task StopTypingNotification(string senderId, string receiverId)
+        public async Task StopTyping(string senderId, string receiverId)
         {
             // Check if the receiver is connected.
             if (_accConnections.ContainsKey(receiverId))
@@ -165,7 +159,7 @@ namespace FamilyFarm.BusinessLogic.Hubs
                 // Loop through each connection ID for the receiver and send the stop typing notification.
                 foreach (var connectionId in receiverConnections)
                 {
-                    await Clients.Client(connectionId).SendAsync("StopTypingNotification", senderId);
+                    await Clients.Client(connectionId).SendAsync("StopTyping", senderId);
                 }
             }
         }

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace FamilyFarm.Models.Mapper
 {
     // Class nay de AutoMapper
+    // Co the them cac AutoMapper khac
     public class MappingProfile : Profile
     {
         public MappingProfile()

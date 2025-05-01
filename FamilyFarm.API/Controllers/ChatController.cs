@@ -109,7 +109,7 @@ namespace FamilyFarm.API.Controllers
         /// or a BadRequest status if the message cannot be sent.
         /// </returns>
         [HttpPost("send-message")]
-        public async Task<IActionResult> SendMessage([FromBody] SendMessageRequestDTO request)
+        public async Task<IActionResult> SendMessage([FromForm] SendMessageRequestDTO request)
         {
             var account = _authenService.GetDataFromToken();
             if (account == null)
@@ -178,10 +178,10 @@ namespace FamilyFarm.API.Controllers
         /// If the message is found and successfully revoked, returns Ok with the revoked message.
         /// If no message is found with the provided ID, returns NotFound with a "No message found!" message.
         /// </returns>
-        [HttpPut("revoke-message/{chatDetailId}")]
-        public async Task<IActionResult> RevokeChatMessage(string chatDetailId)
+        [HttpPut("recall-message/{chatDetailId}")]
+        public async Task<IActionResult> RecallChatMessage(string chatDetailId)
         {
-            var revoked = await _chatService.RevokeChatDetailByIdAsync(chatDetailId);
+            var revoked = await _chatService.RecallChatDetailByIdAsync(chatDetailId);
             if (revoked == null)
                 return NotFound("No message found!");  // If no message is found, return NotFound response.
 
