@@ -42,5 +42,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetAllImageOfPost(post_id);
         }
+
+        public async Task<bool> InactiveImagesByPostId(string? post_id)
+        {
+            return await _dao.InactiveAllByPostId(post_id);
+        }
+
+        public async Task<bool> ActiveImagesByPostId(string? post_id)
+        {
+            return await _dao.ActiveAllByPostId(post_id);
+        }
     }
 }

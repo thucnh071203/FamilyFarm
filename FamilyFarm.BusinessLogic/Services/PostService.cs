@@ -178,6 +178,163 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        /// <summary>
+        ///     Hard Delete a post - delete out of DB
+        /// </summary>
+        public async Task<DeletePostResponseDTO?> DeletePost(string? acc_id, DeletePostRequestDTO request)
+        {
+            if (acc_id == null) 
+                return null;
+
+            if(request.PostId == null) 
+                return null;
+
+            var post = await _postRepository.GetPostById(request.PostId);
+
+            if (post == null)
+                return new DeletePostResponseDTO
+                {
+                    Message = "Not found this post",
+                    Success = false
+                };
+
+            if (post.AccId != acc_id)
+                return new DeletePostResponseDTO
+                {
+                    Message = "You are not permission for this action.",
+                    Success = false
+                };
+            
+            var isDeleted = await _postRepository.DeletePost(post.PostId);
+
+            if (isDeleted == false)
+            {
+                return new DeletePostResponseDTO
+                {
+                    Message = "Delete post fail.",
+                    Success = false
+                };
+            }
+
+            //Xóa cứng toàn bộ các bảng liên quan
+            await _postImageRepository.DeleteAllByPostId(post.PostId);
+            await _postCategoryRepository.DeleteAllByPostId(post.PostId);
+            await _postTagRepository.DeleteAllByPostId(post.PostId);
+            await _hashTagRepository.DeleteAllByPostId(post.PostId);
+
+            return new DeletePostResponseDTO
+            {
+                Message = "Delete post successfully.",
+                Success = true
+            };
+        }
+
+        /// <summary>
+        ///     Restore a post from recycl bin - when this post is not yet hard deleted.
+        /// </summary>
+        public async Task<DeletePostResponseDTO?> RestorePostDeleted(string? acc_id, DeletePostRequestDTO request)
+        {
+            if (acc_id == null)
+                return null;
+
+            if (request == null)
+                return null;
+
+            if(request.PostId == null) 
+                return null;
+
+            var post = await _postRepository.GetPostById(request.PostId);
+
+            if (post == null)
+            {
+                return new DeletePostResponseDTO
+                {
+                    Message = "Not found this post.",
+                    Success = false
+                };
+            }
+
+            if(post.AccId != acc_id)
+            {
+                return new DeletePostResponseDTO
+                {
+                    Message = "You are not permission for this action.",
+                    Success = false
+                };
+            }
+
+            var isRestore = await _postRepository.ActivePost(request.PostId);
+
+            if (!isRestore)
+            {
+                return new DeletePostResponseDTO
+                {
+                    Message = "Restore post fail.",
+                    Success = false
+                };
+            }
+
+            return new DeletePostResponseDTO
+            {
+                Message = "Restore post success.",
+                Success = true
+            };
+        }
+
+        /// <summary>
+        ///     Soft delete a post - just update status
+        /// </summary>
+        public async Task<DeletePostResponseDTO?> TempDeleted(string? acc_id, DeletePostRequestDTO request)
+        {
+            if (acc_id == null)
+                return null;
+
+            if (request.PostId == null)
+                return null;
+
+            var post = await _postRepository.GetPostById(request.PostId);
+
+            if (post == null)
+                return new DeletePostResponseDTO
+                {
+                    Message = "Not found this post",
+                    Success = false
+                };
+
+            if (post.AccId != acc_id)
+                return new DeletePostResponseDTO
+                {
+                    Message = "You are not permission for this action.",
+                    Success = false
+                };
+
+            //Kiểm tra xem có xóa mềm chưa, nếu xóa mềm rồi và thời gian hơn 30 ngày thì không xóa nữa
+            if(post.DeletedAt.HasValue && (DateTime.UtcNow - post.DeletedAt.Value).TotalDays >= 30)
+            {
+                return new DeletePostResponseDTO
+                {
+                    Message = "This post has been soft deleted.",
+                    Success = false
+                };
+            }
+
+            var isSoftDelete = await _postRepository.InactivePost(post.PostId);
+
+            if (isSoftDelete == false)
+            {
+                return new DeletePostResponseDTO
+                {
+                    Message = "Soft delete post fail.",
+                    Success = false
+                };
+            }
+            return new DeletePostResponseDTO
+            {
+                Message = "Soft delete post success.",
+                Success = true
+            };
+        }
+
         //public async Task<List<Post>> SearchPostsByKeyword(string keyword)
         //{
         //    return await _postRepository.SearchPostsByKeyword(keyword);

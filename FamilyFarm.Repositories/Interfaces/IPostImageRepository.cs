@@ -13,6 +13,8 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<PostImage>?> GetPostImageByPost(string? post_id);
         Task<bool> DeleteImageById(string? image_id);
         Task<bool> DeleteAllByPostId(string? post_id);
+        Task<bool> InactiveImagesByPostId(string? post_id);
+        Task<bool> ActiveImagesByPostId(string? post_id);
         Task<PostImage?> GetPostImageById(string? image_id);
     }
 }

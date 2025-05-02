@@ -13,6 +13,9 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<Post>> SearchPostsByCategories(List<string> categoryIds, bool isAndLogic);
         Task<Post?> CreatePost(Post? post);
         Task<Post?> UpdatePost(Post? post);
+        Task<bool> DeletePost(string? post_id);
+        Task<bool> InactivePost(string? post_id);
+        Task<bool> ActivePost(string? post_id);
         Task<Post?> GetPostById(string? post_id);
         Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword);
     }

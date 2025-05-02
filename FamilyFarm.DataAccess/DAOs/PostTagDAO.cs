@@ -80,7 +80,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         public async Task<bool> DeleteAllByPostId(string? post_id)
         {
-            if (!string.IsNullOrEmpty(post_id))
+            if (string.IsNullOrEmpty(post_id))
                 return false;
 
             try
