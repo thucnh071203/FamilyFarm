@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
@@ -40,6 +43,21 @@ namespace FamilyFarm.BusinessLogic.Services
         public async Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword)
         {
             return await _groupMemberRepository.SearchUsersInGroupAsync(groupId, keyword);
+        }
+   
+        public async Task<List<GroupMemberRequest>> GetJoinRequestsAsync(string groupId)
+        {
+            return await _groupMemberRepository.GetJoinRequestsAsync(groupId);
+        }
+
+        public async Task<GroupMember> RequestToJoinGroupAsync(string accId, string groupId)
+        {
+            return await _groupMemberRepository.RequestToJoinGroupAsync(accId, groupId);
+        }
+        public async Task<bool> RespondToJoinRequestAsync(string groupMemberId, string responseStatus)
+        {
+
+            return await _groupMemberRepository.RespondToJoinRequestAsync(groupMemberId, responseStatus);
         }
 
     }
