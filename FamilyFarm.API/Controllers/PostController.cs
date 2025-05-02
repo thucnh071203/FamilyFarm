@@ -111,5 +111,83 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpDelete("hard-delete/{post_id}")]
+        [Authorize]
+        public async Task<ActionResult<DeletePostResponseDTO>> HardDeletedPost([FromRoute] string post_id)
+        {
+            if (post_id == null)
+                return BadRequest("Invalid data from request.");
+
+            var request = new DeletePostRequestDTO
+            {
+                PostId = post_id
+            };
+
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+
+            var isDeletedSuccess = await _postService.DeletePost(acc_id, request);
+
+            if (isDeletedSuccess == null)
+                return BadRequest("Invalid data from request");
+
+            if(isDeletedSuccess.Success == false)
+                return NotFound(isDeletedSuccess);
+
+            return Ok(isDeletedSuccess);
+        }
+
+        [HttpDelete("soft-delete/{post_id}")]
+        [Authorize]
+        public async Task<ActionResult<DeletePostResponseDTO>> SoftDeletedPost([FromRoute] string post_id)
+        {
+            if (post_id == null)
+                return BadRequest("Invalid data from request.");
+
+            var request = new DeletePostRequestDTO
+            {
+                PostId = post_id
+            };
+
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+
+            var isDeletedSuccess = await _postService.TempDeleted(acc_id, request);
+
+            if (isDeletedSuccess == null)
+                return BadRequest("Invalid data from request");
+
+            if (isDeletedSuccess.Success == false)
+                return NotFound(isDeletedSuccess);
+
+            return Ok(isDeletedSuccess);
+        }
+
+        [HttpPut("restore/{post_id}")]
+        [Authorize]
+        public async Task<ActionResult<DeletePostRequestDTO>> RestorePost([FromRoute] string post_id)
+        {
+            if (post_id == null)
+                return BadRequest("Invalid data from request.");
+
+            var request = new DeletePostRequestDTO
+            {
+                PostId = post_id
+            };
+
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+
+            var isDeletedSuccess = await _postService.RestorePostDeleted(acc_id, request);
+
+            if (isDeletedSuccess == null)
+                return BadRequest("Invalid data from request");
+
+            if (isDeletedSuccess.Success == false)
+                return NotFound(isDeletedSuccess);
+
+            return Ok(isDeletedSuccess);
+        }
     }
 }

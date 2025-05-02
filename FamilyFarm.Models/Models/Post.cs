@@ -21,6 +21,7 @@ namespace FamilyFarm.Models.Models
         public bool IsInGroup { get; set; } = false;
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
         public bool IsDeleted { get; set; } = false;
 
     }

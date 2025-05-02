@@ -67,7 +67,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
                 return result.DeletedCount > 0; // true nếu xóa được ít nhất 1 document
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -78,7 +78,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         public async Task<bool> DeleteAllByPostId(string? post_id)
         {
-            if (!string.IsNullOrEmpty(post_id))
+            if (string.IsNullOrEmpty(post_id))
                 return false;
 
             try
@@ -88,7 +88,54 @@ namespace FamilyFarm.DataAccess.DAOs
 
                 return result.DeletedCount > 0; // true nếu xóa được ít nhất 1 document
             }
-            catch (Exception ex)
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     Update value field IsDeleted of all hashtag of post id = TRUE
+        /// </summary>
+        public async Task<bool> InactiveAllByPostId(string? post_id)
+        {
+            if (string.IsNullOrEmpty(post_id))
+                return false;
+
+            try
+            {
+                var filter = Builders<HashTag>.Filter.Eq(x => x.PostId, post_id);
+                var update = Builders<HashTag>.Update.Set(x => x.IsDeleted, true);
+
+                var result = await _hashtagCollection.UpdateManyAsync(filter, update);
+
+                return result.ModifiedCount > 0;
+
+            } catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     Update value field IsDeleted of all hashtag of post id = FALSE
+        /// </summary>
+        public async Task<bool> ActiveAllByPostId(string? post_id)
+        {
+            if (string.IsNullOrEmpty(post_id))
+                return false;
+
+            try
+            {
+                var filter = Builders<HashTag>.Filter.Eq(x => x.PostId, post_id);
+                var update = Builders<HashTag>.Update.Set(x => x.IsDeleted, false);
+
+                var result = await _hashtagCollection.UpdateManyAsync(filter, update);
+
+                return result.ModifiedCount > 0;
+
+            }
+            catch (Exception)
             {
                 return false;
             }

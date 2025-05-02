@@ -42,5 +42,20 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.GetById(post_id);
         }
+
+        public async Task<bool> DeletePost(string? post_id)
+        {
+            return await _postDAO.DeletePost(post_id);
+        }
+
+        public async Task<bool> InactivePost(string? post_id)
+        {
+            return await _postDAO.InactivePost(post_id);
+        }
+
+        public async Task<bool> ActivePost(string? post_id)
+        {
+            return await _postDAO.ActivePost(post_id);
+        }
     }
 }

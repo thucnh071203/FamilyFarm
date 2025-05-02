@@ -80,7 +80,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         public async Task<bool> DeleteAllByPostId(string? post_id)
         {
-            if (!string.IsNullOrEmpty(post_id))
+            if (string.IsNullOrEmpty(post_id))
                 return false;
 
             try
@@ -90,10 +90,11 @@ namespace FamilyFarm.DataAccess.DAOs
 
                 return result.DeletedCount > 0; // true nếu xóa được ít nhất 1 document
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
         }
+
     }
 }

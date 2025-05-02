@@ -16,7 +16,8 @@ namespace FamilyFarm.Models.Models
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
         public string PostId { get; set; }
-        public string HashTagContent { get; set; }
+        public string? HashTagContent { get; set; }
         public DateTime? CreateAt { get; set; }
+        public bool IsDeleted { get; set; } = false;
     }
 }

@@ -16,5 +16,8 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<List<Post>> SearchPosts(string? keyword, List<string>? categoryIds, bool isAndLogic);
         Task<CreatePostResponseDTO?> AddPost(string? username, CreatePostRequestDTO? request);
         Task<UpdatePostResponseDTO?> UpdatePost(string? username, UpdatePostRequestDTO? request);
+        Task<DeletePostResponseDTO?> DeletePost(string? acc_id, DeletePostRequestDTO request);
+        Task<DeletePostResponseDTO?> TempDeleted(string? acc_id, DeletePostRequestDTO request);
+        Task<DeletePostResponseDTO?> RestorePostDeleted(string? acc_id, DeletePostRequestDTO request);
     }
 }

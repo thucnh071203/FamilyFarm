@@ -170,6 +170,10 @@ namespace FamilyFarm.DataAccess.DAOs
             }
         }
 
+        /// <summary>
+        ///     Get a post by post Id
+        /// </summary>
+        /// <returns>return a post</returns>
         public async Task<Post?> GetById(string? post_id)
         {
             if (string.IsNullOrEmpty(post_id))
@@ -186,6 +190,52 @@ namespace FamilyFarm.DataAccess.DAOs
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        ///     Delete post with post id
+        /// </summary>
+        /// <returns>return a status, true if delete SUCCESS, false if delete FAIL</returns>
+        public async Task<bool> DeletePost(string? post_id)
+        {
+            if (string.IsNullOrEmpty(post_id)) return false;
+
+            var filter = Builders<Post>.Filter.Eq(p => p.PostId, post_id);
+            var result = await _post.DeleteOneAsync(filter);
+
+            return result.DeletedCount > 0;
+        }
+
+        /// <summary>
+        ///     Update post field isDelete = true
+        /// </summary>
+        /// <returns>return status if a post update value of isDelete = true SUCCESSFULLY</returns>
+        public async Task<bool> InactivePost(string? post_id)
+        {
+            if (string.IsNullOrEmpty(post_id)) return false;
+
+            var filter = Builders<Post>.Filter.Eq(p => p.PostId, post_id);
+            var update = Builders<Post>.Update.Set(p => p.IsDeleted, true)
+                                                .Set(p => p.DeletedAt, DateTime.UtcNow);
+
+            var result = await _post.UpdateOneAsync(filter, update);
+
+            return result.ModifiedCount > 0;
+        }
+
+        /// <summary>
+        ///     Update post field isDelete = false
+        /// </summary>
+        /// <returns>return status if a post update value of isDelete = false SUCCESSFULLY</returns>
+        public async Task<bool> ActivePost(string? post_id)
+        {
+            if (string.IsNullOrEmpty(post_id)) return false;
+
+            var filter = Builders<Post>.Filter.Eq(p => p.PostId, post_id);
+            var update = Builders<Post>.Update.Set(p => p.IsDeleted, false);
+            var result = await _post.UpdateOneAsync(filter, update);
+
+            return result.ModifiedCount > 0;
         }
     }
 }
