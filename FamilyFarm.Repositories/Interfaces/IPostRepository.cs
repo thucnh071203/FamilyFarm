@@ -14,5 +14,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<Post?> CreatePost(Post? post);
         Task<Post?> UpdatePost(Post? post);
         Task<Post?> GetPostById(string? post_id);
+        Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword);
     }
 }

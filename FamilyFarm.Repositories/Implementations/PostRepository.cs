@@ -42,5 +42,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.GetById(post_id);
         }
+        public async Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword)
+        {
+            return await _postDAO.SearchPostsInGroupAsync(groupId, keyword);
+        }
+
     }
 }
