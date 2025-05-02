@@ -21,6 +21,7 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IChatDetailRepository _chatDetailRepository;  
         private readonly IHubContext<ChatHub> _chatHubContext;
         private readonly IMapper _mapper;
+        private readonly IUploadFileService _uploadFileService;
 
         /// <summary>
         /// Constructor to initialize the chat service with required repositories and SignalR context.
@@ -28,12 +29,13 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <param name="chatRepository">The repository for managing chat data.</param>
         /// <param name="chatDetailRepository">The repository for managing chat messages (chat details).</param>
         /// <param name="chatHubContext">The SignalR hub context to send notifications to clients.</param>
-        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper)
+        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService)
         {
             _chatRepository = chatRepository;
             _chatDetailRepository = chatDetailRepository;
             _chatHubContext = chatHubContext;
             _mapper = mapper;
+            _uploadFileService = uploadFileService;
         }
 
         /// <summary>
@@ -112,10 +114,9 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </returns>
         public async Task<SendMessageResponseDTO> SendMessageAsync(string senderId, SendMessageRequestDTO request)
         {
-            // Validate the input: Check if the request is null or if required fields (ChatId, ReceiverId) are missing.
+            // Validate the input
             if (request == null || string.IsNullOrEmpty(request.ChatId) || string.IsNullOrEmpty(request.ReceiverId))
             {
-                // Return a failure response if validation fails.
                 return new SendMessageResponseDTO
                 {
                     Message = "Invalid message data: ChatId, and ReceiverId are required.",
@@ -123,27 +124,63 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            // Map the SendMessageRequestDTO to a ChatDetail object using AutoMapper.
-            // The mapping automatically assigns default values for ChatDetailId, SendAt (via MappingProfile),
-            // and IsRevoked, IsSeen (via ChatDetail model defaults).
+            var chat = await _chatRepository.GetChatByIdAsync(request.ChatId);
+            if (chat == null)
+            {
+                return new SendMessageResponseDTO
+                {
+                    Message = "Chat does not exist.",
+                    Success = false
+                };
+            }
+
+            // Xử lý upload file nếu có
+            if (request.File != null && request.File.Length > 0)
+            {
+                try
+                {
+                    FileUploadResponseDTO uploadResult;
+
+                    // Kiểm tra loại file (ảnh hoặc file khác)
+                    if (request.File.ContentType.StartsWith("image/"))
+                    {
+                        uploadResult = await _uploadFileService.UploadImage(request.File);
+                    }
+                    else
+                    {
+                        uploadResult = await _uploadFileService.UploadOtherFile(request.File);
+                    }
+
+                    // Cập nhật FileUrl, FileType và FileName từ kết quả upload
+                    request.FileUrl = uploadResult.UrlFile;
+                    request.FileType = uploadResult.TypeFile;
+                    request.FileName = request.File.FileName; // Lưu tên file gốc
+                }
+                catch (Exception ex)
+                {
+                    return new SendMessageResponseDTO
+                    {
+                        Message = $"Failed to upload file: {ex.Message}",
+                        Success = false
+                    };
+                }
+            }
+
+            // Map the SendMessageRequestDTO to a ChatDetail object
             var chatDetail = _mapper.Map<ChatDetail>(request);
 
-            // Assign the SenderId to the ChatDetail object, using the senderId parameter provided by the controller.
+            // Assign the SenderId
             chatDetail.SenderId = senderId;
 
-            // Notify both the sender and receiver via SignalR by sending the "ReceiveMessage" event.
-            // This ensures real-time updates for both users involved in the chat.
+            // Notify via SignalR
             await _chatHubContext.Clients.Users(new[] { chatDetail.SenderId, chatDetail.ReceiverId })
                                  .SendAsync("ReceiveMessage", chatDetail);
 
-            // Save the chat message to the database using the repository.
+            // Save the chat message
             var savedMessage = await _chatDetailRepository.CreateChatDetailAsync(chatDetail);
 
-            // Check if the message was saved successfully.
             if (savedMessage == null)
             {
-                // Return a failure response if the message could not be saved.
-                // This typically happens if the ChatId, SenderId, or ReceiverId is not a valid ObjectId.
                 return new SendMessageResponseDTO
                 {
                     Message = "Failed to send the message.",
@@ -151,14 +188,11 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            // Map the saved ChatDetail object to a SendMessageResponseDTO for the response.
+            // Map to response
             var response = _mapper.Map<SendMessageResponseDTO>(savedMessage);
-
-            // Set the success message and status in the response.
             response.Message = "Message sent successfully.";
             response.Success = true;
 
-            // Return the response containing the saved message details.
             return response;
         }
 
@@ -202,10 +236,10 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <returns>
         /// Returns the revoked ChatDetail object if the revocation is successful, or null if no message is found to revoke.
         /// </returns>
-        public async Task<ChatDetail> RevokeChatDetailByIdAsync(string chatDetailId)
+        public async Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId)
         {
             // Revoke a specific ChatDetail (marking it as revoked)
-            var revokedChatDetail = await _chatDetailRepository.RevokeChatDetailByIdAsync(chatDetailId);
+            var revokedChatDetail = await _chatDetailRepository.RecallChatDetailByIdAsync(chatDetailId);
             if (revokedChatDetail == null)
                 return null;  // If no message is found to revoke, return null.
 

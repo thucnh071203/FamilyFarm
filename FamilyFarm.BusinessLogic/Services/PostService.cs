@@ -610,5 +610,12 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = data
             };
         }
+
+
+        public async Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword)
+        {
+            return await _postRepository.SearchPostsInGroupAsync(groupId, keyword);
+        }
+
     }
 }

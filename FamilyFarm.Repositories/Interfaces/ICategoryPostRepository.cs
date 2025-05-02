@@ -10,5 +10,9 @@ namespace FamilyFarm.Repositories.Interfaces
     public interface ICategoryPostRepository
     {
         Task<Category?> GetCategoryById(string? category_id);
+        Task<List<Category>?> GetListCategory();
+        Task<bool> Delete(string categoryId);
+        Task<bool> Update(Category category);
+        Task<Category?> Create(Category category);
     }
 }

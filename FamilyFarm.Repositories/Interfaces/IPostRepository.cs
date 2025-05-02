@@ -17,5 +17,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool> InactivePost(string? post_id);
         Task<bool> ActivePost(string? post_id);
         Task<Post?> GetPostById(string? post_id);
+        Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword);
     }
 }

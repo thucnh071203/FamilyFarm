@@ -237,5 +237,18 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return result.ModifiedCount > 0;
         }
+
+        public async Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(groupId)) return new List<Post>();
+
+            var filterBuilder = Builders<Post>.Filter;
+            var filter = filterBuilder.Eq(p => p.GroupId, groupId) &
+                         !filterBuilder.Eq(p => p.IsDeleted, true) &  // Nếu bài viết không bị xóa
+                         (filterBuilder.Regex(p => p.PostContent, new BsonRegularExpression(keyword, "i"))); // Tìm kiếm theo từ khóa trong nội dung
+
+            return await _post.Find(filter).SortByDescending(p => p.CreatedAt).ToListAsync();
+        }
+
     }
 }
