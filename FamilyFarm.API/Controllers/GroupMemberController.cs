@@ -1,4 +1,5 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
@@ -13,10 +14,14 @@ namespace FamilyFarm.API.Controllers
     public class GroupMemberController : ControllerBase
     {
         private readonly IGroupMemberService _groupMemberService;
+        private readonly IAuthenticationService _authenService;
+        private readonly ISearchHistoryService _searchHistoryService;
 
-        public GroupMemberController(IGroupMemberService groupMemberService)
+        public GroupMemberController(IGroupMemberService groupMemberService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService)
         {
             _groupMemberService = groupMemberService;
+            _authenService = authenService;
+            _searchHistoryService = searchHistoryService;
         }
 
         [HttpGet("get-by-id/{groupMemberId}")]
@@ -64,10 +69,13 @@ namespace FamilyFarm.API.Controllers
         [HttpGet("search-user-in-group/{groupId}")]
         public async Task<IActionResult> SearchUsersInGroup(string groupId, [FromQuery] string keyword)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
             if (string.IsNullOrWhiteSpace(keyword))
                 return BadRequest("Keyword is required.");
 
             var users = await _groupMemberService.SearchUsersInGroupAsync(groupId, keyword);
+            var search = await _searchHistoryService.AddSearchHistory(accId, keyword);
 
             if (users.Count == 0)
                 return NotFound("Not found members.");

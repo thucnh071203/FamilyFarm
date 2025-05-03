@@ -33,29 +33,29 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpPut("cancel-booking/{bookingId}")]
-        [Authorize]
-        public async Task<ActionResult> CancelBookingService(string bookingId)
-        {
-            var result = await _bookingService.CancelBookingService(bookingId);
+        //[HttpPut("cancel-booking/{bookingId}")]
+        //[Authorize]
+        //public async Task<ActionResult> CancelBookingService(string bookingId)
+        //{
+        //    var result = await _bookingService.CancelBookingService(bookingId);
 
-            if (result == false)
-                return BadRequest();
+        //    if (result == false)
+        //        return BadRequest();
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
-        [HttpPut("reject-booking/{bookingId}")]
-        [Authorize]
-        public async Task<ActionResult> RejectBookingService(string bookingId)
-        {
-            var result = await _bookingService.ExpertRejectBookingService(bookingId);
+        //[HttpPut("reject-booking/{bookingId}")]
+        //[Authorize]
+        //public async Task<ActionResult> RejectBookingService(string bookingId)
+        //{
+        //    var result = await _bookingService.ExpertRejectBookingService(bookingId);
 
-            if (result == false)
-                return BadRequest();
+        //    if (result == false)
+        //        return BadRequest();
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
         [HttpPut("accept-booking/{bookingId}")]
         [Authorize]
@@ -82,6 +82,31 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+        [HttpPut("expert-response-booking/{bookingId}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateBookingStatus(string bookingId, [FromBody] string status)
+        {
+            if (string.IsNullOrEmpty(bookingId)) return BadRequest();
+            bool? result = null;
+
+            switch (status.ToLower())
+            {
+                case "accept":
+                    result = await _bookingService.ExpertAcceptBookingService(bookingId);
+                    break;
+                case "reject":
+                    result = await _bookingService.ExpertRejectBookingService(bookingId);
+                    break;
+                default:
+                    return BadRequest("Invalid status.");
+            }
+
+            if (result !=true)// false hoặc null đều là lỗi
+                return BadRequest();
+
+            return Ok(result);
+        }
+
 
         [HttpGet("expert-all-booking")]
         [Authorize]
