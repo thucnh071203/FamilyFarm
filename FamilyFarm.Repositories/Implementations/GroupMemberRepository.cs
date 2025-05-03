@@ -61,5 +61,11 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.RespondToJoinRequestAsync(groupMemberId, responseStatus);
         }
 
+        public async Task<bool> UpdateMemberRoleAsync(string groupId, string accId, string newGroupRoleId)
+        {
+            return await _dao.UpdateRoleAsync(groupId, accId, newGroupRoleId);
+        }
+
+
     }
 }
