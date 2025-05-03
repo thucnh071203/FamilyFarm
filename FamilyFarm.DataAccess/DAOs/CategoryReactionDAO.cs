@@ -19,10 +19,19 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
         /// <summary>
-        /// 
+        /// Retrieves all CategoryReactions.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <returns>A list of all CategoryReactions.</returns>
+        public async Task<List<CategoryReaction>> GetAllAsync()
+        {
+            return await _categoryReactions.Find(_ => true).ToListAsync();
+        }
+
+        /// <summary>
+        /// Retrieves a CategoryReaction by its ID.
+        /// </summary>
+        /// <param name="id">The unique identifier of the CategoryReaction.</param>
+        /// <returns>The CategoryReaction if found, null otherwise.</returns>
         public async Task<CategoryReaction> GetByIdAsync(string id)
         {
             if (!ObjectId.TryParse(id, out _))

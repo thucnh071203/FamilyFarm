@@ -18,6 +18,7 @@ namespace FamilyFarm.Models.Models
         public required string AccId { get; set; }
         [BsonRequired]
         public required string ReactionName { get; set; }
+        public required string IconUrl { get; set; }
         public bool? IsDeleted { get; set; }
     }
 }

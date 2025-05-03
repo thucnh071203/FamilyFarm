@@ -18,6 +18,11 @@ namespace FamilyFarm.Repositories.Implementations
             _categoryReactionDAO = categoryReactionDAO;
         }
 
+        public async Task<List<CategoryReaction>> GetAllAsync()
+        {
+            return await _categoryReactionDAO.GetAllAsync();
+        }
+
         public async Task<CategoryReaction> GetByIdAsync(string id)
         {
             return await _categoryReactionDAO.GetByIdAsync(id);

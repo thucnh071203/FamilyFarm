@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace FamilyFarm.Models.DTOs.Request
 {
-    public class ReactionRequestDTO
+    public class CommentRequestDTO
     {
-        public string CategoryReactionId { get; set; }
+        public string PostId { get; set; }
+        public string Content { get; set; }
     }
 }

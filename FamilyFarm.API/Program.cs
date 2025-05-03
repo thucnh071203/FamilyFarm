@@ -38,7 +38,7 @@ builder.Services.AddScoped<RoleDAO>();
 builder.Services.AddScoped<AccountDAO>();
 builder.Services.AddScoped<CommentDAO>();
 builder.Services.AddScoped<CategoryReactionDAO>();
-builder.Services.AddScoped<ReactionPostDAO>();
+builder.Services.AddScoped<ReactionDAO>();
 builder.Services.AddScoped<ReportDAO>();
 builder.Services.AddScoped<GroupDAO>();
 builder.Services.AddScoped<PostDAO>();
@@ -64,7 +64,7 @@ builder.Services.AddScoped<CategoryServiceDAO>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICategoryReactionRepository, CategoryReactionRepository>();
-builder.Services.AddScoped<IReactionPostRepository, ReactionPostRepository>();
+builder.Services.AddScoped<IReactionRepository, ReactionRepository>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
@@ -91,8 +91,8 @@ builder.Services.AddScoped<ICategoryServiceRepository, CategoryServiceRepository
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
-builder.Services.AddScoped<IReactionPostService, ReactionPostService>();
-builder.Services.AddScoped<IReactionPostService, ReactionPostService>();
+builder.Services.AddScoped<IReactionService, ReactionService>();
+builder.Services.AddScoped<IReactionService, ReactionService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUploadFileService, UploadFileService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
@@ -110,6 +110,8 @@ builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 builder.Services.AddScoped<IServicingService, ServicingService>();
 builder.Services.AddScoped<ICategoryServicingService, CategoryServicingService>();
 builder.Services.AddScoped<ICategoryPostService, CategoryPostService>();
+builder.Services.AddScoped<ICategoryReactionService, CategoryReactionService>();
+
 
 //builder.Services.AddScoped<FirebaseConnection>();
 
