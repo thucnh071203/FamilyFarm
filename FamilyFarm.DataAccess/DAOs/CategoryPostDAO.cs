@@ -43,6 +43,8 @@ namespace FamilyFarm.DataAccess.DAOs
             if (category == null) return null;
             try
             {
+                category.CreateAt = DateTime.UtcNow;
+                category.IsDeleted = false;
                 await _categoryCollection.InsertOneAsync(category);
                 return category;
             }
