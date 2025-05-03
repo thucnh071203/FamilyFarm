@@ -20,6 +20,13 @@ namespace FamilyFarm.Models.Mapper
 
             CreateMap<ChatDetail, SendMessageResponseDTO>()
                 .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src));
+
+            CreateMap<CommentRequestDTO, Comment>();
+
+            CreateMap<Comment, CommentResponseDTO>()
+                .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src));
+
+            //CreateMap<Comment, Comment>();
         }
     }
 }

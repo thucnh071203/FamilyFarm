@@ -21,8 +21,7 @@ namespace FamilyFarm.Models.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public required string PostId { get; set; }
         public required string Content { get; set; }
-        public DateTime? CreateAt { get; set; }
-        [DefaultValue(false)]
-        public bool? IsDeleted { get; set; }
+        public DateTime? CreateAt { get; set; } = DateTime.UtcNow;
+        public bool? IsDeleted { get; set; } = false;
     }
 }
