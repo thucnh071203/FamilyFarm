@@ -195,6 +195,17 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return result.ModifiedCount > 0;
         }
+        public async Task<bool> UpdateRoleAsync(string groupId, string accId, string newGroupRoleId)
+        {
+            var filter = Builders<GroupMember>.Filter.Eq(m => m.GroupId, groupId) &
+                         Builders<GroupMember>.Filter.Eq(m => m.AccId, accId) &
+                         Builders<GroupMember>.Filter.Eq(m => m.MemberStatus, "Accept");
+
+            var update = Builders<GroupMember>.Update.Set(m => m.GroupRoleId, newGroupRoleId);
+
+            var result = await _GroupMembers.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
+        }
 
     }
 }
