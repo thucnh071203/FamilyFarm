@@ -1,4 +1,5 @@
-﻿using FamilyFarm.Models.Models;
+﻿using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool> ActivePost(string? post_id);
         Task<Post?> GetPostById(string? post_id);
         Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword);
-    }
+        Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
+   }
 }

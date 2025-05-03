@@ -64,6 +64,6 @@ namespace FamilyFarm.Repositories
         Task<Account?> GetByFacebookId(string facebookId);
         Task<Account> CreateFacebookAccount(string fbId, string name, string email, string avatar);
 
-
+        Task<Account?> GetAccountByIdAsync(string accId);
     }
 }

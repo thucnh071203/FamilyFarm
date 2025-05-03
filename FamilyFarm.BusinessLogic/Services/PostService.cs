@@ -617,5 +617,10 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _postRepository.SearchPostsInGroupAsync(groupId, keyword);
         }
 
+        public async Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword)
+        {
+            return await _postRepository.SearchPostsWithAccountAsync(groupId, keyword);
+        }
+
     }
 }

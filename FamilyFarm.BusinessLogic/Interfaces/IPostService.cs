@@ -20,5 +20,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<DeletePostResponseDTO?> TempDeleted(string? acc_id, DeletePostRequestDTO request);
         Task<DeletePostResponseDTO?> RestorePostDeleted(string? acc_id, DeletePostRequestDTO request);
         Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword);
+        Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
     }
 }

@@ -1,11 +1,15 @@
-﻿using FamilyFarm.Models.Models;
+﻿using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Mapper;
+using FamilyFarm.Models.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using static MongoDB.Driver.WriteConcern;
 
 namespace FamilyFarm.DataAccess.DAOs
 {
@@ -13,11 +17,12 @@ namespace FamilyFarm.DataAccess.DAOs
     {
         private readonly IMongoCollection<Post> _post;
         private readonly IMongoCollection<PostCategory> _postCategoryCollection;
-
+        private readonly IMongoCollection<Account> _Account;
         public PostDAO(IMongoDatabase database)
         {
             _post = database.GetCollection<Post>("Post");
             _postCategoryCollection = database.GetCollection<PostCategory>("PostCategory");
+            _Account = database.GetCollection<Account>("Account");
         }
 
         /// <summary>
@@ -243,12 +248,72 @@ namespace FamilyFarm.DataAccess.DAOs
             if (string.IsNullOrWhiteSpace(groupId)) return new List<Post>();
 
             var filterBuilder = Builders<Post>.Filter;
-            var filter = filterBuilder.Eq(p => p.GroupId, groupId) &
-                         !filterBuilder.Eq(p => p.IsDeleted, true) &  // Nếu bài viết không bị xóa
-                         (filterBuilder.Regex(p => p.PostContent, new BsonRegularExpression(keyword, "i"))); // Tìm kiếm theo từ khóa trong nội dung
+            var objectGroupId = ObjectId.Parse(groupId);
+
+            var filter = Builders<Post>.Filter.And(
+                Builders<Post>.Filter.Eq("GroupId", objectGroupId),
+                Builders<Post>.Filter.Eq("IsDeleted", false),
+                Builders<Post>.Filter.Regex("PostContent", new BsonRegularExpression(keyword, "i"))
+            );
+
 
             return await _post.Find(filter).SortByDescending(p => p.CreatedAt).ToListAsync();
         }
+
+        public async Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(groupId))
+                return new SearchPostInGroupResponseDTO { Success = false, Message = "GroupId is required." };
+
+            var filter = Builders<Post>.Filter.And(
+                Builders<Post>.Filter.Eq("GroupId", groupId),
+                Builders<Post>.Filter.Eq("IsDeleted", false),
+                Builders<Post>.Filter.Regex("PostContent", new BsonRegularExpression(keyword, "i"))
+            );
+
+            var posts = await _post.Find(filter).ToListAsync();
+
+            if (posts.Count == 0)
+            {
+                return new SearchPostInGroupResponseDTO
+                {
+                    Success = true,
+                    Message = "No posts found.",
+                    Posts = new List<PostInGroup>()
+                };
+            }
+
+            var accIds = posts.Select(p => p.AccId).Distinct().ToList();
+            var accFilter = Builders<Account>.Filter.In("_id", accIds.Select(id => ObjectId.Parse(id)));
+            var accounts = await _Account.Find(accFilter).ToListAsync();
+
+            var postAndAccList = posts.Select(post =>
+            {
+                var account = accounts.FirstOrDefault(a => a.AccId.ToString() == post.AccId);
+                var minimalAcc = new MiniAccountDTO
+                {
+                    AccId = account.AccId,
+                    FullName = account.FullName,
+                    Username = account.Username,
+                      Email = account.Email,
+                        Avatar = account.Avatar
+                };
+
+                return new PostInGroup
+                {
+                    post = post,
+                    account = minimalAcc
+                };
+            }).ToList();
+
+            return new SearchPostInGroupResponseDTO
+            {
+                Success = true,
+                Message = "Found posts.",
+                Posts = postAndAccList
+            };
+        }
+
 
     }
 }
