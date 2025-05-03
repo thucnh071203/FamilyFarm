@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <Folder Include="Firebase\" />
+    <Folder Include="Firebase\" />
   </ItemGroup>
 
 </Project>

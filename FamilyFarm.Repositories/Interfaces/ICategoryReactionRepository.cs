@@ -9,6 +9,7 @@ namespace FamilyFarm.Repositories.Interfaces
 {
     public interface ICategoryReactionRepository
     {
+        Task<List<CategoryReaction>> GetAllAsync();
         Task<CategoryReaction> GetByIdAsync(string id);
     }
 }

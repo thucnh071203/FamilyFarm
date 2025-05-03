@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace FamilyFarm.BusinessLogic.Interfaces
 {
-    public interface IReactionPostService
+    public interface ICategoryReactionService
     {
-        Task<bool> ToggleReactionAsync(string postId, string accId, string categoryReactionId);
-        Task<List<ReactionPost>> GetAllByPostAsync(string postId);
+        Task<List<CategoryReaction>> GetAllAsync();
+        Task<List<CategoryReaction>> GetAllAvalableAsync();
+        Task<CategoryReaction> GetByIdAsync(string id);
     }
 }
