@@ -104,5 +104,26 @@ namespace FamilyFarm.BusinessLogic.Services
                 MessageError = null
             };
         }
+
+        public async Task<UserProfileResponseDTO?> GetUserProfileAsync(string accId)
+        {
+            var account = await _accountRepository.GetAccountByIdAsync(accId);
+
+            if (account == null) return null;
+
+            return new UserProfileResponseDTO
+            {
+                AccId = account.AccId,
+                Username = account.Username,
+                FullName = account.FullName,
+                Email = account.Email,
+                PhoneNumber = account.PhoneNumber,
+                Avatar = account.Avatar,
+                City = account.City,
+                Country = account.Country,
+                WorkAt = account.WorkAt,
+                StudyAt = account.StudyAt
+            };
+        }
     }
 }

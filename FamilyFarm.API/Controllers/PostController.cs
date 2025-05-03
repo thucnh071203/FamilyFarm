@@ -212,6 +212,18 @@ namespace FamilyFarm.API.Controllers
             return Ok(posts);
         }
 
+        [HttpGet("search-posts-in-group-dto/{groupId}")]
+        public async Task<IActionResult> SearchPostsInGroupDTO(string groupId, [FromQuery] string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return BadRequest("Keyword is required.");
+
+            var response = await _postService.SearchPostsWithAccountAsync(groupId, keyword);
+
+            return Ok(response);
+        }
+
+
 
     }
 }

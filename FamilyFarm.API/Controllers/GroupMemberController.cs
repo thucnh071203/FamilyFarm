@@ -130,6 +130,14 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(new { message = $"Join request has been {status.ToLower()}ed successfully" });
         }
+        [HttpPut("update-role")]
+        public async Task<IActionResult> UpdateMemberRole([FromQuery] string groupId, [FromQuery] string accId, [FromQuery] string newGroupRoleId)
+        {
+            var result = await _groupMemberService.UpdateMemberRoleAsync(groupId, accId, newGroupRoleId);
+            if (result)
+                return Ok("Role updated successfully.");
+            return NotFound("Member not found or update failed.");
+        }
 
 
     }

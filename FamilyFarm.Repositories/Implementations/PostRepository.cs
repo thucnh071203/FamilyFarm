@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
 using System;
@@ -61,6 +62,10 @@ namespace FamilyFarm.Repositories.Implementations
         public async Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword)
         {
             return await _postDAO.SearchPostsInGroupAsync(groupId, keyword);
+        }
+        public async Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword)
+        {
+            return await _postDAO.SearchPostsWithAccountAsync(groupId, keyword);
         }
     }
 }

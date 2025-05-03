@@ -18,5 +18,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<Account> UpdateOtpAsync(string id, Account account);
         Task DeleteAsync(string id);
         Task<UpdateProfileResponseDTO> UpdateProfileAsync(string username, UpdateProfileRequestDTO account);
+        Task<UserProfileResponseDTO?> GetUserProfileAsync(string accId);
     }
 }

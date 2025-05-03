@@ -127,5 +127,11 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.DeleteFreshTokenByUsername(username);
         }
+        public async Task<Account?> GetAccountByIdAsync(string accId)
+        {
+            return await _dao.GetAccountByIdAsync(accId);
+        }
+
+
     }
 }
