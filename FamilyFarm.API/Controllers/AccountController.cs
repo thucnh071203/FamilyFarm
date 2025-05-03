@@ -83,7 +83,8 @@ namespace FamilyFarm.API.Controllers
         {
             var checkAccount = await _accountService.GetAccountByUsername(username);
 
-            if (checkAccount == null) {
+            if (checkAccount == null)
+            {
                 return BadRequest("Account not found");
             }
 
@@ -131,6 +132,27 @@ namespace FamilyFarm.API.Controllers
 
                 return Ok(result);
             }
+        }
+
+
+        [HttpGet("profile-another/{accId}")]
+        public async Task<IActionResult> GetUserProfile(string accId)
+        {
+            var profile = await _accountService.GetUserProfileAsync(accId);
+
+            if (profile == null)
+                return NotFound(new
+                {
+                    message = "User not found",
+                    success = false
+                });
+
+            return Ok(new
+            {
+                message = "User profile found",
+                success = true,
+                data = profile
+            });
         }
     }
 }

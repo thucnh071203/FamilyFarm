@@ -279,5 +279,13 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
+
+
+        public async Task<Account?> GetAccountByIdAsync(string accId)
+        {
+            return await _Accounts
+                .Find(a => a.AccId == accId && a.Status == 1)
+                .FirstOrDefaultAsync();
+        }
     }
 }

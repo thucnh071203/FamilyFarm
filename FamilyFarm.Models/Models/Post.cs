@@ -17,6 +17,7 @@ namespace FamilyFarm.Models.Models
         public string? PostScope { get; set; }
         [BsonRepresentation(BsonType.ObjectId)] 
         public string AccId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public string? GroupId { get; set; }
         public bool IsInGroup { get; set; } = false;
         public DateTime? CreatedAt { get; set; }
