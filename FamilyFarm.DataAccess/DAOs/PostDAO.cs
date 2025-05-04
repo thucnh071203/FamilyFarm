@@ -295,8 +295,8 @@ namespace FamilyFarm.DataAccess.DAOs
                     AccId = account.AccId,
                     FullName = account.FullName,
                     Username = account.Username,
-                      Email = account.Email,
-                        Avatar = account.Avatar
+                    Email = account.Email,
+                    Avatar = account.Avatar
                 };
 
                 return new PostInGroup
@@ -375,6 +375,22 @@ namespace FamilyFarm.DataAccess.DAOs
             var posts = await _post.Find(finalFilter)
                 .SortByDescending(p => p.CreatedAt)
                 .Limit(pageSize + 1)
+                .ToListAsync();
+
+            return posts;
+        }
+
+
+        /// <summary>
+        /// get list post that status is 1, mean it's content dont relate with Agriculture
+        /// </summary>
+        /// <param name="isDeleted"></param>
+        /// <returns></returns>
+        public async Task<List<Post>?> GetListPostCheckedByAI()
+        {
+
+            var filter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false) & Builders<Post>.Filter.Eq(p => p.Status, 1);
+            var posts = await _post.Find(filter)
                 .ToListAsync();
 
             return posts;

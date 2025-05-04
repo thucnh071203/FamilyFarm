@@ -83,7 +83,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var username = userClaims?.Username;
-
+           
             var result = await _postService.AddPost(username, request);
 
             if (result == null) 
@@ -263,6 +263,17 @@ namespace FamilyFarm.API.Controllers
                 pageSize = 5; // default hoặc giới hạn max
 
             var result = await _postService.GetListInfinitePost(lastPostId, pageSize);
+
+            if (result == null || result.Success == false)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("list-checked_by-AI")]
+        public async Task<ActionResult<ListPostResponseDTO?>> GetListPostCheckedAI()
+        {
+            var result = await _postService.GetListPostCheckedAI();
 
             if (result == null || result.Success == false)
                 return BadRequest(result);

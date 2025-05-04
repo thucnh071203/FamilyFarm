@@ -25,6 +25,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ListPostResponseDTO?> GetListPostValid(); //Lấy các bài post còn khả dụng
         Task<ListPostResponseDTO?> GetListPostDeleted(); //Lấy posts bị xóa
         Task<ListPostResponseDTO?> GetListAllPost(); //Lấy toàn bộ các bài post
-        Task<ListPostResponseDTO?> GetListInfinitePost(string? last_post_id, int page_size);    
+        Task<ListPostResponseDTO?> GetListInfinitePost(string? last_post_id, int page_size);
+        Task<ListPostResponseDTO?> GetListPostCheckedAI();
     }
 }

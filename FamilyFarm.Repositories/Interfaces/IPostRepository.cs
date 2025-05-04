@@ -22,5 +22,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
         Task<List<Post>?> GetListPost(int is_deleted);
         Task<(List<Post> posts, bool hasMore)> GetPaginatedPosts(string? last_post_id, int page_size);
+        Task<List<Post>?> GetListPostCheckedByAI();
    }
 }
