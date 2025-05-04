@@ -19,7 +19,7 @@ namespace FamilyFarm.Models.Models
         public required string PrivacyType { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
         public required string OwnerId { get; set; }
-        public required DateTime CreatedAt { get; set; }
+        public required DateTime? CreatedAt { get; set; }
         public required DateTime? UpdatedAt { get; set; }
         public required DateTime? DeletedAt { get; set; }
         public bool IsDeleted { get; set; }

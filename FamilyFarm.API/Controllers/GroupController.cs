@@ -33,22 +33,40 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateGroup([FromBody] FamilyFarm.Models.Models.Group addGroup)
+        public async Task<IActionResult> CreateGroup([FromForm] GroupRequestDTO addGroup)
         {
             if (addGroup == null)
                 return BadRequest("addGroup object is null");
 
-            await _groupService.CreateGroup(addGroup);
+            var addNewGroup = new FamilyFarm.Models.Models.Group
+            {
+                GroupId = null,
+                OwnerId = addGroup.AccountId,
+                GroupName = addGroup.GroupName,
+                GroupAvatar = addGroup.GroupAvatar,
+                GroupBackground = addGroup.GroupBackground,
+                PrivacyType = addGroup.PrivacyType,
+                CreatedAt = null,
+                UpdatedAt = null,
+                DeletedAt = null
+            };
 
-            return CreatedAtAction(nameof(GetGroupById), new { groupId = addGroup.GroupId }, addGroup);
+            await _groupService.CreateGroup(addNewGroup);
+
+            return CreatedAtAction(nameof(GetGroupById), new { groupId = addNewGroup.GroupId }, addNewGroup);
         }
 
         [HttpPut("update/{groupId}")]
-        public async Task<IActionResult> UpdateGroup(string groupId, [FromBody] GroupRequestDTO updateGroup)
+        public async Task<IActionResult> UpdateGroup(string groupId, [FromForm] GroupRequestDTO updateGroup)
         {
             var group = await _groupService.GetGroupById(groupId);
             if (group == null)
                 return BadRequest("Group not found");
+
+            if (group.OwnerId != updateGroup.AccountId)
+            {
+                return BadRequest("Account id does not match");
+            }
 
             group.GroupName = updateGroup.GroupName;
             group.GroupAvatar = updateGroup.GroupAvatar;
