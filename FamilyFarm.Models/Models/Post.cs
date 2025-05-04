@@ -20,6 +20,7 @@ namespace FamilyFarm.Models.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? GroupId { get; set; }
         public bool IsInGroup { get; set; } = false;
+        public int Status { get; set; }//1 la khi content khong lien quan den nong nghiep, 0 la bth
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }

@@ -80,5 +80,9 @@ namespace FamilyFarm.Repositories.Implementations
             var paginatedPosts = hasMore ? posts.Take(page_size).ToList() : posts;
             return (paginatedPosts, hasMore);
         }
+        public async Task<List<Post>?> GetListPostCheckedByAI()
+        {
+            return await _postDAO.GetListPostCheckedByAI();
+        }
     }
 }
