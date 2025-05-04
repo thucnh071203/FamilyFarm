@@ -67,5 +67,18 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.SearchPostsWithAccountAsync(groupId, keyword);
         }
+
+        public async Task<List<Post>?> GetListPost(int is_deleted)
+        {
+            return await _postDAO.GetListPost(is_deleted);
+        }
+
+        public async Task<(List<Post> posts, bool hasMore)> GetPaginatedPosts(string? last_post_id, int page_size)
+        {
+            var posts = await _postDAO.GetListInfinitePost(last_post_id, page_size);
+            var hasMore = posts.Count > page_size;
+            var paginatedPosts = hasMore ? posts.Take(page_size).ToList() : posts;
+            return (paginatedPosts, hasMore);
+        }
     }
 }

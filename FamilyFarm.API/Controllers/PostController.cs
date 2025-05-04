@@ -223,7 +223,52 @@ namespace FamilyFarm.API.Controllers
             return Ok(response);
         }
 
+        [HttpGet("list-valid")]
+        public async Task<ActionResult<ListPostResponseDTO>> ListPostValid()
+        {
+            var result = await _postService.GetListPostValid();
 
+            if(result == null || result.Success == false) 
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("list-invalid")]
+        public async Task<ActionResult<ListPostResponseDTO>> ListPostInvalid()
+        {
+            var result = await _postService.GetListPostDeleted();
+
+            if (result == null || result.Success == false)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("list-all")]
+        public async Task<ActionResult<ListPostResponseDTO>> ListAllPost()
+        {
+            var result = await _postService.GetListAllPost();
+
+            if (result == null || result.Success == false)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("infinite")]
+        public async Task<ActionResult<ListPostResponseDTO>> ListPostInfinite([FromQuery] string? lastPostId, [FromQuery] int pageSize)
+        {
+            if (pageSize <= 0 || pageSize > 50)
+                pageSize = 5; // default hoặc giới hạn max
+
+            var result = await _postService.GetListInfinitePost(lastPostId, pageSize);
+
+            if (result == null || result.Success == false)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
 
     }
 }
