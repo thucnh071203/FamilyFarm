@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -38,14 +39,14 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateService([FromBody] Service service)
+        public async Task<IActionResult> CreateService([FromForm] ServiceRequestDTO service)
         {
             var result = await _servicingService.CreateService(service);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpPut("update/{serviceId}")]
-        public async Task<IActionResult> UpdateService(string serviceId, [FromBody] Service service)
+        public async Task<IActionResult> UpdateService(string serviceId, [FromForm] ServiceRequestDTO service)
         {
             var result = await _servicingService.UpdateService(serviceId, service);
             return result.Success ? Ok(result) : BadRequest(result);

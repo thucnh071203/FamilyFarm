@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
@@ -14,10 +15,12 @@ namespace FamilyFarm.BusinessLogic.Services
     public class ServicingService : IServicingService
     {
         private readonly IServiceRepository _serviceRepository;
+        private readonly ICategoryServiceRepository _categoryServiceRepository;
 
-        public ServicingService(IServiceRepository serviceRepository)
+        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository)
         {
             _serviceRepository = serviceRepository;
+            _categoryServiceRepository = categoryServiceRepository;
         }
 
         public async Task<ServiceResponseDTO> GetAllService()
@@ -98,9 +101,40 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<ServiceResponseDTO> CreateService(Service item)
+        public async Task<ServiceResponseDTO> CreateService(ServiceRequestDTO item)
         {
-            var created = await _serviceRepository.CreateService(item);
+            if (item == null)
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Request is null"
+                };
+            }
+
+            var checkCategory = await _categoryServiceRepository.GetCategoryServiceById(item.CategoryServiceId);
+
+            if (checkCategory == null)
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Category is null"
+                };
+            }
+
+            var addNewService = new Service 
+            {
+                ServiceId = null,
+                CategoryServiceId = item.CategoryServiceId,
+                ProviderId = item.ProviderId,
+                ServiceName = item.ServiceName,
+                ServiceDescription = item.ServiceDescription,
+                Price = item.Price,
+                ImageUrl = item.ImageUrl
+            };
+            
+            var created = await _serviceRepository.CreateService(addNewService);
 
             if (created == null)
             {
@@ -119,9 +153,51 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<ServiceResponseDTO> UpdateService(string serviceId, Service item)
+        public async Task<ServiceResponseDTO> UpdateService(string serviceId, ServiceRequestDTO item)
         {
-            var updated = await _serviceRepository.UpdateService(serviceId, item);
+            if (item == null)
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Request is null"
+                };
+            }
+
+            var checkCategory = await _categoryServiceRepository.GetCategoryServiceById(item.CategoryServiceId);
+
+            if (checkCategory == null)
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Category is null"
+                };
+            }
+
+            var checkOwner = await _serviceRepository.GetServiceById(serviceId);
+
+            if (checkOwner.ProviderId != item.ProviderId)
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Provider does not match"
+                };
+            }
+
+            var updateService = new Service
+            {
+                ServiceId = null,
+                CategoryServiceId = item.CategoryServiceId,
+                ProviderId = item.ProviderId,
+                ServiceName = item.ServiceName,
+                ServiceDescription = item.ServiceDescription,
+                Price = item.Price,
+                ImageUrl = item.ImageUrl
+            };
+
+            var updated = await _serviceRepository.UpdateService(serviceId, updateService);
 
             if (updated == null)
             {

@@ -81,7 +81,7 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Set(s => s.ServiceDescription, item.ServiceDescription)
                 .Set(s => s.Price, item.Price)
                 .Set(s => s.ImageUrl, item.ImageUrl)
-                .Set(s => s.UpdateAt, item.UpdateAt);
+                .Set(s => s.UpdateAt, DateTime.UtcNow);
 
             var result = await _Services.UpdateOneAsync(filter, update);
 
