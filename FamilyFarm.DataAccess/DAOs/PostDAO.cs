@@ -314,6 +314,70 @@ namespace FamilyFarm.DataAccess.DAOs
             };
         }
 
+        /// <summary>
+        ///     List all post Valid with condition 
+        /// </summary>
+        /// <param name="isDeleted">
+        ///     0 = only not deleted, 
+        ///     1 = only deleted, 
+        ///     -1 or others = all posts
+        /// </param>
+        /// <returns>return list Post object has sorted based on Created At</returns>
+        public async Task<List<Post>?> GetListPost(int isDeleted)
+        {
+            FilterDefinition<Post> filter;
 
+            if (isDeleted == 0)
+            {
+                filter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false);
+            }
+            else if (isDeleted == 1)
+            {
+                filter = Builders<Post>.Filter.Eq(p => p.IsDeleted, true);
+            }
+            else
+            {
+                filter = Builders<Post>.Filter.Empty;
+            }
+
+            var posts = await _post.Find(filter)
+                .SortByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return posts;
+        }
+
+        /// <summary>
+        ///     List all post valid infinite scroll
+        /// </summary>
+        /// <param name="lastPostId">Last post of list post before</param>
+        /// <param name="pageSize"></param>
+        /// <returns>return list Post object has sorted based on Created At and paging</returns>
+        public async Task<List<Post>> GetListInfinitePost(string? lastPostId, int pageSize)
+        {
+            // Điều kiện lọc theo isDeleted = false
+            var isDeletedFilter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false);
+
+            FilterDefinition<Post> finalFilter;
+
+            if (!string.IsNullOrEmpty(lastPostId))
+            {
+                // Lọc theo Id < lastPostId và isDeleted
+                var lastIdFilter = Builders<Post>.Filter.Lt(p => p.PostId, lastPostId);
+                finalFilter = Builders<Post>.Filter.And(isDeletedFilter, lastIdFilter);
+            }
+            else
+            {
+                // Chỉ lọc theo isDeleted
+                finalFilter = isDeletedFilter;
+            }
+
+            var posts = await _post.Find(finalFilter)
+                .SortByDescending(p => p.CreatedAt)
+                .Limit(pageSize + 1)
+                .ToListAsync();
+
+            return posts;
+        }
     }
 }
