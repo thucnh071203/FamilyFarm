@@ -40,5 +40,30 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Find(c => c.CategoryReactionId == id && c.IsDeleted != true)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task CreateAsync(CategoryReaction reaction)
+        {
+            await _categoryReactions.InsertOneAsync(reaction);
+        }
+
+        public async Task<bool> UpdateAsync(string id, CategoryReaction updatedReaction)
+        {
+            var result = await _categoryReactions.ReplaceOneAsync(
+                r => r.CategoryReactionId == id && r.IsDeleted != true,
+                updatedReaction
+            );
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<bool> SoftDeleteAsync(string id)
+        {
+            var update = Builders<CategoryReaction>.Update.Set(r => r.IsDeleted, true);
+            var result = await _categoryReactions.UpdateOneAsync(
+                r => r.CategoryReactionId == id && r.IsDeleted != true,
+                update
+            );
+            return result.ModifiedCount > 0;
+        }
+
     }
 }
