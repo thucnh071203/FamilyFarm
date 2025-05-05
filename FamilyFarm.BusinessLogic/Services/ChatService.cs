@@ -7,6 +7,7 @@ using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
+using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IHubContext<ChatHub> _chatHubContext;
         private readonly IMapper _mapper;
         private readonly IUploadFileService _uploadFileService;
+        private readonly INotificationService _notificationService;
 
         /// <summary>
         /// Constructor to initialize the chat service with required repositories and SignalR context.
@@ -29,13 +31,14 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <param name="chatRepository">The repository for managing chat data.</param>
         /// <param name="chatDetailRepository">The repository for managing chat messages (chat details).</param>
         /// <param name="chatHubContext">The SignalR hub context to send notifications to clients.</param>
-        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService)
+        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService, INotificationService notificationService)
         {
             _chatRepository = chatRepository;
             _chatDetailRepository = chatDetailRepository;
             _chatHubContext = chatHubContext;
             _mapper = mapper;
             _uploadFileService = uploadFileService;
+            _notificationService = notificationService;
         }
 
         /// <summary>
@@ -114,6 +117,8 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </returns>
         public async Task<SendMessageResponseDTO> SendMessageAsync(string senderId, SendMessageRequestDTO request)
         {
+            const int TIME_THRESHOLD = 5 * 60 * 1000; // 5 munutes (unit: milliseconds)
+
             // Validate the input
             if (request == null || string.IsNullOrEmpty(request.ChatId) || string.IsNullOrEmpty(request.ReceiverId))
             {
@@ -169,12 +174,46 @@ namespace FamilyFarm.BusinessLogic.Services
             // Map the SendMessageRequestDTO to a ChatDetail object
             var chatDetail = _mapper.Map<ChatDetail>(request);
 
-            // Assign the SenderId
+            // Assign the SenderId and SendAt
             chatDetail.SenderId = senderId;
 
             // Notify via SignalR
             await _chatHubContext.Clients.Users(new[] { chatDetail.SenderId, chatDetail.ReceiverId })
                                  .SendAsync("ReceiveMessage", chatDetail);
+
+            // Kiểm tra thời gian của tin nhắn cuối cùng trong ChatId
+            var messages = await _chatDetailRepository.GetChatDetailsByChatIdAsync(request.ChatId);
+            var lastMessage = messages.OrderByDescending(c => c.SendAt).FirstOrDefault();
+            bool shouldSendNotification = true;
+
+            if (lastMessage != null)
+            {
+                var timeDifference = (chatDetail.SendAt - lastMessage.SendAt).TotalMilliseconds;
+                if (timeDifference < TIME_THRESHOLD)
+                {
+                    shouldSendNotification = false; // Không gửi thông báo nếu tin nhắn liên tục
+                }
+            }
+
+            // Send notification to the receiver if needed
+            if (shouldSendNotification)
+            {
+                var notificationRequest = new SendNotificationRequestDTO
+                {
+                    ReceiverIds = new List<string> { chatDetail.ReceiverId },
+                    SenderId = senderId,
+                    CategoryNotiId = senderId, // Giả sử bạn có một CategoryNotiId cho tin nhắn / đổi lại sau
+                    TargetId = chatDetail.ChatId,
+                    TargetType = "Chat",
+                    Content = $"You have a new message from {senderId}"
+                };
+
+                var notificationResponse = await _notificationService.SendNotificationAsync(notificationRequest);
+                if (!notificationResponse.Success)
+                {
+                    Console.WriteLine($"Failed to send notification: {notificationResponse.Message}");
+                }
+            }
 
             // Save the chat message
             var savedMessage = await _chatDetailRepository.CreateChatDetailAsync(chatDetail);
@@ -187,6 +226,7 @@ namespace FamilyFarm.BusinessLogic.Services
                     Success = false
                 };
             }
+
 
             // Map to response
             var response = _mapper.Map<SendMessageResponseDTO>(savedMessage);

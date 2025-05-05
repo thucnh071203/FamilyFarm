@@ -20,8 +20,6 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task<Reaction> GetByEntityAccAndReactionAsync(string entityId, string entityType, string accId, string categoryReactionId)
         {
-            if (!ObjectId.TryParse(entityId, out _) || !ObjectId.TryParse(accId, out _) || !ObjectId.TryParse(categoryReactionId, out _))
-                return null;
             return await _reactions
                 .Find(r => r.EntityId == entityId && r.EntityType == entityType && r.AccId == accId && r.CategoryReactionId == categoryReactionId)
                 .FirstOrDefaultAsync();
@@ -29,8 +27,6 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task<Reaction> GetByEntityAndAccAsync(string entityId, string entityType, string accId)
         {
-            if (!ObjectId.TryParse(entityId, out _) || !ObjectId.TryParse(accId, out _))
-                return null;
             return await _reactions
                 .Find(r => r.EntityId == entityId && r.EntityType == entityType && r.AccId == accId)
                 .FirstOrDefaultAsync();
@@ -38,8 +34,6 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task<List<Reaction>> GetAllByEntityAsync(string entityId, string entityType)
         {
-            if (!ObjectId.TryParse(entityId, out _))
-                return new List<Reaction>();
             return await _reactions
                 .Find(r => r.EntityId == entityId && r.EntityType == entityType && r.IsDeleted != true)
                 .ToListAsync();

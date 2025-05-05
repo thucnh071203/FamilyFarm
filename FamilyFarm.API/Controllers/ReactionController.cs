@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyFarm.API.Controllers
 {
-    // chua co post controller nen de tam reaction o day (co the chuyen qua post controller hoac khong)
-    [Route("api/reaction")] // neu lam chung cho reaction-post và reaction-comment trong day (recommendation)
+    [Route("api/reaction")] // lam chung cho reaction-post và reaction-comment trong day (recommendation)
     [ApiController]
     public class ReactionController : ControllerBase
     {
@@ -30,29 +29,11 @@ namespace FamilyFarm.API.Controllers
         /// If reactions exist, returns them with a 200 OK status.
         /// If no reactions are found, it will still return an empty list with a 200 OK status.
         /// </returns>
-        [Authorize]
+        //[Authorize]
         [HttpGet("all-by-post/{postId}")]
         public async Task<IActionResult> GetAllReactionsByPost(string postId)
         {
             var result = await _reactionService.GetAllByEntityAsync(postId, "Post");
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Retrieves all reactions associated with a specific comment.
-        /// This endpoint fetches the reactions given by users for the given comment.
-        /// </summary>
-        /// <param name="commentId">The unique identifier for the comment whose reactions need to be retrieved.</param>
-        /// <returns>
-        /// An IActionResult containing the list of reactions for the specified comment.
-        /// If reactions exist, returns them with a 200 OK status.
-        /// If no reactions are found, it will still return an empty list with a 200 OK status.
-        /// </returns>
-        [Authorize]
-        [HttpGet("all-by-comment/{commentId}")]
-        public async Task<IActionResult> GetAllReactionsByComment(string commentId)
-        {
-            var result = await _reactionService.GetAllByEntityAsync(commentId, "Comment");
             return Ok(result);
         }
 
@@ -69,17 +50,35 @@ namespace FamilyFarm.API.Controllers
         /// </returns>
         [Authorize]
         [HttpPost("toggle/post/{postId}")]
-        public async Task<IActionResult> ToggleReactionPost(string postId, [FromBody] ReactionRequestDTO request)
+        public async Task<IActionResult> ToggleReactionPost(string postId, [FromQuery] string categoryReactionId)
         {
             var account = _authenService.GetDataFromToken();
             if (account == null)
                 return NotFound("No account found!");
 
-            var result = await _reactionService.ToggleReactionAsync(postId, "Post", account.AccId, request.CategoryReactionId);
+            var result = await _reactionService.ToggleReactionAsync(postId, "Post", account.AccId, categoryReactionId);
             if (!result)
                 return BadRequest("Reaction does not exist or is invalid.");
 
             return Ok("Reaction has been toggled.");
+        }
+
+        /// <summary>
+        /// Retrieves all reactions associated with a specific comment.
+        /// This endpoint fetches the reactions given by users for the given comment.
+        /// </summary>
+        /// <param name="commentId">The unique identifier for the comment whose reactions need to be retrieved.</param>
+        /// <returns>
+        /// An IActionResult containing the list of reactions for the specified comment.
+        /// If reactions exist, returns them with a 200 OK status.
+        /// If no reactions are found, it will still return an empty list with a 200 OK status.
+        /// </returns>
+        //[Authorize]
+        [HttpGet("all-by-comment/{commentId}")]
+        public async Task<IActionResult> GetAllReactionsByComment(string commentId)
+        {
+            var result = await _reactionService.GetAllByEntityAsync(commentId, "Comment");
+            return Ok(result);
         }
 
         /// <summary>
@@ -95,13 +94,13 @@ namespace FamilyFarm.API.Controllers
         /// </returns>
         [Authorize]
         [HttpPost("toggle/comment/{commentId}")]
-        public async Task<IActionResult> ToggleReactionComment(string commentId, [FromBody] ReactionRequestDTO request)
+        public async Task<IActionResult> ToggleReactionComment(string commentId, [FromQuery] string categoryReactionId)
         {
             var account = _authenService.GetDataFromToken();
             if (account == null)
                 return NotFound("No account found!");
 
-            var result = await _reactionService.ToggleReactionAsync(commentId, "Comment", account.AccId, request.CategoryReactionId);
+            var result = await _reactionService.ToggleReactionAsync(commentId, "Comment", account.AccId, categoryReactionId);
             if (!result)
                 return BadRequest("Reaction does not exist or is invalid.");
 

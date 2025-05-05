@@ -12,21 +12,16 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string NotifiId { get; set; }
+        public required string NotifiId { get; set; } = ObjectId.GenerateNewId().ToString();
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string CategoryNotifiId { get; set; }
-        [BsonRequired]
+        public required string CategoryNotiId { get; set; } // thông báo là hành động gì (ví dụ: "Like", "Comment", "Share", "Joined Group", ...)
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string AccId { get; set; }
+        public string? SenderId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
-        public string? PostId { get; set; }
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string? ServiceId { get; set; }
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string? GroupId { get; set; }
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string? ProcessId { get; set; }
-        public required DateTime CreateAt { get; set; }
+        public required string TargetId { get; set; }
+        public required string TargetType { get; set; } // đối tượng mà hành động đó tác động lên (ví dụ: "Post", "Service", "Group", "Process")
+        public required string Content { get; set; }
+        public required DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
