@@ -50,20 +50,20 @@ namespace FamilyFarm.Repositories
 
         //Update fail login attempt
         Task<bool> UpdateLoginFail(string? acc_id, int? failAttempts, DateTime? lockedUntil);
-
         //Delete Refresh Token
         Task<bool> DeleteRefreshToken(string? username);
 
         Task CreateAccount(Account account);
 
-
         //Register Farmer
         Task<Account?> CreateFarmer(Account newFarmer);
 
-
         Task<Account?> GetByFacebookId(string facebookId);
+
         Task<Account> CreateFacebookAccount(string fbId, string name, string email, string avatar);
 
         Task<Account?> GetAccountByIdAsync(string accId);
+
+        Task<string?> UpdateAvatar(string? accountId, string? avatarUrl);
     }
 }
