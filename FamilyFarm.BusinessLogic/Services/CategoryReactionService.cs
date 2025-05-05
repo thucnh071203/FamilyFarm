@@ -53,6 +53,13 @@ namespace FamilyFarm.BusinessLogic.Services
             return result;
         }
 
+
+        public Task CreateAsync(CategoryReaction reaction) => _categoryReactionRepository.CreateAsync(reaction);
+
+        public Task<bool> UpdateAsync(string id, CategoryReaction reaction) => _categoryReactionRepository.UpdateAsync(id, reaction);
+
+        public Task<bool> DeleteAsync(string id) => _categoryReactionRepository.DeleteAsync(id);
+
     }
 }
 

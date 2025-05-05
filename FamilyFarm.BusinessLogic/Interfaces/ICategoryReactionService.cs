@@ -12,5 +12,8 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<List<CategoryReaction>> GetAllAsync();
         Task<List<CategoryReaction>> GetAllAvalableAsync();
         Task<CategoryReaction> GetByIdAsync(string id);
+        Task CreateAsync(CategoryReaction reaction);
+        Task<bool> UpdateAsync(string id, CategoryReaction reaction);
+        Task<bool> DeleteAsync(string id);
     }
 }
