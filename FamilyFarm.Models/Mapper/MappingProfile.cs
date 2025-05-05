@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
@@ -30,6 +31,8 @@ namespace FamilyFarm.Models.Mapper
              .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             CreateMap<Notification, SendNotificationResponseDTO>();
+            CreateMap<Account, MyProfileDTO>();
+
         }
     }
 }

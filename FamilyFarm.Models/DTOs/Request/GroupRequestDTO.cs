@@ -8,9 +8,10 @@ namespace FamilyFarm.Models.DTOs.Request
 {
     public class GroupRequestDTO
     {
+        public required string AccountId { get; set; }
         public required string GroupName { get; set; }
-        public required string? GroupAvatar { get; set; }
-        public required string? GroupBackground { get; set; }
+        public string? GroupAvatar { get; set; }
+        public string? GroupBackground { get; set; }
         public required string PrivacyType { get; set; }
     }
 }

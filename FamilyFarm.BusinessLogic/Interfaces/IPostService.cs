@@ -1,5 +1,6 @@
 ﻿using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
@@ -21,5 +22,10 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<DeletePostResponseDTO?> RestorePostDeleted(string? acc_id, DeletePostRequestDTO request);
         Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword);
         Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
+        Task<ListPostResponseDTO?> GetListPostValid(); //Lấy các bài post còn khả dụng
+        Task<ListPostResponseDTO?> GetListPostDeleted(); //Lấy posts bị xóa
+        Task<ListPostResponseDTO?> GetListAllPost(); //Lấy toàn bộ các bài post
+        Task<ListPostResponseDTO?> GetListInfinitePost(string? last_post_id, int page_size);
+        Task<ListPostResponseDTO?> GetListPostCheckedAI();
     }
 }

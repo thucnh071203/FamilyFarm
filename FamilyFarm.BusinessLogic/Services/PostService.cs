@@ -23,8 +23,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly ICategoryPostRepository _categoryPostRepository;
         private readonly IUploadFileService _uploadFileService;
         private readonly IAccountRepository _accountRepository;
+        private readonly ICohereService _cohereService;
 
-        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository)
+        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService)
         {
             _postRepository = postRepository;
             _postCategoryRepository = postCategoryRepository;
@@ -34,6 +35,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _categoryPostRepository = categoryPostRepository;
             _uploadFileService = uploadFileService;
             _accountRepository = accountRepository;
+            _cohereService = cohereService;
         }
 
         /// <summary>
@@ -53,12 +55,22 @@ namespace FamilyFarm.BusinessLogic.Services
             var ownAccount = await _accountRepository.GetAccountByUsername(username);
             if (ownAccount == null)
                 return null;
+            bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.PostContent);
+            
 
             var postRequest = new Post();
             postRequest.PostContent = request.PostContent;
             postRequest.PostScope = request.Privacy;
             postRequest.AccId = ownAccount.AccId;
             postRequest.CreatedAt = DateTime.UtcNow;
+            if (AICheck)
+            {
+                postRequest.Status = 0;
+            }
+            else
+            {
+                postRequest.Status = 1;
+            }
 
             var newPost = await _postRepository.CreatePost(postRequest);
 
@@ -611,7 +623,6 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-
         public async Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword)
         {
             return await _postRepository.SearchPostsInGroupAsync(groupId, keyword);
@@ -622,5 +633,299 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _postRepository.SearchPostsWithAccountAsync(groupId, keyword);
         }
 
+        public async Task<ListPostResponseDTO?> GetListPostValid()
+        {
+            //1. Lấy list post valid
+            var listPostValid = await _postRepository.GetListPost(0);
+
+            if(listPostValid == null) 
+                return null;
+
+            if (listPostValid.Count <= 0)
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false
+                };
+
+            //2. Lấy các thành phần cho từng post
+            List<PostMapper> data = new List<PostMapper>(); 
+
+            foreach (var post in listPostValid)
+            {
+                var postMapper = new PostMapper();
+                postMapper.Post = post;
+
+                //2.1 Lấy list images cho từng post
+                var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
+                if (listImage != null)
+                {
+                    postMapper.PostImages = listImage;
+                }
+
+                //2.2 Lấy list hashtag
+                var listHashtag = await _hashTagRepository.GetHashTagByPost(post.PostId);
+                if (listHashtag != null)
+                {
+                    postMapper.HashTags = listHashtag;
+                }
+
+                //2.3 Lấy list category
+                var listPostCategory = await _postCategoryRepository.GetCategoryByPost(post.PostId);
+                if (listPostCategory != null)
+                {
+                    postMapper.PostCategories = listPostCategory;
+                }
+
+                //2.4 Lấy list tag friend
+                var listTagFriend = await _postTagRepository.GetPostTagByPost(post.PostId);
+                if (listTagFriend != null)
+                {
+                    postMapper.PostTags = listTagFriend;
+                }
+
+                //Add post mappaer vào List post mapper
+                data.Add(postMapper);
+            }
+
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post valid is success.",
+                Success = true,
+                Data = data
+            };
+        }
+
+        public async Task<ListPostResponseDTO?> GetListPostDeleted()
+        {
+            //1. Lấy list post valid
+            var listPostValid = await _postRepository.GetListPost(1);
+
+            if (listPostValid == null)
+                return null;
+
+            if (listPostValid.Count <= 0)
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false
+                };
+
+            //2. Lấy các thành phần cho từng post
+            List<PostMapper> data = new List<PostMapper>();
+
+            foreach (var post in listPostValid)
+            {
+                var postMapper = new PostMapper();
+                postMapper.Post = post;
+
+                //2.1 Lấy list images cho từng post
+                var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
+                if (listImage != null)
+                {
+                    postMapper.PostImages = listImage;
+                }
+
+                //2.2 Lấy list hashtag
+                var listHashtag = await _hashTagRepository.GetHashTagByPost(post.PostId);
+                if (listHashtag != null)
+                {
+                    postMapper.HashTags = listHashtag;
+                }
+
+                //2.3 Lấy list category
+                var listPostCategory = await _postCategoryRepository.GetCategoryByPost(post.PostId);
+                if (listPostCategory != null)
+                {
+                    postMapper.PostCategories = listPostCategory;
+                }
+
+                //2.4 Lấy list tag friend
+                var listTagFriend = await _postTagRepository.GetPostTagByPost(post.PostId);
+                if (listTagFriend != null)
+                {
+                    postMapper.PostTags = listTagFriend;
+                }
+
+                //Add post mappaer vào List post mapper
+                data.Add(postMapper);
+            }
+
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post valid is success.",
+                Success = true,
+                Data = data
+            };
+        }
+
+        public async Task<ListPostResponseDTO?> GetListAllPost()
+        {
+            //1. Lấy list post valid
+            var listPostValid = await _postRepository.GetListPost(-1);
+
+            if (listPostValid == null)
+                return null;
+
+            if (listPostValid.Count <= 0)
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false
+                };
+
+            //2. Lấy các thành phần cho từng post
+            List<PostMapper> data = new List<PostMapper>();
+
+            foreach (var post in listPostValid)
+            {
+                var postMapper = new PostMapper();
+                postMapper.Post = post;
+
+                //2.1 Lấy list images cho từng post
+                var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
+                if (listImage != null)
+                {
+                    postMapper.PostImages = listImage;
+                }
+
+                //2.2 Lấy list hashtag
+                var listHashtag = await _hashTagRepository.GetHashTagByPost(post.PostId);
+                if (listHashtag != null)
+                {
+                    postMapper.HashTags = listHashtag;
+                }
+
+                //2.3 Lấy list category
+                var listPostCategory = await _postCategoryRepository.GetCategoryByPost(post.PostId);
+                if (listPostCategory != null)
+                {
+                    postMapper.PostCategories = listPostCategory;
+                }
+
+                //2.4 Lấy list tag friend
+                var listTagFriend = await _postTagRepository.GetPostTagByPost(post.PostId);
+                if (listTagFriend != null)
+                {
+                    postMapper.PostTags = listTagFriend;
+                }
+
+                //Add post mappaer vào List post mapper
+                data.Add(postMapper);
+            }
+
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post valid is success.",
+                Success = true,
+                Data = data
+            };
+        }
+
+        public async Task<ListPostResponseDTO?> GetListInfinitePost(string? last_post_id, int page_size)
+        {
+            // 1. Lấy danh sách post theo phân trang (infinite scroll)
+            var (posts, hasMore) = await _postRepository.GetPaginatedPosts(last_post_id, page_size);
+
+            if (posts == null || posts.Count == 0)
+            {
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            // 2. Map dữ liệu liên quan
+            List<PostMapper> data = new List<PostMapper>();
+            foreach (var post in posts)
+            {
+                var postMapper = new PostMapper
+                {
+                    Post = post,
+                    PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
+                    HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
+                    PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
+                    PostTags = await _postTagRepository.GetPostTagByPost(post.PostId)
+                };
+
+                data.Add(postMapper);
+            }
+
+            // 3. Trả về kết quả
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post success.",
+                Success = true,
+                HasMore = hasMore,
+                Data = data
+            };
+        }
+
+
+        public async Task<ListPostResponseDTO?> GetListPostCheckedAI()
+        {
+            //1. Lấy list post valid
+            var listPostValid = await _postRepository.GetListPostCheckedByAI();
+
+            if (listPostValid == null)
+                return null;
+
+            if (listPostValid.Count <= 0)
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false
+                };
+
+            //2. Lấy các thành phần cho từng post
+            List<PostMapper> data = new List<PostMapper>();
+
+            foreach (var post in listPostValid)
+            {
+                var postMapper = new PostMapper();
+                postMapper.Post = post;
+
+                //2.1 Lấy list images cho từng post
+                var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
+                if (listImage != null)
+                {
+                    postMapper.PostImages = listImage;
+                }
+
+                //2.2 Lấy list hashtag
+                var listHashtag = await _hashTagRepository.GetHashTagByPost(post.PostId);
+                if (listHashtag != null)
+                {
+                    postMapper.HashTags = listHashtag;
+                }
+
+                //2.3 Lấy list category
+                var listPostCategory = await _postCategoryRepository.GetCategoryByPost(post.PostId);
+                if (listPostCategory != null)
+                {
+                    postMapper.PostCategories = listPostCategory;
+                }
+
+                //2.4 Lấy list tag friend
+                var listTagFriend = await _postTagRepository.GetPostTagByPost(post.PostId);
+                if (listTagFriend != null)
+                {
+                    postMapper.PostTags = listTagFriend;
+                }
+
+                //Add post mappaer vào List post mapper
+                data.Add(postMapper);
+            }
+
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post valid is success.",
+                Success = true,
+                Data = data
+            };
+        }
     }
 }

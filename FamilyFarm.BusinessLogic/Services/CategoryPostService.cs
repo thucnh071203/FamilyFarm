@@ -60,7 +60,7 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             if (string.IsNullOrWhiteSpace(category_id)) return null;
             var category = await _categoryRepo.GetCategoryById(category_id);
-            if ((category == null)) return null;
+            if (category == null) return null;
             return category;
 
         }

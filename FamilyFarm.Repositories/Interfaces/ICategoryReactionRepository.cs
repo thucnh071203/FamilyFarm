@@ -11,5 +11,8 @@ namespace FamilyFarm.Repositories.Interfaces
     {
         Task<List<CategoryReaction>> GetAllAsync();
         Task<CategoryReaction> GetByIdAsync(string id);
+        Task CreateAsync(CategoryReaction reaction);
+        Task<bool> UpdateAsync(string id, CategoryReaction reaction);
+        Task<bool> DeleteAsync(string id);
     }
 }

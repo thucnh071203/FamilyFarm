@@ -113,8 +113,10 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 builder.Services.AddScoped<IServicingService, ServicingService>();
 builder.Services.AddScoped<ICategoryServicingService, CategoryServicingService>();
+builder.Services.AddScoped<ICategoryPostService, CategoryPostService>();
 builder.Services.AddScoped<ICategoryReactionService, CategoryReactionService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ICohereService, CohereService>();
 
 //builder.Services.AddScoped<FirebaseConnection>();
 
@@ -131,6 +133,7 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddSignalR();
 
+builder.Services.AddHttpClient();
 
 builder.Services.AddHttpContextAccessor();
 

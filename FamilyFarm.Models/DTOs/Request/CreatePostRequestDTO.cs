@@ -17,6 +17,6 @@ namespace FamilyFarm.Models.DTOs.Request
         public string? Privacy {  get; set; }
         public bool? isInGroup { get; set; }
         public string? GroupId { get; set; }
-
+        
     }
 }
