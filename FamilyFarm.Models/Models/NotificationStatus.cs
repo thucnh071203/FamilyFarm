@@ -17,6 +17,6 @@ namespace FamilyFarm.Models.Models
         public required string AccId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
         public required string NotifiId { get; set; }
-        public required string Status { get; set; }
+        public required bool IsRead { get; set; }
     }
 }

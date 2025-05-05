@@ -59,6 +59,8 @@ builder.Services.AddScoped<ChatDetailDAO>();
 builder.Services.AddScoped<ChatDAO>();
 builder.Services.AddScoped<ServiceDAO>();
 builder.Services.AddScoped<CategoryServiceDAO>();
+builder.Services.AddScoped<NotificationDAO>();
+builder.Services.AddScoped<NotificationStatusDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -86,6 +88,8 @@ builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IChatDetailRepository, ChatDetailRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<ICategoryServiceRepository, CategoryServiceRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<INotificationStatusRepository, NotificationStatusRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -110,6 +114,7 @@ builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 builder.Services.AddScoped<IServicingService, ServicingService>();
 builder.Services.AddScoped<ICategoryServicingService, CategoryServicingService>();
 builder.Services.AddScoped<ICategoryReactionService, CategoryReactionService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 //builder.Services.AddScoped<FirebaseConnection>();
 
@@ -209,4 +214,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/notificationHub");
 app.Run();  

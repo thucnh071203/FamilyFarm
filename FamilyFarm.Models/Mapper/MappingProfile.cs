@@ -26,7 +26,10 @@ namespace FamilyFarm.Models.Mapper
             CreateMap<Comment, CommentResponseDTO>()
                 .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src));
 
-            //CreateMap<Comment, Comment>();
+            CreateMap<SendNotificationRequestDTO, Notification>()
+             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+
+            CreateMap<Notification, SendNotificationResponseDTO>();
         }
     }
 }

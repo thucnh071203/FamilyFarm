@@ -12,7 +12,7 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string ReactionId { get; set; }
+        public required string ReactionId { get; set; } = ObjectId.GenerateNewId().ToString();
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string EntityId { get; set; } // PostId hoặc CommentId
@@ -26,6 +26,6 @@ namespace FamilyFarm.Models.Models
         public required string CategoryReactionId { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
-        public bool? IsDeleted { get; set; }
+        public bool? IsDeleted { get; set; } = false;
     }
 }

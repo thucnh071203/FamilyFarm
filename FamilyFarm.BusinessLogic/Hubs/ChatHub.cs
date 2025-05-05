@@ -130,14 +130,14 @@ namespace FamilyFarm.BusinessLogic.Hubs
         /// <param name="senderId"></param>
         /// <param name="receiverId"></param>
         /// <returns></returns>
-        public async Task SendTypingNotification(string senderId, string receiverId)
+        public async Task SendTyping(string senderId, string receiverId)
         {
             if (_accConnections.ContainsKey(receiverId))
             {
                 var receiverConnections = _accConnections[receiverId];
                 foreach (var connectionId in receiverConnections)
                 {
-                    await Clients.Client(connectionId).SendAsync("ReceiveTypingNotification", senderId);
+                    await Clients.Client(connectionId).SendAsync("SendTyping", senderId);
                 }
             }
         }
