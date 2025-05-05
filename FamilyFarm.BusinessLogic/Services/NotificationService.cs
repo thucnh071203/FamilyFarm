@@ -38,6 +38,12 @@ namespace FamilyFarm.BusinessLogic.Services
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Sends a notification to a list of receivers, saves it to the database, 
+        /// creates corresponding status records, and broadcasts it via SignalR.
+        /// </summary>
+        /// <param name="request">The request containing notification details and receiver IDs.</param>
+        /// <returns>A response DTO indicating success, failure, and related messages or data.</returns>
         public async Task<SendNotificationResponseDTO> SendNotificationAsync(SendNotificationRequestDTO request)
         {
             // Validate input request data
@@ -112,6 +118,11 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        /// <summary>
+        /// Retrieves all notifications for a specific user based on their account ID.
+        /// </summary>
+        /// <param name="accId">The ID of the account to retrieve notifications for.</param>
+        /// <returns>A response DTO containing the list of notifications and unread count.</returns>
         public async Task<ListNotifiResponseDTO> GetNotificationsForUserAsync(string accId)
         {
             if (!ObjectId.TryParse(accId, out _))
@@ -156,6 +167,11 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        /// <summary>
+        /// Marks a specific notification (by its status ID) as read.
+        /// </summary>
+        /// <param name="notifiStatusId">The ID of the notification status to mark as read.</param>
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
         public async Task<bool> MarkAsReadByNotificationIdAsync(string notifiStatusId)
         {
             if (!ObjectId.TryParse(notifiStatusId, out _))
@@ -169,6 +185,11 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _notificationStatusRepository.MarkAllAsReadByNotifiIdAsync(notifiStatusId);
         }
 
+        /// <summary>
+        /// Marks all notifications for a specific account as read.
+        /// </summary>
+        /// <param name="accId">The account ID whose notifications should be marked as read.</param>
+        /// <returns>True if successful; otherwise, false.</returns>
         public async Task<bool> MarkAllAsReadByAccIdAsync(string accId)
         {
             if (!ObjectId.TryParse(accId, out _))

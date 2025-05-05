@@ -20,6 +20,11 @@ namespace FamilyFarm.API.Controllers
             _authenService = authenService;
         }
 
+        /// <summary>
+        /// Sends a notification to one or multiple receivers.
+        /// </summary>
+        /// <param name="request">The notification data to send, including content, receiver list, category, etc.</param>
+        /// <returns>Returns a success or failure response.</returns>
         [HttpPost("send")]
         public async Task<IActionResult> SendNotification([FromForm] SendNotificationRequestDTO request)
         {
@@ -31,6 +36,10 @@ namespace FamilyFarm.API.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Retrieves all notifications for the currently logged-in user.
+        /// </summary>
+        /// <returns>A list of notifications and count of unread ones.</returns>
         [Authorize]
         [HttpGet("get-by-user")]
         public async Task<IActionResult> ListNotificationsForUser()
@@ -43,6 +52,11 @@ namespace FamilyFarm.API.Controllers
             return Ok(notifications);
         }
 
+        /// <summary>
+        /// Marks a specific notification as read by its status ID.
+        /// </summary>
+        /// <param name="notifiStatusId">The notification status ID to mark as read.</param>
+        /// <returns>Status result indicating success or failure.</returns>
         [Authorize]
         [HttpPut("mark-as-read/{notifiStatusId}")]
         public async Task<IActionResult> MarkAsReadByNotificationId(string notifiStatusId)
@@ -60,6 +74,10 @@ namespace FamilyFarm.API.Controllers
             return Ok("Notification marked as read");
         }
 
+        /// <summary>
+        /// Marks all notifications as read for the currently logged-in user.
+        /// </summary>
+        /// <returns>Status result indicating success or failure.</returns>
         [Authorize]
         [HttpPut("mark-all-as-read")]
         public async Task<IActionResult> MarkAllAsReadByUserId()
