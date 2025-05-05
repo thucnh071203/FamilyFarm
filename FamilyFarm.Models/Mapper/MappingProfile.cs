@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
@@ -25,6 +26,8 @@ namespace FamilyFarm.Models.Mapper
 
             CreateMap<Comment, CommentResponseDTO>()
                 .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src));
+
+            CreateMap<Account, MyProfileDTO>();
 
             //CreateMap<Comment, Comment>();
         }

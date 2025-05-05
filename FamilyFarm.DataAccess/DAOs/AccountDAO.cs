@@ -209,6 +209,7 @@ namespace FamilyFarm.DataAccess.DAOs
             var result = await _Accounts.UpdateOneAsync(filter, update);
             return result.ModifiedCount > 0;
         }
+
         /// <summary>
         ///     Thêm mới một tài khoản Farmer
         /// </summary>
@@ -229,8 +230,6 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
-
-
         /// <summary>
         /// Use to create new account
         /// </summary>
@@ -240,6 +239,7 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             await _Accounts.InsertOneAsync(account);
         } 
+
         /// <summary>
         /// Use to Get account by identifier number
         /// </summary>
@@ -280,12 +280,31 @@ namespace FamilyFarm.DataAccess.DAOs
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 
-
         public async Task<Account?> GetAccountByIdAsync(string accId)
         {
             return await _Accounts
                 .Find(a => a.AccId == accId && a.Status == 1)
                 .FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        ///     Change avatar
+        /// </summary>
+        /// <param name="accountId"></param>
+        /// <param name="avatarUrl">
+        ///     Avatar url is new avatar, if no change is old avatar
+        /// </param>
+        /// <returns>Avatar Url</returns>
+        public async Task<string?> UpdateAvatar(string? accountId, string? avatarUrl)
+        {
+            if (string.IsNullOrEmpty(accountId) || string.IsNullOrEmpty(avatarUrl)) { return null; }
+
+            var filter = Builders<Account>.Filter.Eq(a => a.AccId, accountId);
+            var update = Builders<Account>.Update.Set(a => a.Avatar, avatarUrl);
+
+            var result = await _Accounts.UpdateOneAsync(filter, update);
+
+            return result.ModifiedCount > 0 ? avatarUrl : null;
         }
     }
 }

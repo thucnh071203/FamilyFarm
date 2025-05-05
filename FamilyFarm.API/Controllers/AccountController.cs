@@ -1,6 +1,11 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using FamilyFarm.BusinessLogic;
+using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +16,14 @@ namespace FamilyFarm.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
-        public AccountController(IAccountService accountService)
+        private readonly IAuthenticationService _authenService;
+        private readonly IMapper _mapper;
+
+        public AccountController(IAccountService accountService, IAuthenticationService authenService, IMapper mapper)
         {
             _accountService = accountService;
+            _authenService = authenService;
+            _mapper = mapper;
         }
 
         /*[HttpPut("update-profile-farmer/{username}")]
@@ -153,6 +163,48 @@ namespace FamilyFarm.API.Controllers
                 success = true,
                 data = profile
             });
+        }
+
+        [HttpGet("own-profile")]
+        [Authorize]
+        public async Task<ActionResult<MyProfileResponseDTO>> GetMyProfile()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
+
+            if (username == null)
+                return Unauthorized("Not permission for this action.");
+
+            var account = await _accountService.GetAccountByUsername(username);
+
+            if (account == null)
+                return BadRequest("Error encountered during execution.");
+
+            var data = _mapper.Map<MyProfileDTO>(account);
+
+            return Ok(new MyProfileResponseDTO
+            {
+                Message = "Get own profile success.",
+                Success = true,
+                Data = data
+            });
+        }
+
+        [HttpPut("change-avatar")]
+        [Authorize]
+        public async Task<ActionResult<UpdateAvatarResponseDTO>> ChangeAvatar([FromForm] UpdateAvatarRequesDTO request)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accountId = userClaims?.AccId;
+
+            if (accountId == null)
+                return Unauthorized("Not permission for this action.");
+
+            var result = await _accountService.ChangeOwnAvatar(accountId, request);
+            if(result == null)
+                return BadRequest("Error encountered during execution.");
+
+            return Ok(result);
         }
     }
 }
