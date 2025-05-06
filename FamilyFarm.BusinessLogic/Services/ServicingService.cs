@@ -8,6 +8,7 @@ using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
 
 namespace FamilyFarm.BusinessLogic.Services
@@ -16,11 +17,13 @@ namespace FamilyFarm.BusinessLogic.Services
     {
         private readonly IServiceRepository _serviceRepository;
         private readonly ICategoryServiceRepository _categoryServiceRepository;
+        private readonly IAccountRepository _accountRepository;
 
-        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository)
+        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository, IAccountRepository accountRepository)
         {
             _serviceRepository = serviceRepository;
             _categoryServiceRepository = categoryServiceRepository;
+            _accountRepository = accountRepository;
         }
 
         public async Task<ServiceResponseDTO> GetAllService()
@@ -59,6 +62,25 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<ServiceResponseDTO> GetAllServiceByProvider(string providerId)
         {
+            var checkAccount = await _accountRepository.GetAccountById(providerId);
+
+            if (checkAccount == null)
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Account is null"
+                };
+            }
+            else if (checkAccount.RoleId != "68007b2a87b41211f0af1d57")
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Account is not expert"
+                };
+            }
+
             var services = await _serviceRepository.GetAllServiceByProvider(providerId);
 
             if (services.Count == 0 || services == null)
