@@ -11,7 +11,8 @@ namespace FamilyFarm.DataAccess.DAOs
 {
     public class ChatDetailDAO
     {
-        private readonly IMongoCollection<ChatDetail> _chatDetails;     
+        private readonly IMongoCollection<ChatDetail> _chatDetails;
+        private readonly IMongoCollection<Chat> _chats;
 
         /// <summary>
         /// Constructor to initialize the DAO with the MongoDB collection for chat details.
@@ -21,6 +22,7 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             // Initialize the MongoDB collection for chat details.
             _chatDetails = database.GetCollection<ChatDetail>("ChatDetail");
+            _chats = database.GetCollection<Chat>("Chat");
         }
 
         /// <summary>
@@ -41,20 +43,33 @@ namespace FamilyFarm.DataAccess.DAOs
             return chatDetail;  // Return the same object after insertion
         }
 
-
         /// <summary>
-        /// Retrieves all chat details associated with a specific chat, ordered by the time they were sent.
+        /// Retrieves all chat details for a conversation between two users identified by their account IDs.
         /// </summary>
-        /// <param name="chatId">The chat ID for which to retrieve the details.</param>
-        /// <returns>Returns a list of chat details associated with the provided chat ID, sorted by send time.</returns>
-        public async Task<List<ChatDetail>> GetChatDetailsByChatIdAsync(string chatId)
+        /// <param name="senderId">The ID of the first user (sender).</param>
+        /// <param name="receiverId">The ID of the second user (receiver).</param>
+        /// <returns>Returns a sorted list of chat details for the conversation between the two users.</returns>
+        public async Task<List<ChatDetail>> GetChatDetailsByAccIdsAsync(string senderId, string receiverId)
         {
-            if (!ObjectId.TryParse(chatId, out _))
+            if (!ObjectId.TryParse(senderId, out _) || !ObjectId.TryParse(receiverId, out _))
                 return null;
-            return await _chatDetails.Find(cd => cd.ChatId == chatId)  // Search for chat details by chat ID.
-                .SortBy(cd => cd.SendAt)  // Sort the chat details by the time they were sent.
-                .ToListAsync();  // Return the sorted list of chat details.
+
+            var filter = Builders<ChatDetail>.Filter.Or(
+                Builders<ChatDetail>.Filter.And(
+                    Builders<ChatDetail>.Filter.Eq(cd => cd.SenderId, senderId),
+                    Builders<ChatDetail>.Filter.Eq(cd => cd.ReceiverId, receiverId)
+                ),
+                Builders<ChatDetail>.Filter.And(
+                    Builders<ChatDetail>.Filter.Eq(cd => cd.SenderId, receiverId),
+                    Builders<ChatDetail>.Filter.Eq(cd => cd.ReceiverId, senderId)
+                )
+            );
+
+            return await _chatDetails.Find(filter)
+                .SortBy(cd => cd.SendAt)
+                .ToListAsync();
         }
+
 
         /// <summary>
         /// Updates the "IsSeen" status of a specific chat detail to "true".

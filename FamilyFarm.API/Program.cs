@@ -125,7 +125,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://127.0.0.1:5500") // thay bằng đúng origin đang test
+        policy.WithOrigins("http://localhost:3000", "https://localhost:3000") // thay bằng đúng origin đang test
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // khi dùng SignalR

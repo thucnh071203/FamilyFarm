@@ -42,10 +42,5 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _chatDAO.GetChatsByUserAsync(userId);
         }
-
-        public async Task<List<Chat>> SearchChatsByFullNameAsync(string userId, string fullName)
-        {
-            return await _chatDAO.SearchChatsByFullNameAsync(userId, fullName);
-        }
     }
 }

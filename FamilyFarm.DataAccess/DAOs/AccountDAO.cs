@@ -306,5 +306,19 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return result.ModifiedCount > 0 ? avatarUrl : null;
         }
+
+        public async Task<List<string>> GetAccountIdsByFullNameAsync(string fullName)
+        {
+            if (string.IsNullOrEmpty(fullName))
+                return new List<string>();
+
+            var filter = Builders<Account>.Filter.Regex(
+                a => a.FullName,
+                new MongoDB.Bson.BsonRegularExpression(fullName, "i") // Case-insensitive search
+            );
+
+            var accounts = await _Accounts.Find(filter).ToListAsync();
+            return accounts.Select(a => a.AccId).ToList();
+        }
     }
 }

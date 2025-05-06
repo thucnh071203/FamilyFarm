@@ -135,17 +135,18 @@ namespace FamilyFarm.API.Controllers
         /// Returns an HTTP 200 status with the list of messages if successful,
         /// or a NotFound status if no messages are found for the given chatId.
         /// </returns>
-        [HttpGet("get-messages/{chatId}")]
-        public async Task<IActionResult> GetMessages(string chatId)
+        [HttpGet("get-messages/{receiverId}")]
+        public async Task<IActionResult> GetMessages(string receiverId)
         {
-            var messages = await _chatService.GetChatMessagesAsync(chatId);
+            var account = _authenService.GetDataFromToken();
+
+            var messages = await _chatService.GetChatMessagesAsync(account.AccId, receiverId);
 
             if (messages == null)
                 return NotFound("No chats found!");
 
             return Ok(messages);
         }
-
 
         /// <summary>
         /// Marks a specific chat detail (message) as "seen" by updating the "IsSeen" field to true.
@@ -167,7 +168,6 @@ namespace FamilyFarm.API.Controllers
             return Ok(chatDetail);  // Return the updated chat detail with HTTP 200 status.
         }
 
-
         /// <summary>
         /// Revoke (mark as revoked) a specific chat message by its chatDetailId.
         /// This method updates the "IsRevoked" status of the message to true instead of deleting it.
@@ -187,7 +187,6 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(revoked);  // If the message is successfully revoked, return Ok with the updated message.
         }
-
 
         /// <summary>
         /// Deletes the chat history for a given chatId.
