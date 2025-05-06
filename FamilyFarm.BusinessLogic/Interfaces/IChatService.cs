@@ -14,7 +14,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<Chat> StartChatAsync(string user1Id, string user2Id);
         Task<List<Chat>> GetUserChatsAsync(string userId);
         Task<List<Chat>> SearchChatsByFullNameAsync(string userId, string fullName);
-        Task<List<ChatDetail>> GetChatMessagesAsync(string chatId);
+        Task<List<ChatDetail>> GetChatMessagesAsync(string acc1Id, string acc2Id);
         Task<SendMessageResponseDTO> SendMessageAsync(string senderId, SendMessageRequestDTO request);
         Task<ChatDetail> MarkAsSeenAsync(string chatDetailId);
         Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId);

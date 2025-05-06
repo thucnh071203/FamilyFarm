@@ -12,7 +12,6 @@ namespace FamilyFarm.DataAccess.DAOs
     public class ChatDAO
     {
         private readonly IMongoCollection<Chat> _chats;
-        private readonly IMongoCollection<Account> _accounts;
 
         /// <summary>
         /// Constructor to initialize the DAO with the MongoDB collections.
@@ -22,7 +21,6 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             // Initialize the MongoDB collections for chats and accounts.
             _chats = database.GetCollection<Chat>("Chat");
-            _accounts = database.GetCollection<Account>("Account");
         }
 
         /// <summary>
@@ -61,8 +59,6 @@ namespace FamilyFarm.DataAccess.DAOs
                 .FirstOrDefaultAsync();  // Return the first matching chat, or null if not found.
         }
 
-
-
         /// <summary>
         /// Retrieves all chats associated with a given user.
         /// </summary>
@@ -74,34 +70,6 @@ namespace FamilyFarm.DataAccess.DAOs
                 return null;
             // Search for chats where the user is either User1 or User2.
             return await _chats.Find(c => c.Acc1Id == accId || c.Acc2Id == accId)
-                .ToListAsync();  // Return the list of matching chats.
-        }
-
-        /// <summary>
-        /// Searches for chats associated with a user by matching the full name of the other user in the chat.
-        /// </summary>
-        /// <param name="accId">The user ID of the searching user.</param>
-        /// <param name="fullName">The full name of the user to search for in the chats.</param>
-        /// <returns>Returns a list of chats where the other user has a full name matching the search term.</returns>
-        public async Task<List<Chat>> SearchChatsByFullNameAsync(string accId, string fullName)
-        {
-            if (!ObjectId.TryParse(accId, out _))
-                return null;
-
-            // Use a case-insensitive regex to search for accounts with a full name matching the search term.
-            var filter = Builders<Account>.Filter.Regex(
-                a => a.FullName,
-                new MongoDB.Bson.BsonRegularExpression(fullName, "i")  // Case-insensitive search.
-            );
-
-            // Find accounts matching the search criteria.
-            var accounts = await _accounts.Find(filter).ToListAsync();
-            var accountIds = accounts.Select(a => a.AccId).ToList();  // Extract the account IDs.
-
-            // Search for chats where the user is part of the chat and the other participant is in the matching accounts.
-            return await _chats.Find(c =>
-                (c.Acc1Id == accId && accountIds.Contains(c.Acc2Id)) ||
-                (c.Acc2Id == accId && accountIds.Contains(c.Acc1Id)))
                 .ToListAsync();  // Return the list of matching chats.
         }
 

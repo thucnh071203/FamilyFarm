@@ -19,6 +19,6 @@ namespace FamilyFarm.Models.Models
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string Acc2Id { get; set; }
-        public required DateTime? CreateAt { get; set; }
+        public DateTime? CreateAt { get; set; } = DateTime.UtcNow;
     }
 }

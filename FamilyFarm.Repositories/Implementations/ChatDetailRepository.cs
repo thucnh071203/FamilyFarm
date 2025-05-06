@@ -24,9 +24,9 @@ namespace FamilyFarm.Repositories.Implementations
             return await _chatDetailDAO.CreateChatDetailAsync(chatDetail);
         }
 
-        public async Task<List<ChatDetail>> GetChatDetailsByChatIdAsync(string chatId)
+        public async Task<List<ChatDetail>> GetChatDetailsByAccIdsAsync(string accId1, string accId2)
         {
-            return await _chatDetailDAO.GetChatDetailsByChatIdAsync(chatId);
+            return await _chatDetailDAO.GetChatDetailsByAccIdsAsync(accId1, accId2);
         }
 
         public async Task<ChatDetail> UpdateIsSeenAsync(string chatDetailId)
