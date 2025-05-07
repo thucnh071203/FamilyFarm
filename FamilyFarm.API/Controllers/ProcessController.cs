@@ -121,5 +121,35 @@ namespace FamilyFarm.API.Controllers
             var result = await _processService.DeleteProcess(processId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
+
+        [HttpGet("search")]
+        [Authorize]
+        public async Task<IActionResult> SearchProcessByKeyword([FromQuery] string? keyword)
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            var result = await _processService.GetAllProcessByKeyword(keyword, account.AccId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("filter")]
+        [Authorize]
+        public async Task<IActionResult> FilterProcessByStatus([FromQuery] string? status)
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            var result = await _processService.FilterProcessByStatus(status, account.AccId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

@@ -18,11 +18,15 @@ namespace FamilyFarm.BusinessLogic.Services
     {
         private readonly IProcessRepository _processRepository;
         private readonly IAccountRepository _accountRepository;
+        private readonly IServiceRepository _serviceRepository;
+        private readonly IBookingServiceRepository _bookingServiceRepository;
 
-        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository)
+        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository)
         {
             _processRepository = processRepository;
             _accountRepository = accountRepository;
+            _serviceRepository = serviceRepository;
+            _bookingServiceRepository = bookingServiceRepository;
         }
 
         public async Task<ProcessResponseDTO> GetAllProcessByExpert(string accountId)
@@ -63,6 +67,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Success = true,
                 Message = "Get all process successfully",
+                Count = listAllProcessExpert.Count,
                 Data = processMappers
             };
         }
@@ -105,6 +110,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Success = true,
                 Message = "Get all process successfully",
+                Count= listAllProcessFarmer.Count,
                 Data = processMappers
             };
         }
@@ -144,6 +150,18 @@ namespace FamilyFarm.BusinessLogic.Services
             var checkAccountExpert = await _accountRepository.GetAccountById(item.ExpertId);
             var checkAccountFarmer = await _accountRepository.GetAccountById(item.FarmerId);
 
+            var checkService = await _serviceRepository.GetServiceById(item.ServiceId);
+            var checkBooking = await _bookingServiceRepository.GetById(item.BookingServiceId);
+
+            if (checkService == null || checkBooking == null)
+            {
+                return new ProcessResponseDTO
+                {
+                    Success = false,
+                    Message = "Service or booking are null"
+                };
+            }
+
             if (checkAccountExpert == null || checkAccountFarmer == null)
             {
                 return new ProcessResponseDTO
@@ -173,6 +191,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 ProcessId = null,
                 ExpertId = item.ExpertId,
                 FarmerId = item.FarmerId,
+                ServiceId = item.ServiceId,
+                BookingServiceId = item.BookingServiceId,
                 ProcessTittle = item.ProcessTittle,
                 Description = item.Description,
                 NumberOfSteps = item.NumberOfSteps,
@@ -212,6 +232,18 @@ namespace FamilyFarm.BusinessLogic.Services
 
             var checkAccountExpert = await _accountRepository.GetAccountById(item.ExpertId);
             var checkAccountFarmer = await _accountRepository.GetAccountById(item.FarmerId);
+
+            var checkService = await _serviceRepository.GetServiceById(item.ServiceId);
+            var checkBooking = await _bookingServiceRepository.GetById(item.BookingServiceId);
+
+            if (checkService == null || checkBooking == null)
+            {
+                return new ProcessResponseDTO
+                {
+                    Success = false,
+                    Message = "Service or booking are null"
+                };
+            }
 
             if (checkAccountExpert == null || checkAccountFarmer == null)
             {
@@ -254,11 +286,13 @@ namespace FamilyFarm.BusinessLogic.Services
                 ProcessId = null,
                 ExpertId = item.ExpertId,
                 FarmerId = item.FarmerId,
+                ServiceId = item.ServiceId,
+                BookingServiceId = item.BookingServiceId,
                 ProcessTittle = item.ProcessTittle,
                 Description = item.Description,
                 NumberOfSteps = item.NumberOfSteps,
                 ContinueStep = item.ContinueStep,
-                ProcessStatus = item.ProcessStatus
+                ProcessStatus = "InProgress"
             };
 
             var updated = await _processRepository.UpdateProcess(processId, updateProcess);
@@ -298,6 +332,76 @@ namespace FamilyFarm.BusinessLogic.Services
                 Success = true,
                 Message = "Process deleted successfully",
                 Data = null
+            };
+        }
+
+        public async Task<ProcessResponseDTO> GetAllProcessByKeyword(string? keyword, string accountId)
+        {
+            var checkAccount = await _accountRepository.GetAccountById(accountId);
+
+            if (checkAccount == null)
+            {
+                return new ProcessResponseDTO
+                {
+                    Success = false,
+                    Message = "Account is null"
+                };
+            }
+
+            var searchAllProcess = await _processRepository.GetAllProcessByKeyword(keyword, accountId, checkAccount.RoleId);
+
+            if (searchAllProcess.Count == 0 || searchAllProcess == null)
+            {
+                return new ProcessResponseDTO
+                {
+                    Success = false,
+                    Message = "Process list is empty"
+                };
+            }
+
+            var processMappers = searchAllProcess.Select(p => new ProcessMapper { process = p }).ToList();
+
+            return new ProcessResponseDTO
+            {
+                Success = true,
+                Message = "Get all process successfully",
+                Count = searchAllProcess.Count,
+                Data = processMappers
+            };
+        }
+
+        public async Task<ProcessResponseDTO> FilterProcessByStatus(string? status, string accountId)
+        {
+            var checkAccount = await _accountRepository.GetAccountById(accountId);
+
+            if (checkAccount == null)
+            {
+                return new ProcessResponseDTO
+                {
+                    Success = false,
+                    Message = "Account is null"
+                };
+            }
+
+            var filterAllProcess = await _processRepository.FilterProcessByStatus(status, accountId, checkAccount.RoleId);
+
+            if (filterAllProcess.Count == 0 || filterAllProcess == null)
+            {
+                return new ProcessResponseDTO
+                {
+                    Success = false,
+                    Message = "Process list is empty"
+                };
+            }
+
+            var processMappers = filterAllProcess.Select(p => new ProcessMapper { process = p }).ToList();
+
+            return new ProcessResponseDTO
+            {
+                Success = true,
+                Message = "Get all process successfully",
+                Count = filterAllProcess.Count,
+                Data = processMappers
             };
         }
     }

@@ -17,5 +17,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ProcessResponseDTO> CreateProcess(ProcessRequestDTO item);
         Task<ProcessResponseDTO> UpdateProcess(string processId, ProcessRequestDTO item);
         Task<ProcessResponseDTO> DeleteProcess(string processId);
+        Task<ProcessResponseDTO> GetAllProcessByKeyword(string? keyword, string accountId);
+        Task<ProcessResponseDTO> FilterProcessByStatus(string? status, string accountId);
     }
 }

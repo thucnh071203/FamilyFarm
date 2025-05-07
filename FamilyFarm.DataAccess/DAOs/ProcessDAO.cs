@@ -93,5 +93,70 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return result.ModifiedCount;
         }
+
+        public async Task<List<Process>> SearchProcessKeywordAsync(string? keyword, string accountId, string roleId)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                // If the keyword is null or whitespace, return an empty list.
+                return new List<Process>();
+            }
+
+            var filterBuilder = Builders<Process>.Filter;
+
+            FilterDefinition<Process> filter;
+
+            if (roleId == "68007b2a87b41211f0af1d57") // Expert
+            {
+                filter = filterBuilder.Eq(p => p.IsDelete, false) &
+                             filterBuilder.Eq(p => p.ExpertId, accountId) &
+                             filterBuilder.Regex(p => p.ProcessTittle, new BsonRegularExpression(keyword, "i"));
+            }
+            else if (roleId == "68007b0387b41211f0af1d56") // Farmer
+            {
+                filter = filterBuilder.Eq(p => p.IsDelete, false) &
+                             filterBuilder.Eq(p => p.FarmerId, accountId) &
+                             filterBuilder.Regex(p => p.ProcessTittle, new BsonRegularExpression(keyword, "i"));
+            } else
+            {
+                return null;
+            }    
+
+            var matchProcesses = await _Processes.Find(filter).ToListAsync();
+            return matchProcesses;
+        }
+
+        public async Task<List<Process>> FitlerStatusAsync(string? status, string accountId, string roleId)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                // If the keyword is null or whitespace, return an empty list.
+                return new List<Process>();
+            }
+
+            var filterBuilder = Builders<Process>.Filter;
+
+            FilterDefinition<Process> filter;
+
+            if (roleId == "68007b2a87b41211f0af1d57") // Expert
+            {
+                filter = filterBuilder.Eq(p => p.IsDelete, false) &
+                             filterBuilder.Eq(p => p.ExpertId, accountId) &
+                             filterBuilder.Eq(p => p.ProcessStatus, status);
+            }
+            else if (roleId == "68007b0387b41211f0af1d56") // Farmer
+            {
+                filter = filterBuilder.Eq(p => p.IsDelete, false) &
+                             filterBuilder.Eq(p => p.FarmerId, accountId) &
+                             filterBuilder.Eq(p => p.ProcessStatus, status);
+            }
+            else
+            {
+                return null;
+            }
+
+            var matchProcesses = await _Processes.Find(filter).ToListAsync();
+            return matchProcesses;
+        }
     }
 }
