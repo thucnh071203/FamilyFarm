@@ -26,7 +26,7 @@ namespace FamilyFarm.DataAccess.DAOs
         public async Task<List<Comment>> GetAllByPostAsync(string postId)
         {
             if (!ObjectId.TryParse(postId, out _)) return new List<Comment>();
-            return await _Comments.Find(c => c.PostId == postId && c.IsDeleted != true).ToListAsync();
+            return await _Comments.Find(c => c.PostId == postId && c.IsDeleted == false).ToListAsync();
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         /// <param name="id">The ID of the comment</param>
         /// <returns>The comment if found and not deleted; otherwise, null</returns>
-        public async Task<Comment> GetByIdAsync(string id)
+        public async Task<Comment?> GetByIdAsync(string id)
         {
             if (!ObjectId.TryParse(id, out _)) 
                 return null;
@@ -86,5 +86,6 @@ namespace FamilyFarm.DataAccess.DAOs
 
             await _Comments.UpdateOneAsync(filter, update);
         }
+
     }
 }

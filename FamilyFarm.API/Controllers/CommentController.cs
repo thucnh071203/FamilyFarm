@@ -121,5 +121,22 @@ namespace FamilyFarm.API.Controllers
             var response = await _commentService.Delete(id, account.AccId);
             return response.Success.GetValueOrDefault() ? Ok(response) : NotFound(response);
         }
+
+        [HttpGet("all-of-post")]
+        public async Task<ActionResult<CommentResponseDTO>> GetListCommentOfPost([FromQuery] string? postId)
+        {
+            if (postId == null)
+                return BadRequest();
+
+            var result = await _commentService.GetAllCommentWithReactionByPost(postId);
+
+            if (result == null)
+                return BadRequest();
+
+            if(result.Success == false) 
+                return NotFound(result);
+
+            return Ok(result);
+        }
     }
 }
