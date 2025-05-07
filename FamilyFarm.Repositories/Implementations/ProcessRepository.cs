@@ -45,5 +45,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.DeleteAsync(processId);
         }
+
+        public async Task<List<Process>> GetAllProcessByKeyword(string? keyword, string accountId, string roleId)
+        {
+            return await _dao.SearchProcessKeywordAsync(keyword, accountId, roleId);
+        }
+
+        public async Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId)
+        {
+            return await _dao.FitlerStatusAsync(status, accountId, roleId);
+        }
     }
 }

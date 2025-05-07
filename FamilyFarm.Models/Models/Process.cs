@@ -19,6 +19,12 @@ namespace FamilyFarm.Models.Models
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string FarmerId { get; set; }
+        [BsonRequired]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string ServiceId { get; set; }
+        [BsonRequired]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required string BookingServiceId { get; set; }
         public required string ProcessTittle { get; set; }
         public required string Description { get; set; }
         public required int NumberOfSteps { get; set; }
