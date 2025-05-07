@@ -32,6 +32,12 @@ namespace FamilyFarm.DataAccess.DAOs
                 .FirstOrDefaultAsync();
         }
 
+        ///<Summary>
+        //  Dùng để lấy toàn bộ reaction của 1 bài post hoặc 1 comment
+        ///</Summary>
+        ///<param name="entityId">Truyền vào post id hoặc comment id muốn lấy</param>
+        /// <param name="entityType">Truyền vào chuỗi "Post" hoặc "Comment"</param>
+        /// <returns>List reaction of post or comment</returns>
         public async Task<List<Reaction>> GetAllByEntityAsync(string entityId, string entityType)
         {
             return await _reactions

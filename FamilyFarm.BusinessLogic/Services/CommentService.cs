@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
@@ -14,12 +16,18 @@ namespace FamilyFarm.BusinessLogic.Services
     public class CommentService : ICommentService
     {
         private readonly ICommentRepository _commentRepository;
+        private readonly IReactionRepository _reactionRepository;
+        private readonly IAccountRepository _accountRepository;
+        private readonly ICategoryReactionRepository _categoryReactionRepository;
         private readonly IMapper _mapper;
 
-        public CommentService(ICommentRepository commentRepository, IMapper mapper)
+        public CommentService(ICommentRepository commentRepository, IMapper mapper, IReactionRepository reactionRepository, IAccountRepository accountRepository, ICategoryReactionRepository categoryReactionRepository)
         {
             _commentRepository = commentRepository;
             _mapper = mapper;
+            _reactionRepository = reactionRepository;
+            _accountRepository = accountRepository;
+            _categoryReactionRepository = categoryReactionRepository;
         }
 
         /// <summary>
@@ -138,6 +146,70 @@ namespace FamilyFarm.BusinessLogic.Services
             // Delete the comment
             await _commentRepository.Delete(id);
             return new CommentResponseDTO { Success = true, Message = "Comment deleted successfully" };
+        }
+
+        public async Task<ListCommentResponseDTO?> GetAllCommentWithReactionByPost(string? postId)
+        {
+            if (postId == null)
+                return null;
+
+            //1. Lấy list comment của 1 bài post
+            var listComment = await _commentRepository.GetAllByPost(postId);
+
+            if (listComment == null || !listComment.Any()) 
+                return new ListCommentResponseDTO
+                {
+                    Message = "There is no comment for post.",
+                    Success = false,
+                    Count = 0
+                };
+
+            //2. Lấy list reaction của từng comment trong list comment
+            var data = new List<CommentMapper>();
+            foreach (var comment in listComment)
+            {
+                //Nếu không có reaction thì bỏ qua, xét comment khác
+                var listReaction = await _reactionRepository.GetAllByEntityAsync(comment.CommentId, "Comment");
+                if(!listComment.Any())
+                {
+                    continue;
+                }
+
+                //Nếu có reaction, lập qua reaction lấy thông tin như account của người reaction và category của reaction đó
+                //Thêm reaction vào list 
+                var listAccountReaction = new List<AccountReactionDTO>();
+
+                foreach (var reaction in listReaction)
+                {
+                    var accountOfReaction = await _accountRepository.GetAccountById(reaction.AccId);
+                    if (accountOfReaction == null) continue;
+
+                    var accountReaction = new AccountReactionDTO
+                    {
+                        Reaction = reaction,
+                        AccountOfReaction = _mapper.Map<MyProfileDTO>(accountOfReaction),
+                        CategoryReaction = await _categoryReactionRepository.GetByIdAsync(reaction.CategoryReactionId)
+                    };
+
+                    listAccountReaction.Add(accountReaction);
+                }
+
+                //Thêm thành phần vào list AccountReactionDTO
+                var commentMapper = new CommentMapper
+                {
+                    Comment = comment,
+                    ReactionsOfComment = listAccountReaction
+                };
+                data.Add(commentMapper);
+            }
+
+            return new ListCommentResponseDTO
+            {
+                Message = "Get list comment successfully.",
+                Success = true,
+                Count = data.Count(),
+                Data = data
+            };
         }
     }
 }
