@@ -99,19 +99,38 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<LoginResponseDTO?> LoginFacebook(LoginFacebookRequestDTO request)
         {
-            if (string.IsNullOrEmpty(request.FacebookId))
+            if (request == null)
+            {
                 return null;
+            }
 
             var account = await _accountRepository.GetByFacebookId(request.FacebookId);
 
             // Nếu chưa có tài khoản thì tạo mới tài khoản mới
             if (account == null)
             {
+                // Đăng nhập bằng email nếu email đã tồn tại
+                var checkEmailExisted = await _accountRepository.GetAccountByEmail(request.Email);
+
+                if (checkEmailExisted != null)
+                {
+                    return await GenerateToken(checkEmailExisted);
+                }
+
                 await _accountRepository.CreateFacebookAccount(request.FacebookId, request.Name, request.Email, request.Avatar);
 
                 var acountRegistered = await _accountRepository.GetByFacebookId(request.FacebookId);
 
                 return await GenerateToken(acountRegistered);
+            }
+
+            if (account.LockedUntil != null && account.LockedUntil > DateTime.UtcNow)
+            {
+                return new LoginResponseDTO
+                {
+                    Message = "Account is locked login.",
+                    LockedUntil = account.LockedUntil
+                };
             }
 
             return await GenerateToken(account);
