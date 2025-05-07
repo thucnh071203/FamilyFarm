@@ -1,9 +1,13 @@
 ﻿using System.Text.RegularExpressions;
+using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace FamilyFarm.API.Controllers
 {
@@ -12,10 +16,12 @@ namespace FamilyFarm.API.Controllers
     public class GroupController : ControllerBase
     {
         private readonly IGroupService _groupService;
+        private readonly IAuthenticationService _authenService;
 
-        public GroupController(IGroupService groupService)
+        public GroupController(IGroupService groupService, IAuthenticationService authenService)
         {
             _groupService = groupService;
+            _authenService = authenService;
         }
 
         [HttpGet("all")]
@@ -33,15 +39,28 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpPost("create")]
+        [Authorize]
         public async Task<IActionResult> CreateGroup([FromForm] GroupRequestDTO addGroup)
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            if (account.RoleId != "68007b2a87b41211f0af1d57")
+            {
+                return BadRequest("Account is not expert.");
+            }
+
             if (addGroup == null)
                 return BadRequest("addGroup object is null");
 
             var addNewGroup = new FamilyFarm.Models.Models.Group
             {
                 GroupId = null,
-                OwnerId = addGroup.AccountId,
+                OwnerId = account.AccId,
                 GroupName = addGroup.GroupName,
                 GroupAvatar = addGroup.GroupAvatar,
                 GroupBackground = addGroup.GroupBackground,
@@ -57,13 +76,26 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpPut("update/{groupId}")]
+        [Authorize]
         public async Task<IActionResult> UpdateGroup(string groupId, [FromForm] GroupRequestDTO updateGroup)
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            if (account.RoleId != "68007b2a87b41211f0af1d57")
+            {
+                return BadRequest("Account is not expert.");
+            }
+
             var group = await _groupService.GetGroupById(groupId);
             if (group == null)
                 return BadRequest("Group not found");
 
-            if (group.OwnerId != updateGroup.AccountId)
+            if (group.OwnerId != account.AccId)
             {
                 return BadRequest("Account id does not match");
             }
@@ -83,8 +115,21 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpDelete("delete/{groupId}")]
+        [Authorize]
         public async Task<IActionResult> DeleteGroup(string groupId)
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            if (account.RoleId != "68007b2a87b41211f0af1d57")
+            {
+                return BadRequest("Account is not expert.");
+            }
+
             var group = await _groupService.GetGroupById(groupId);
             if (group == null)
                 return BadRequest("Group not found");

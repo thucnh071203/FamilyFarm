@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
 using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.DataAccess.DAOs;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
+using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
@@ -24,6 +27,7 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IMapper _mapper;
         private readonly IUploadFileService _uploadFileService;
         private readonly INotificationService _notificationService;
+        private readonly IAccountRepository _accountRepository;
 
         /// <summary>
         /// Constructor to initialize the chat service with required repositories and SignalR context.
@@ -31,7 +35,7 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <param name="chatRepository">The repository for managing chat data.</param>
         /// <param name="chatDetailRepository">The repository for managing chat messages (chat details).</param>
         /// <param name="chatHubContext">The SignalR hub context to send notifications to clients.</param>
-        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService, INotificationService notificationService)
+        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService, INotificationService notificationService, IAccountRepository accountRepository)
         {
             _chatRepository = chatRepository;
             _chatDetailRepository = chatDetailRepository;
@@ -39,6 +43,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _mapper = mapper;
             _uploadFileService = uploadFileService;
             _notificationService = notificationService;
+            _accountRepository = accountRepository;
         }
 
         /// <summary>
@@ -89,7 +94,25 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <returns>Returns a list of chats that match the search criteria.</returns>
         public async Task<List<Chat>> SearchChatsByFullNameAsync(string accId, string fullName)
         {
-            return await _chatRepository.SearchChatsByFullNameAsync(accId, fullName);  // Search chats based on the user's full name.
+            // 1. Lấy danh sách accountIds dựa trên fullName
+            var accountIds = await _accountRepository.GetAccountIdsByFullNameAsync(fullName);
+
+            // Nếu không tìm thấy tài khoản nào hoặc fullName rỗng, trả về danh sách rỗng
+            if (!accountIds.Any())
+                return new List<Chat>();
+
+            // 2. Lấy tất cả các cuộc trò chuyện của người dùng
+            var chats = await _chatRepository.GetChatsByUserAsync(accId);
+            if (chats == null || !chats.Any())
+                return new List<Chat>();
+
+            // 3. Lọc các cuộc trò chuyện mà người dùng kia có ID trong accountIds
+            var filteredChats = chats.Where(c =>
+                (c.Acc1Id == accId && accountIds.Contains(c.Acc2Id)) ||
+                (c.Acc2Id == accId && accountIds.Contains(c.Acc1Id))
+            ).ToList();
+
+            return filteredChats;
         }
 
         /// <summary>
@@ -97,9 +120,9 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </summary>
         /// <param name="chatId">The ID of the chat to retrieve messages for.</param>
         /// <returns>Returns a list of chat details (messages) for the chat.</returns>
-        public async Task<List<ChatDetail>> GetChatMessagesAsync(string chatId)
+        public async Task<List<ChatDetail>> GetChatMessagesAsync(string acc1Id, string acc2Id)
         {
-            return await _chatDetailRepository.GetChatDetailsByChatIdAsync(chatId);  // Fetch the chat details (messages) for the provided chat ID.
+            return await _chatDetailRepository.GetChatDetailsByAccIdsAsync(acc1Id, acc2Id);  // Fetch the chat details (messages) for the provided chat ID.
         }
 
         /// <summary>
@@ -117,122 +140,87 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </returns>
         public async Task<SendMessageResponseDTO> SendMessageAsync(string senderId, SendMessageRequestDTO request)
         {
-            const int TIME_THRESHOLD = 5 * 60 * 1000; // 5 munutes (unit: milliseconds)
+            const int TIME_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 
-            // Validate the input
-            if (request == null || string.IsNullOrEmpty(request.ChatId) || string.IsNullOrEmpty(request.ReceiverId))
+            if (request == null || string.IsNullOrEmpty(request.ReceiverId))
             {
-                return new SendMessageResponseDTO
-                {
-                    Message = "Invalid message data: ChatId, and ReceiverId are required.",
-                    Success = false
-                };
+                return new SendMessageResponseDTO { Message = "ReceiverId is required.", Success = false };
             }
 
-            var chat = await _chatRepository.GetChatByIdAsync(request.ChatId);
+            // Ensure chat exists (create if not)
+            var chat = await _chatRepository.GetChatByUsersAsync(senderId, request.ReceiverId);
             if (chat == null)
             {
-                return new SendMessageResponseDTO
+                chat = new Chat
                 {
-                    Message = "Chat does not exist.",
-                    Success = false
+                    ChatId = ObjectId.GenerateNewId().ToString(),
+                    Acc1Id = senderId,
+                    Acc2Id = request.ReceiverId
                 };
+                await _chatRepository.CreateChatAsync(chat);
             }
 
-            // Xử lý upload file nếu có
-            if (request.File != null && request.File.Length > 0)
+            // Handle file upload if exists
+            if (request.File?.Length > 0)
             {
                 try
                 {
-                    FileUploadResponseDTO uploadResult;
+                    var upload = request.File.ContentType.StartsWith("image/")
+                        ? await _uploadFileService.UploadImage(request.File)
+                        : await _uploadFileService.UploadOtherFile(request.File);
 
-                    // Kiểm tra loại file (ảnh hoặc file khác)
-                    if (request.File.ContentType.StartsWith("image/"))
-                    {
-                        uploadResult = await _uploadFileService.UploadImage(request.File);
-                    }
-                    else
-                    {
-                        uploadResult = await _uploadFileService.UploadOtherFile(request.File);
-                    }
-
-                    // Cập nhật FileUrl, FileType và FileName từ kết quả upload
-                    request.FileUrl = uploadResult.UrlFile;
-                    request.FileType = uploadResult.TypeFile;
-                    request.FileName = request.File.FileName; // Lưu tên file gốc
+                    request.FileUrl = upload.UrlFile;
+                    request.FileType = upload.TypeFile;
+                    request.FileName = request.File.FileName;
                 }
                 catch (Exception ex)
                 {
-                    return new SendMessageResponseDTO
-                    {
-                        Message = $"Failed to upload file: {ex.Message}",
-                        Success = false
-                    };
+                    return new SendMessageResponseDTO { Message = $"File upload failed: {ex.Message}", Success = false };
                 }
             }
 
-            // Map the SendMessageRequestDTO to a ChatDetail object
+            // Map and assign required fields
             var chatDetail = _mapper.Map<ChatDetail>(request);
-
-            // Assign the SenderId and SendAt
+            chatDetail.ChatId = chat.ChatId;
             chatDetail.SenderId = senderId;
 
             // Notify via SignalR
-            await _chatHubContext.Clients.Users(new[] { chatDetail.SenderId, chatDetail.ReceiverId })
+            await _chatHubContext.Clients.Users(new[] { senderId, request.ReceiverId })
                                  .SendAsync("ReceiveMessage", chatDetail);
 
-            // Kiểm tra thời gian của tin nhắn cuối cùng trong ChatId
-            var messages = await _chatDetailRepository.GetChatDetailsByChatIdAsync(request.ChatId);
+            // Check for notification spam
+            var messages = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(senderId, request.ReceiverId);
             var lastMessage = messages.OrderByDescending(c => c.SendAt).FirstOrDefault();
-            bool shouldSendNotification = true;
+            bool shouldNotify = lastMessage == null ||
+                                (chatDetail.SendAt - lastMessage.SendAt).TotalMilliseconds >= TIME_THRESHOLD_MS;
 
-            if (lastMessage != null)
+            if (shouldNotify)
             {
-                var timeDifference = (chatDetail.SendAt - lastMessage.SendAt).TotalMilliseconds;
-                if (timeDifference < TIME_THRESHOLD)
+                var notiRequest = new SendNotificationRequestDTO
                 {
-                    shouldSendNotification = false; // Không gửi thông báo nếu tin nhắn liên tục
-                }
-            }
-
-            // Send notification to the receiver if needed
-            if (shouldSendNotification)
-            {
-                var notificationRequest = new SendNotificationRequestDTO
-                {
-                    ReceiverIds = new List<string> { chatDetail.ReceiverId },
+                    ReceiverIds = new List<string> { request.ReceiverId },
                     SenderId = senderId,
-                    CategoryNotiId = senderId, // Giả sử bạn có một CategoryNotiId cho tin nhắn / đổi lại sau
-                    TargetId = chatDetail.ChatId,
+                    CategoryNotiId = senderId, // Update if needed
+                    TargetId = chat.ChatId,
                     TargetType = "Chat",
                     Content = $"You have a new message from {senderId}"
                 };
 
-                var notificationResponse = await _notificationService.SendNotificationAsync(notificationRequest);
-                if (!notificationResponse.Success)
+                var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);
+                if (!notiResponse.Success)
                 {
-                    Console.WriteLine($"Failed to send notification: {notificationResponse.Message}");
+                    Console.WriteLine($"Notification failed: {notiResponse.Message}");
                 }
             }
 
-            // Save the chat message
-            var savedMessage = await _chatDetailRepository.CreateChatDetailAsync(chatDetail);
+            // Save message
+            var saved = await _chatDetailRepository.CreateChatDetailAsync(chatDetail);
+            if (saved == null)
+                return new SendMessageResponseDTO { Message = "Message send failed.", Success = false };
 
-            if (savedMessage == null)
-            {
-                return new SendMessageResponseDTO
-                {
-                    Message = "Failed to send the message.",
-                    Success = false
-                };
-            }
-
-
-            // Map to response
-            var response = _mapper.Map<SendMessageResponseDTO>(savedMessage);
+            var response = _mapper.Map<SendMessageResponseDTO>(saved);
             response.Message = "Message sent successfully.";
             response.Success = true;
-
             return response;
         }
 

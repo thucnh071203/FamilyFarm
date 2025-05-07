@@ -61,6 +61,7 @@ builder.Services.AddScoped<ServiceDAO>();
 builder.Services.AddScoped<CategoryServiceDAO>();
 builder.Services.AddScoped<NotificationDAO>();
 builder.Services.AddScoped<NotificationStatusDAO>();
+builder.Services.AddScoped<ProcessDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -90,6 +91,7 @@ builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<ICategoryServiceRepository, CategoryServiceRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationStatusRepository, NotificationStatusRepository>();
+builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -117,6 +119,8 @@ builder.Services.AddScoped<ICategoryPostService, CategoryPostService>();
 builder.Services.AddScoped<ICategoryReactionService, CategoryReactionService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICohereService, CohereService>();
+builder.Services.AddScoped<IProcessService, ProcessService>();
+
 
 //builder.Services.AddScoped<FirebaseConnection>();
 
@@ -125,7 +129,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://127.0.0.1:5500") // thay bằng đúng origin đang test
+        policy.WithOrigins("http://localhost:3000", "https://localhost:3000") // thay bằng đúng origin đang test
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // khi dùng SignalR

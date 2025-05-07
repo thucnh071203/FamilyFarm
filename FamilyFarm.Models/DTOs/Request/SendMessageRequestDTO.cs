@@ -14,7 +14,6 @@ namespace FamilyFarm.Models.DTOs.Request
         public string? FileType { get; set; }
         public string? FileName { get; set; }
         public IFormFile? File { get; set; }
-        public required string ChatId { get; set; }
         public required string ReceiverId { get; set; }
     }
 }

@@ -136,5 +136,10 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.UpdateAvatar(accountId, avatarUrl);
         }
+
+        public async Task<List<string>> GetAccountIdsByFullNameAsync(string fullName)
+        {
+            return await _dao.GetAccountIdsByFullNameAsync(fullName);
+        }
     }
 }

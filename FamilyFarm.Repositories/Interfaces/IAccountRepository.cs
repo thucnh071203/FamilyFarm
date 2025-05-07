@@ -65,5 +65,7 @@ namespace FamilyFarm.Repositories
         Task<Account?> GetAccountByIdAsync(string accId);
 
         Task<string?> UpdateAvatar(string? accountId, string? avatarUrl);
+
+        Task<List<string>> GetAccountIdsByFullNameAsync(string fullName);
     }
 }

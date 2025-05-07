@@ -8,8 +8,11 @@ namespace FamilyFarm.Models.DTOs.Request
 {
     public class ProcessRequestDTO
     {
-        public required string ExpertId { get; set; }
+        //public required string ExpertId { get; set; }
+        public string? ExpertId { get; set; }
         public required string FarmerId { get; set; }
+        public required string ServiceId { get; set; }
+        public required string BookingServiceId { get; set; }
         public required string ProcessTittle { get; set; }
         public required string Description { get; set; }
         public required int NumberOfSteps { get; set; }
