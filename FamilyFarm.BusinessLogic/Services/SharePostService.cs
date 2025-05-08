@@ -7,6 +7,7 @@ using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,27 +60,27 @@ namespace FamilyFarm.BusinessLogic.Services
 
             bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.SharePostContent);
 
-            var sharePostRequest = new SharePost();
-            sharePostRequest.SharePostContent = request.SharePostContent;
-            sharePostRequest.SharePostScope = request.SharePostScope;
-            sharePostRequest.AccId = ownAccount.AccId;
-            sharePostRequest.CreatedAt = DateTime.UtcNow;
+            var sharePost = new SharePost();
+            sharePost.SharePostContent = request.SharePostContent;
+            sharePost.SharePostScope = request.SharePostScope;
+            sharePost.AccId = ownAccount.AccId;
+            sharePost.CreatedAt = DateTime.UtcNow;
 
             if (AICheck)
             {
-                sharePostRequest.Status = 0;
+                sharePost.Status = 0;
             }
             else
             {
-                sharePostRequest.Status = 1;
+                sharePost.Status = 1;
             }
 
-            var newSharePost = await _sharePostRepository.CreateAsync(sharePostRequest);
+            var newSharePost = await _sharePostRepository.CreateAsync(sharePost);
 
             if (newSharePost == null)
                 return new SharePostResponseDTO
                 {
-                    Message = "Create post is fail.",
+                    Message = "Share post fail.",
                     Success = false
                 };
 
@@ -122,8 +123,14 @@ namespace FamilyFarm.BusinessLogic.Services
                 }
             }
 
-
             var post = await _postService.GetPostById(request.PostId);
+
+            if (post?.Success == false)
+                return new SharePostResponseDTO
+                {
+                    Message = "No posts found for share.",
+                    Success = false
+                };
 
             SharePostDTO sharePostData = new SharePostDTO();
             sharePostData.SharePost = newSharePost;
@@ -133,9 +140,203 @@ namespace FamilyFarm.BusinessLogic.Services
 
             return new SharePostResponseDTO
             {
-                Message = "Create post is successfully.",
+                Message = "Share post successfully.",
                 Success = true,
                 Data = sharePostData
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sharePostId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<SharePostResponseDTO?> UpdateSharePost(string? sharePostId, UpdateSharePostRequestDTO? request)
+        {
+            if (sharePostId == null || request == null)
+                return null;
+
+            var sharePost = await _sharePostRepository.GetById(sharePostId);
+            if (sharePost == null)
+                return null;
+
+            // 1. Update nội dung cơ bản
+            sharePost.SharePostContent = request.SharePostContent;
+            sharePost.SharePostScope = request.SharePostScope;
+            sharePost.UpdatedAt = DateTime.UtcNow;
+
+            var newSharePost = await _sharePostRepository.UpdateAsyns(sharePost);
+            if (newSharePost == null)
+            {
+                return new SharePostResponseDTO
+                {
+                    Success = false,
+                    Message = "Update share post failed."
+                };
+            }
+
+            // 2. Hashtag
+            if (request.IsDeleteAllHashtag == true)
+            {
+                await _hashTagRepository.DeleteAllByPostId(newSharePost.SharePostId);
+            }
+
+            if (request.HashTagToRemove != null && request.HashTagToRemove.Count > 0)
+            {
+                foreach (var tagId in request.HashTagToRemove)
+                {
+                    await _hashTagRepository.DeleteHashTagById(tagId);
+                }
+            }
+
+            List<HashTag> hashTags = new();
+            if (request.HashTagToAdd != null && request.HashTagToAdd.Count > 0)
+            {
+                foreach (var tag in request.HashTagToAdd)
+                {
+                    var hashTag = new HashTag
+                    {
+                        HashTagContent = tag,
+                        PostId = newSharePost.SharePostId,
+                        CreateAt = DateTime.UtcNow
+                    };
+
+                    var newHashTag = await _hashTagRepository.CreateHashTag(hashTag);
+                    if (newHashTag != null)
+                        hashTags.Add(newHashTag);
+                }
+            }
+
+            // 3. Post Tag (Tag bạn bè)
+            if (request.IsDeleteAllFriend == true)
+            {
+                await _sharePostTagRepository.DeleteAllBySharePostId(newSharePost.SharePostId);
+            }
+
+            if (request.TagFiendIdsToRemove != null && request.TagFiendIdsToRemove.Count > 0)
+            {
+                foreach (var id in request.TagFiendIdsToRemove)
+                {
+                    await _sharePostTagRepository.DeleteTagById(id);
+                }
+            }
+
+            List<SharePostTag> sharePostTags = new();
+            if (request.TagFiendIdsToAdd != null && request.TagFiendIdsToAdd.Count > 0)
+            {
+                foreach (var friendId in request.TagFiendIdsToAdd)
+                {
+                    var account = await _accountRepository.GetAccountById(friendId);
+                    if (account == null)
+                        continue;
+
+                    var tag = new SharePostTag
+                    {
+                        AccId = account.AccId,
+                        SharePostId = newSharePost.SharePostId,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    var newTag = await _sharePostTagRepository.CreateAsyns(tag);
+                    if (newTag != null)
+                        sharePostTags.Add(newTag);
+                }
+            }
+
+            var post = await _postService.GetPostById(newSharePost.PostId);
+
+            if (post?.Success == false)
+                return new SharePostResponseDTO
+                {
+                    Message = "No posts found for share.",
+                    Success = false
+                };
+
+            // 4. Return response
+            SharePostDTO sharePostData = new SharePostDTO();
+            sharePostData.SharePost = newSharePost;
+            sharePostData.SharePostTags = await _sharePostTagRepository.GetAllBySharePost(sharePostId);
+            sharePostData.HashTags = await _hashTagRepository.GetHashTagByPost(sharePostId);
+            sharePostData.PostData = post?.Data;
+
+            return new SharePostResponseDTO
+            {
+                Message = "Share post successfully.",
+                Success = true,
+                Data = sharePostData
+            };
+        }
+
+
+        public async Task<SharePostResponseDTO?> HardDeleteSharePost(string? sharePostId)
+        {
+            var sharePost = await _sharePostRepository.GetById(sharePostId);
+
+            if (sharePost == null)
+                return new SharePostResponseDTO
+                {
+                    Message = "Not found this share post!",
+                    Success = false
+                };
+
+            var isDeleted = await _sharePostRepository.HardDeleteAsyns(sharePostId);
+
+            if (isDeleted == false)
+            {
+                return new SharePostResponseDTO
+                {
+                    Message = "Delete share post fail!",
+                    Success = false
+                };
+            }
+
+            //Xóa cứng toàn bộ các bảng liên quan
+            await _sharePostTagRepository.DeleteAllBySharePostId(sharePostId);
+            await _hashTagRepository.DeleteAllByPostId(sharePostId);
+
+            return new SharePostResponseDTO
+            {
+                Message = "Delete share post successfully!",
+                Success = true
+            };
+        }
+
+        public async Task<SharePostResponseDTO?> SoftDeleteSharePost(string? sharePostId)
+        {
+            var sharePost = await _sharePostRepository.GetById(sharePostId);
+
+            if (sharePost == null)
+                return new SharePostResponseDTO
+                {
+                    Message = "Not found this share post!",
+                    Success = false
+                };
+
+            //Kiểm tra xem có xóa mềm chưa, nếu xóa mềm rồi và thời gian hơn 30 ngày thì không xóa nữa
+            if (sharePost.DeletedAt.HasValue && (DateTime.UtcNow - sharePost.DeletedAt.Value).TotalDays >= 30)
+            {
+                return new SharePostResponseDTO
+                {
+                    Message = "Share post has been moved to bin!",
+                    Success = false
+                };
+            }
+
+            var isSoftDelete = await _sharePostRepository.SoftDeleteAsyns(sharePostId);
+
+            if (isSoftDelete == false)
+            {
+                return new SharePostResponseDTO
+                {
+                    Message = "Move to bin share post fail!",
+                    Success = false
+                };
+            }
+            return new SharePostResponseDTO
+            {
+                Message = "Move to bin share post successfully!",
+                Success = true
             };
         }
     }
