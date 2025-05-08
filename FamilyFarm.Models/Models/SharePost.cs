@@ -12,13 +12,15 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string SharePostId { get; set; }
+        public string SharePostId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string AccId { get; set; }
+        public string AccId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string PostId { get; set; }
-        public required string SharePostContent { get; set; }
-        public DateTime SharePostAt { get; set; }
+        public string PostId { get; set; }
+        public string SharePostContent { get; set; }
+        public string? SharePostScope { get; set; }
+        public int Status { get; set; }//1 la khi content khong lien quan den nong nghiep, 0 la bth
+        public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsDeleted { get; set; } = false;
     }

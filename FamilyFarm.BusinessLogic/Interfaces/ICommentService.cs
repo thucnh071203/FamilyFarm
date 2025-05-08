@@ -11,7 +11,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
 {
     public interface ICommentService
     {
-        Task<List<Comment>> GetAllByPost(string postId);
         Task<ListCommentResponseDTO?> GetAllCommentWithReactionByPost(string? postId);   
         Task<CommentResponseDTO> GetById(string id);
         Task<CommentResponseDTO> Create(CommentRequestDTO request, string accId);
