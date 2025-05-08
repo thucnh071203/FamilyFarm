@@ -31,16 +31,6 @@ namespace FamilyFarm.BusinessLogic.Services
         }
 
         /// <summary>
-        /// Retrieves all comments associated with a specific post.
-        /// </summary>
-        /// <param name="postId">The ID of the post to fetch comments for.</param>
-        /// <returns>A list of comments belonging to the specified post.</returns>
-        public async Task<List<Comment>> GetAllByPost(string postId)
-        {
-            return await _commentRepository.GetAllByPost(postId);
-        }
-
-        /// <summary>
         /// Retrieves a comment by its unique ID.
         /// </summary>
         /// <param name="id">The ID of the comment.</param>
@@ -148,6 +138,15 @@ namespace FamilyFarm.BusinessLogic.Services
             return new CommentResponseDTO { Success = true, Message = "Comment deleted successfully" };
         }
 
+        /// <summary>
+        /// Retrieves all comments of a specific post along with reactions for each comment.
+        /// </summary>
+        /// <param name="postId">The ID of the post whose comments and reactions are to be retrieved.</param>
+        /// <returns>
+        /// Returns a <see cref="ListCommentResponseDTO"/> that includes a list of comments and their
+        /// associated reactions. Each reaction contains information about the reacting account and the category of the reaction.
+        /// Returns a message if no comments are found.
+        /// </returns>
         public async Task<ListCommentResponseDTO?> GetAllCommentWithReactionByPost(string? postId)
         {
             if (postId == null)
@@ -156,11 +155,11 @@ namespace FamilyFarm.BusinessLogic.Services
             //1. Lấy list comment của 1 bài post
             var listComment = await _commentRepository.GetAllByPost(postId);
 
-            if (listComment == null || !listComment.Any()) 
+            if (listComment == null || !listComment.Any())
                 return new ListCommentResponseDTO
                 {
                     Message = "There is no comment for post.",
-                    Success = false,
+                    Success = true, // nên return true để ko return về lỗi 404
                     Count = 0
                 };
 

@@ -41,7 +41,7 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <summary>
         ///     Add new post
         /// </summary>
-        public async Task<CreatePostResponseDTO?> AddPost(string? username, CreatePostRequestDTO? request)
+        public async Task<PostResponseDTO?> AddPost(string? username, CreatePostRequestDTO? request)
         {
             
             //Kiem tra dau vao, PostId tu dong nen khong can kiem tra
@@ -75,7 +75,7 @@ namespace FamilyFarm.BusinessLogic.Services
             var newPost = await _postRepository.CreatePost(postRequest);
 
             if (newPost == null)
-                return new CreatePostResponseDTO
+                return new PostResponseDTO
                 {
                     Message = "Create post is fail.",
                     Success = false
@@ -182,13 +182,113 @@ namespace FamilyFarm.BusinessLogic.Services
             data.PostImages = postImages;
             data.HashTags = hashTags;
 
-            return new CreatePostResponseDTO
+            return new PostResponseDTO
             {
                 Message = "Create post is successfully.",
                 Success = true,
                 Data = data
             };
         }
+
+        /// <summary>
+        /// Retrieves a post and its related data by the post's unique identifier.
+        /// </summary>
+        /// <param name="postId">The unique ID of the post to retrieve.</param>
+        /// <returns>
+        /// Returns a <see cref="PostResponseDTO"/> containing the post details,
+        /// including categories, images, hashtags, and tags. Returns a failure response
+        /// if the post is not found.
+        /// </returns>
+        public async Task<PostResponseDTO?> GetPostById(string? postId)
+        {
+            var post = await _postRepository.GetPostById(postId);
+            
+            if (post == null)
+            {
+                return new PostResponseDTO
+                {
+                    Success = false,
+                    Message = "No post!",
+                };
+            }
+
+            PostMapper postData = new PostMapper
+            {
+                Post = post,
+                PostCategories = await _postCategoryRepository.GetCategoryByPost(postId),
+                PostImages = await _postImageRepository.GetPostImageByPost(postId),
+                HashTags = await _hashTagRepository.GetHashTagByPost(postId),
+                PostTags = await _postTagRepository.GetPostTagByPost(postId)
+            };
+
+            return new PostResponseDTO
+            {
+                Success = true,
+                Message = "Get post successfully!",
+                Data = postData
+            };
+        }
+
+
+        /// <summary>
+        /// Retrieves all posts created by a specific account, including related data for each post.
+        /// </summary>
+        /// <param name="accId">The account ID used to filter posts.</param>
+        /// <returns>
+        /// Returns a <see cref="ListPostResponseDTO"/> containing a list of posts with their
+        /// associated categories, images, hashtags, and tags. Returns a message if no posts exist or if the retrieval fails.
+        /// </returns>
+        public async Task<ListPostResponseDTO> GetPostsByAccId(string? accId)
+        {
+            // List post by account id
+            var posts = await _postRepository.GetByAccId(accId);
+
+            // check if post is null
+            if (posts == null)
+            {
+                return new ListPostResponseDTO
+                {
+                    Success = false,
+                    Message = "Get list posts fail!",
+                    Count = 0,
+                    Data = null
+                };
+            }
+
+            if (!posts.Any())
+            {
+                return new ListPostResponseDTO
+                {
+                    Success = true,
+                    Message = "No posts yet!",
+                    Count = 0,
+                    Data = null
+                };
+            }
+
+            var postDatas = new List<PostMapper>();
+
+            foreach (var post in posts)
+            {
+                postDatas.Add(new PostMapper
+                {
+                    Post = await _postRepository.GetPostById(post.PostId),
+                    PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
+                    PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
+                    HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
+                    PostTags = await _postTagRepository.GetPostTagByPost(post.PostId)
+                });
+            }
+
+            return new ListPostResponseDTO
+            {
+                Success = true,
+                Message = "Get list posts successfully!",
+                Count = postDatas.Count,
+                Data = postDatas
+            };
+        }
+
 
         /// <summary>
         ///     Hard Delete a post - delete out of DB
@@ -411,7 +511,7 @@ namespace FamilyFarm.BusinessLogic.Services
             return posts;
         }
 
-        public async Task<UpdatePostResponseDTO?> UpdatePost(string? username, UpdatePostRequestDTO? request)
+        public async Task<PostResponseDTO?> UpdatePost(string? username, UpdatePostRequestDTO? request)
         {
             //Kiem tra dau vao, PostId tu dong nen khong can kiem tra
             if (request == null)
@@ -440,7 +540,7 @@ namespace FamilyFarm.BusinessLogic.Services
             var newPost = await _postRepository.UpdatePost(post);
 
             if (newPost == null) 
-                return new UpdatePostResponseDTO
+                return new PostResponseDTO
                 {
                     Message = "Update post is fail.",
                     Success = false
@@ -614,7 +714,7 @@ namespace FamilyFarm.BusinessLogic.Services
             data.PostImages = postImages;
             data.HashTags = hashTags;
 
-            return new UpdatePostResponseDTO
+            return new PostResponseDTO
             {
                 Message = "Update post is successfully.",
                 Success = true,

@@ -18,6 +18,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool> InactivePost(string? post_id);
         Task<bool> ActivePost(string? post_id);
         Task<Post?> GetPostById(string? post_id);
+        Task<List<Post>?> GetByAccId(string? accId);
         Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword);
         Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
         Task<List<Post>?> GetListPost(int is_deleted);

@@ -1,0 +1,15 @@
+﻿using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FamilyFarm.BusinessLogic.Interfaces
+{
+    public interface ISharePostService
+    {
+        Task<SharePostResponseDTO?> CreateSharePost(string? accId, SharePostRequestDTO? request);
+    }
+}

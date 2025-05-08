@@ -197,6 +197,24 @@ namespace FamilyFarm.DataAccess.DAOs
             }
         }
 
+        public async Task<List<Post>?> GetByAccId(string? accId)
+        {
+            if (string.IsNullOrEmpty(accId))
+                return null;
+
+            var filter = Builders<Post>.Filter.Eq(x => x.AccId, accId);
+
+            try
+            {
+                var post = await _post.Find(filter).ToListAsync();
+                return post;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         ///     Delete post with post id
         /// </summary>

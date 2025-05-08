@@ -84,5 +84,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.GetListPostCheckedByAI();
         }
+
+        public async Task<List<Post>?> GetByAccId(string? accId)
+        {
+            return await _postDAO.GetByAccId(accId);
+        }
     }
 }

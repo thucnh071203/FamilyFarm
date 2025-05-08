@@ -7,11 +7,10 @@ using FamilyFarm.Models.Mapper;
 
 namespace FamilyFarm.Models.DTOs.Response
 {
-    public class CreatePostResponseDTO
+    public class PostResponseDTO
     {
         public string? Message { get; set; }
         public bool? Success { get; set; }
-        public DateTime? CreatedAt { get; set; }
         public PostMapper? Data { get; set; }
     }
 }

@@ -62,6 +62,8 @@ builder.Services.AddScoped<CategoryServiceDAO>();
 builder.Services.AddScoped<NotificationDAO>();
 builder.Services.AddScoped<NotificationStatusDAO>();
 builder.Services.AddScoped<ProcessDAO>();
+builder.Services.AddScoped<SharePostDAO>();
+builder.Services.AddScoped<SharePostTagDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -92,6 +94,8 @@ builder.Services.AddScoped<ICategoryServiceRepository, CategoryServiceRepository
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationStatusRepository, NotificationStatusRepository>();
 builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
+builder.Services.AddScoped<ISharePostRepository, SharePostRepository>();
+builder.Services.AddScoped<ISharePostTagRepository, SharePostTagRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -120,6 +124,7 @@ builder.Services.AddScoped<ICategoryReactionService, CategoryReactionService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICohereService, CohereService>();
 builder.Services.AddScoped<IProcessService, ProcessService>();
+builder.Services.AddScoped<ISharePostService, SharePostService>();
 
 
 //builder.Services.AddScoped<FirebaseConnection>();

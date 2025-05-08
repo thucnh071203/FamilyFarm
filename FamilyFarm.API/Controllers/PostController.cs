@@ -79,7 +79,7 @@ namespace FamilyFarm.API.Controllers
 
         [HttpPost("create")]
         [Authorize]
-        public async Task<ActionResult<CreatePostResponseDTO>> CreateNewPost([FromForm] CreatePostRequestDTO request)
+        public async Task<ActionResult<PostResponseDTO>> CreateNewPost([FromForm] CreatePostRequestDTO request)
         {
             var userClaims = _authenService.GetDataFromToken();
             var username = userClaims?.Username;
@@ -98,7 +98,7 @@ namespace FamilyFarm.API.Controllers
         [HttpPut("update")]
         //[HttpPut("update/{id}")]
         [Authorize]
-        public async Task<ActionResult<UpdatePostResponseDTO>> UpdatePost([FromForm] UpdatePostRequestDTO request)
+        public async Task<ActionResult<PostResponseDTO>> UpdatePost([FromForm] UpdatePostRequestDTO request)
         {
             if (request == null)
                 return BadRequest("Invalid data from request.");
@@ -119,6 +119,54 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Retrieves a post by its unique identifier.
+        /// </summary>
+        /// <param name="post_id">The unique ID of the post to retrieve.</param>
+        /// <returns>
+        /// Returns an <see cref="ActionResult{T}"/> containing the post data if found;
+        /// otherwise, returns a 400 BadRequest if the ID is invalid or a 404 NotFound if the post does not exist.
+        /// </returns>
+        [HttpGet("get-by-id/{post_id}")]
+        [Authorize]
+        public async Task<ActionResult<PostResponseDTO>> GetPostById(string post_id)
+        {
+            if (post_id == null)
+                return BadRequest("Invalid data from request.");
+
+            var post = await _postService.GetPostById(post_id);
+
+            if (post?.Success == false)
+                return NotFound(post);
+
+            return Ok(post);
+        }
+
+        /// <summary>
+        /// Retrieves all posts associated with the currently authenticated account.
+        /// </summary>
+        /// <returns>
+        /// Returns an <see cref="ActionResult{T}"/> containing the list of posts for the current user;
+        /// otherwise, returns a 400 BadRequest if the token is invalid or a 404 NotFound if no posts are found.
+        /// </returns>
+        [HttpGet("get-by-account")]
+        [Authorize]
+        public async Task<ActionResult<PostResponseDTO>> GetPostByAccount()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            if (userClaims == null)
+                return BadRequest("Invalid data from request.");
+
+            var post = await _postService.GetPostsByAccId(userClaims.AccId);
+
+            if (post?.Success == false)
+                return NotFound(post);
+
+            return Ok(post);
+        }
+
 
         [HttpDelete("hard-delete/{post_id}")]
         [Authorize]

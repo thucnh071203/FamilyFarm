@@ -12,11 +12,11 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string SharePostTagId { get; set; }
+        public string SharePostTagId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string SharePostId { get; set; }
+        public string SharePostId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string AccId { get; set; }
-        public required DateTime CreatedAt { get; set; }
+        public string AccId { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
