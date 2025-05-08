@@ -147,12 +147,12 @@ namespace FamilyFarm.API.Controllers
         /// Retrieves all posts associated with the currently authenticated account.
         /// </summary>
         /// <returns>
-        /// Returns an <see cref="ActionResult{T}"/> containing the list of posts for the current user;
+        /// Returns an containing the list of posts for the current user;
         /// otherwise, returns a 400 BadRequest if the token is invalid or a 404 NotFound if no posts are found.
         /// </returns>
-        [HttpGet("get-by-account")]
+        [HttpGet("get-by-me")]
         [Authorize]
-        public async Task<ActionResult<PostResponseDTO>> GetPostByAccount()
+        public async Task<ActionResult<PostResponseDTO>> GetPostByLoginAccount()
         {
             var userClaims = _authenService.GetDataFromToken();
 
@@ -160,6 +160,23 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("Invalid data from request.");
 
             var post = await _postService.GetPostsByAccId(userClaims.AccId);
+
+            if (post?.Success == false)
+                return NotFound(post);
+
+            return Ok(post);
+        }
+
+        [HttpGet("account/{accId}")]
+        [Authorize]
+        public async Task<ActionResult<PostResponseDTO>> GetPostByAccount(string accId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            if (userClaims == null)
+                return BadRequest("Invalid data from request.");
+
+            var post = await _postService.GetPostsByAccId(accId);
 
             if (post?.Success == false)
                 return NotFound(post);

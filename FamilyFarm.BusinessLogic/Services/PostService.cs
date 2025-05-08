@@ -791,6 +791,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Message = "Get list post valid is success.",
                 Success = true,
+                Count = data.Count,
                 Data = data
             };
         }
@@ -854,6 +855,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Message = "Get list post valid is success.",
                 Success = true,
+                Count = data.Count,
                 Data = data
             };
         }
@@ -917,6 +919,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Message = "Get list post valid is success.",
                 Success = true,
+                Count = data.Count,
                 Data = data
             };
         }

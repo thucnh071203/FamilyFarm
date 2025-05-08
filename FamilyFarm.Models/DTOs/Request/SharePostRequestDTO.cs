@@ -8,7 +8,7 @@ namespace FamilyFarm.Models.DTOs.Request
 {
     public class SharePostRequestDTO
     {
-        public string PostId { get; set; }
+        public string? PostId { get; set; }
         public string? SharePostContent { get; set; }
         public List<string>? HashTags { get; set; }
         public List<string>? TagFiendIds { get; set; }

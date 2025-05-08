@@ -30,12 +30,62 @@ namespace FamilyFarm.API.Controllers
         /// either a successful PostResponseDTO or an error response.</returns>
         [HttpPost("create")]
         [Authorize]
-        public async Task<ActionResult<PostResponseDTO>> CreateSharePost([FromBody] SharePostRequestDTO request)
+        public async Task<ActionResult<PostResponseDTO>> CreateSharePost([FromForm] SharePostRequestDTO request)
         {
             var userClaims = _authenService.GetDataFromToken();
-            var accId = userClaims?.AccId;
 
-            var result = await _sharePostService.CreateSharePost(accId, request);
+            var result = await _sharePostService.CreateSharePost(userClaims?.AccId, request);
+
+            if (result == null)
+                return BadRequest(result);
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpPut("update/{sharePostId}")]
+        [Authorize]
+        public async Task<ActionResult<PostResponseDTO>> UpdateSharePost(string sharePostId, [FromForm] UpdateSharePostRequestDTO request)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            var result = await _sharePostService.UpdateSharePost(sharePostId, request);
+
+            if (result == null)
+                return BadRequest(result);
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpDelete("hard-delete/{sharePostId}")]
+       // [Authorize]
+        public async Task<ActionResult<PostResponseDTO>> HardDeleteSharePost(string sharePostId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            var result = await _sharePostService.HardDeleteSharePost(sharePostId);
+
+            if (result == null)
+                return BadRequest(result);
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpDelete("soft-delete/{sharePostId}")]
+        // [Authorize]
+        public async Task<ActionResult<PostResponseDTO>> SoftDeleteSharePost(string sharePostId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            var result = await _sharePostService.SoftDeleteSharePost(sharePostId);
 
             if (result == null)
                 return BadRequest(result);
