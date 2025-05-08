@@ -22,9 +22,15 @@ namespace FamilyFarm.API.Controllers
             _authenService = authenService;
         }
 
+        /// <summary>
+        /// Creates a new post by the authenticated user.
+        /// </summary>
+        /// <param name="request">The data required to create a new post, encapsulated in a SharePostRequestDTO object.</param>
+        /// <returns>An ActionResult containing the result of the post creation,
+        /// either a successful PostResponseDTO or an error response.</returns>
         [HttpPost("create")]
         [Authorize]
-        public async Task<ActionResult<PostResponseDTO>> CreateNewPost([FromForm] SharePostRequestDTO request)
+        public async Task<ActionResult<PostResponseDTO>> CreateSharePost([FromBody] SharePostRequestDTO request)
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
@@ -32,7 +38,7 @@ namespace FamilyFarm.API.Controllers
             var result = await _sharePostService.CreateSharePost(accId, request);
 
             if (result == null)
-                return BadRequest();
+                return BadRequest(result);
 
             if (result.Success == false)
                 return NotFound(result);

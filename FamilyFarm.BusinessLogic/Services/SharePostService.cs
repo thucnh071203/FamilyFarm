@@ -34,13 +34,22 @@ namespace FamilyFarm.BusinessLogic.Services
             _postService = postService;
         }
 
+        /// <summary>
+        /// Creates a new share post by a given account, optionally tagging friends and adding hashtags.
+        /// Also uses an AI service to check if the post content is agriculture-related to determine its status.
+        /// </summary>
+        /// <param name="accId">The ID of the account creating the share post.</param>
+        /// <param name="request">The request DTO containing content, scope, hashtags, and tagged friend IDs.</param>
+        /// <returns>
+        /// Returns a <see cref="SharePostResponseDTO"/> indicating whether the post was created successfully.
+        /// Includes the created share post data along with its associated hashtags and tagged friends.
+        /// Returns null if the account or request is invalid.
+        /// </returns>
         public async Task<SharePostResponseDTO?> CreateSharePost(string? accId, SharePostRequestDTO? request)
         {
-            //Kiem tra dau vao, PostId tu dong nen khong can kiem tra
             if (request == null)
                 return null;
 
-            //1. Add post voi thong tin co ban:
             if (accId == null)
                 return null;
 
@@ -74,7 +83,6 @@ namespace FamilyFarm.BusinessLogic.Services
                     Success = false
                 };
 
-            //4. Add HashTag
             List<HashTag> hashTags = new List<HashTag>();
 
             if (request.HashTags != null && request.HashTags.Count > 0)
@@ -117,7 +125,6 @@ namespace FamilyFarm.BusinessLogic.Services
 
             var post = await _postService.GetPostById(request.PostId);
 
-            //Tạo data trả về
             SharePostDTO sharePostData = new SharePostDTO();
             sharePostData.SharePost = newSharePost;
             sharePostData.SharePostTags = sharePostTags;
