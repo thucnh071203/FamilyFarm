@@ -468,7 +468,6 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <param name="isAndLogic">A boolean value indicating whether to use AND logic (true) or OR logic (false) 
         /// for filtering posts based on category membership.</param>
         /// <returns>A list of posts that match the provided keyword and/or categories.</returns>
-        /// <exception cref="ArgumentException">Thrown if neither the keyword nor categoryIds is provided for the search.</exception>
         public async Task<List<Post>> SearchPosts(string? keyword, List<string>? categoryIds, bool isAndLogic)
         {
             // Check if both keyword and categoryIds are empty or null

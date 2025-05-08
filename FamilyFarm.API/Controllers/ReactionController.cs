@@ -49,7 +49,7 @@ namespace FamilyFarm.API.Controllers
         /// - 400 BadRequest if the reaction does not exist or is invalid (e.g., invalid category or account ID).
         /// </returns>
         [Authorize]
-        [HttpPost("toggle/post/{postId}")]
+        [HttpPost("toggle-post/{postId}")]
         public async Task<IActionResult> ToggleReactionPost(string postId, [FromQuery] string categoryReactionId)
         {
             var account = _authenService.GetDataFromToken();
@@ -93,7 +93,7 @@ namespace FamilyFarm.API.Controllers
         /// - 400 BadRequest if the reaction does not exist or is invalid (e.g., invalid category or account ID).
         /// </returns>
         [Authorize]
-        [HttpPost("toggle/comment/{commentId}")]
+        [HttpPost("toggle-comment/{commentId}")]
         public async Task<IActionResult> ToggleReactionComment(string commentId, [FromQuery] string categoryReactionId)
         {
             var account = _authenService.GetDataFromToken();
