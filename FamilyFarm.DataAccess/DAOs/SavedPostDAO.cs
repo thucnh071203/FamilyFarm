@@ -1,0 +1,59 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FamilyFarm.Models.Models;
+using Microsoft.Extensions.Hosting;
+using MongoDB.Bson;
+using MongoDB.Driver;
+
+namespace FamilyFarm.DataAccess.DAOs
+{
+    public class SavedPostDAO
+    {
+        private readonly IMongoCollection<SavedPost> _savedPostCollection;
+
+        public SavedPostDAO(IMongoDatabase database)
+        {
+            _savedPostCollection = database.GetCollection<SavedPost>("SavePost");
+        }
+
+
+        /// <summary>
+        ///     Create new saved post
+        /// </summary>
+        public async Task<SavedPost?> CreateAsync(SavedPost? request)
+        {
+            if(request == null) 
+                return null;
+
+            //Kiểm tra xem có Id hay chưa, nếu chưa thì tạo Id mới
+            if (string.IsNullOrEmpty(request.SavedPostId))
+            {
+                request.SavedPostId = ObjectId.GenerateNewId().ToString();
+            }
+
+            request.SavedAt = DateTime.UtcNow;
+            request.IsDeleted = false;
+
+            await _savedPostCollection.InsertOneAsync(request);
+
+            return request;
+        }
+
+        /// <summary>
+        ///     Get list all saved post of account
+        /// </summary>
+        public async Task<List<SavedPost>?> GetListByAccount(string? accId)
+        {
+            if (string.IsNullOrEmpty(accId))
+                return null;
+
+            var filter = Builders<SavedPost>.Filter.Eq(x => x.AccId, accId);
+            var savedPosts = await _savedPostCollection.Find(filter).ToListAsync();
+
+            return savedPosts;
+        }
+    }
+}
