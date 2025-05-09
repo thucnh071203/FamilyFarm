@@ -42,7 +42,6 @@ namespace FamilyFarm.API.Controllers
                 return StatusCode(423, result);
             }
 
-
             return result is not null ? result : Unauthorized();
         }
 
@@ -58,7 +57,7 @@ namespace FamilyFarm.API.Controllers
             var result = await _authenService.Logout(username);
             return result is not null ? result : Unauthorized();
         }
-        
+
         [AllowAnonymous]
         [HttpPost("refresh-token")]
         public async Task<ActionResult<LoginResponseDTO>> Refresh([FromBody] RefreshTokenRequestDTO request)
@@ -153,16 +152,16 @@ namespace FamilyFarm.API.Controllers
 
                     if (!result.IsSuccess)
                     {
-                   
+
                         return StatusCode(400, result);
                     }
-                          return Ok(result);
+                    return Ok(result);
                 }
             }
             else
             {
                 return BadRequest(request);
-                            }
+            }
         }
 
         [HttpPost("login-facebook")]
@@ -193,12 +192,11 @@ namespace FamilyFarm.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("set-password/{id}")]
+        [HttpPut("set-password")]
         public async Task<IActionResult> SetPassword([FromBody] SetPasswordDTO request)
         {
             var userClaims = _authenService.GetDataFromToken();
-            var id = userClaims?.AccId;
-            var account = await _accountService.GetAccountById(id);
+            var account = await _accountService.GetAccountById(userClaims.AccId);
             if (account == null)
                 return NotFound("Account not found");
 
@@ -207,18 +205,17 @@ namespace FamilyFarm.API.Controllers
 
             account.PasswordHash = request.Password;
             account.Otp = null;
-            await _accountService.UpdateAsync(id, account);
+            await _accountService.UpdateAsync(userClaims.AccId, account);
             return Ok("Password setted successfully!");
         }
 
         [Authorize]
-        [HttpPut("change-password/{id}")]
+        [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO request)
         {
             var userClaims = _authenService.GetDataFromToken();
-            var id = userClaims.AccId;
 
-            var account = await _accountService.GetAccountById(id);
+            var account = await _accountService.GetAccountById(userClaims.AccId);
             if (account == null)
                 return NotFound("Account not found");
 
@@ -227,7 +224,7 @@ namespace FamilyFarm.API.Controllers
 
             account.PasswordHash = request.NewPassword;
             account.Otp = null;
-            await _accountService.UpdateAsync(id, account);
+            await _accountService.UpdateAsync(userClaims.AccId, account);
             return Ok("Password changed successfully!");
         }
 
@@ -240,7 +237,7 @@ namespace FamilyFarm.API.Controllers
             {
                 return NotFound("Account not found");
             }
-            
+
             if (account.Status != 0)
             {
                 return BadRequest("Account is inactivate.");
@@ -270,7 +267,8 @@ namespace FamilyFarm.API.Controllers
             if (account.Status != 0)
             {
                 return BadRequest("Account is inactivate.");
-            } else if (account.Otp != request.Otp)
+            }
+            else if (account.Otp != request.Otp)
             {
                 return BadRequest("Otp does not match.");
             }
@@ -286,7 +284,7 @@ namespace FamilyFarm.API.Controllers
         [HttpPost("send-email")]
         public async Task<IActionResult> SendEmail([FromBody] EmailRequestDTO request)
         {
-            var otp = 123456; 
+            var otp = 123456;
             var content = $"<p>Your OTP is:</p><div class='otp-box'>{otp}</div><p>It is valid for 2 minutes.</p>";
             var html = EmailTemplateHelper.EmailConfirm(request.ToEmail, content);
 
