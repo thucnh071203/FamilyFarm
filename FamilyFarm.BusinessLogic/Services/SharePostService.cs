@@ -8,6 +8,7 @@ using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.Extensions.Hosting;
+using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,57 @@ namespace FamilyFarm.BusinessLogic.Services
             _sharePostTagRepository = sharePostTagRepository;
             _cohereService = cohereService;
             _postService = postService;
+        }
+
+
+        public async Task<ListSharePostResponseDTO?> GetSharePostsByAccId(string? accId)
+        {
+            if (string.IsNullOrEmpty(accId)|| !ObjectId.TryParse(accId, out _)) 
+                return null;
+
+            var sharePosts = await _sharePostRepository.GetByAccId(accId);
+
+            if (sharePosts == null)
+            {
+                return new ListSharePostResponseDTO
+                {
+                    Success = false,
+                    Message = "Get list share posts fail!",
+                    Count = 0,
+                    SharePostDatas = null
+                };
+            }
+
+            if (!sharePosts.Any())
+            {
+                return new ListSharePostResponseDTO
+                {
+                    Success = false,
+                    Message = "No share posts found!",
+                    Count = 0,
+                    SharePostDatas = null
+                };
+            }
+
+            var sharePostDatas = new List<SharePostDTO>();
+            foreach (var sharePost in sharePosts)
+            {
+                var post = await _postService.GetPostById(sharePost.PostId);
+                sharePostDatas.Add(new SharePostDTO
+                {
+                    SharePost = await _sharePostRepository.GetById(sharePost.SharePostId),
+                    SharePostTags = await _sharePostTagRepository.GetAllBySharePost(sharePost.SharePostId),
+                    HashTags = await _hashTagRepository.GetHashTagByPost(sharePost.SharePostId),
+                    PostData = post?.Data
+                });
+            }
+            return new ListSharePostResponseDTO
+            {
+                Success = true,
+                Message = "Get list Share post successfully!",
+                Count = sharePostDatas.Count(s => s.SharePost?.IsDeleted != true && s.PostData?.Post?.IsDeleted != true),
+                SharePostDatas = sharePostDatas.Where(s => s.SharePost?.IsDeleted != true && s.PostData?.Post?.IsDeleted != true).ToList()
+            };
         }
 
         /// <summary>
@@ -142,7 +194,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Message = "Share post successfully.",
                 Success = true,
-                Data = sharePostData
+                SharePostData = sharePostData
             };
         }
 
@@ -166,7 +218,7 @@ namespace FamilyFarm.BusinessLogic.Services
             sharePost.SharePostScope = request.SharePostScope;
             sharePost.UpdatedAt = DateTime.UtcNow;
 
-            var newSharePost = await _sharePostRepository.UpdateAsyns(sharePost);
+            var newSharePost = await _sharePostRepository.UpdateAsync(sharePost);
             if (newSharePost == null)
             {
                 return new SharePostResponseDTO
@@ -264,7 +316,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Message = "Share post successfully.",
                 Success = true,
-                Data = sharePostData
+                SharePostData = sharePostData
             };
         }
 
@@ -280,7 +332,7 @@ namespace FamilyFarm.BusinessLogic.Services
                     Success = false
                 };
 
-            var isDeleted = await _sharePostRepository.HardDeleteAsyns(sharePostId);
+            var isDeleted = await _sharePostRepository.HardDeleteAsync(sharePostId);
 
             if (isDeleted == false)
             {
@@ -323,7 +375,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            var isSoftDelete = await _sharePostRepository.SoftDeleteAsyns(sharePostId);
+            var isSoftDelete = await _sharePostRepository.SoftDeleteAsync(sharePostId);
 
             if (isSoftDelete == false)
             {

@@ -22,6 +22,38 @@ namespace FamilyFarm.API.Controllers
             _authenService = authenService;
         }
 
+        [HttpPost("account/{accId}")]
+        [Authorize]
+        public async Task<ActionResult<SharePostResponseDTO>> GetSharePostsByAccId(string? accId)
+        {
+            //var userClaims = _authenService.GetDataFromToken();
+
+            var result = await _sharePostService.GetSharePostsByAccId(accId);
+            if (result == null)
+                return BadRequest(result);
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpPost("get-by-me")]
+        [Authorize]
+        public async Task<ActionResult<SharePostResponseDTO>> GetSharePostsByMe()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var result = await _sharePostService.GetSharePostsByAccId(userClaims?.AccId);
+
+            if (result == null)
+                return BadRequest(result);
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
         /// <summary>
         /// Creates a new post by the authenticated user.
         /// </summary>
