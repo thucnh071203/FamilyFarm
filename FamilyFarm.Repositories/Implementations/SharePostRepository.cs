@@ -13,14 +13,19 @@ namespace FamilyFarm.Repositories.Implementations
     {
         private readonly SharePostDAO _sharePostDAO;
 
+        public SharePostRepository(SharePostDAO sharePostDAO)
+        {
+            _sharePostDAO = sharePostDAO;
+        }
+
         public async Task<SharePost?> GetById(string? sharePostId)
         {
             return await _sharePostDAO.GetById(sharePostId);
         }
 
-        public SharePostRepository(SharePostDAO sharePostDAO)
+        public async Task<List<SharePost>?> GetByAccId(string? accId)
         {
-            _sharePostDAO = sharePostDAO;
+            return await _sharePostDAO.GetByAccId(accId);
         }
 
         public async Task<SharePost?> CreateAsync(SharePost? sharePost)
@@ -28,19 +33,19 @@ namespace FamilyFarm.Repositories.Implementations
             return await _sharePostDAO.CreateAsync(sharePost);
         }
 
-        public async Task<SharePost?> UpdateAsyns(SharePost? request)
+        public async Task<SharePost?> UpdateAsync(SharePost? request)
         {
-            return await _sharePostDAO.UpdateAsyns(request);
+            return await _sharePostDAO.UpdateAsync(request);
         }
 
-        public async Task<bool> HardDeleteAsyns(string? sharePostId)
+        public async Task<bool> HardDeleteAsync(string? sharePostId)
         {
-            return await _sharePostDAO.HardDeleteAsyns(sharePostId);
+            return await _sharePostDAO.HardDeleteAsync(sharePostId);
         }
 
-        public async Task<bool> SoftDeleteAsyns(string? sharePostId)
+        public async Task<bool> SoftDeleteAsync(string? sharePostId)
         {
-            return await _sharePostDAO.SoftDeleteAsyns(sharePostId);
+            return await _sharePostDAO.SoftDeleteAsync(sharePostId);
         }
     }
 }
