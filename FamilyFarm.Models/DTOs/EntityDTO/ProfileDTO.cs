@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FamilyFarm.Models.DTOs.EntityDTO
 {
-    public class MyProfileDTO
+    public class ProfileDTO
     {
         public string AccId { get; set; }
         public string Username { get; set; }

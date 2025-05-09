@@ -12,7 +12,6 @@ namespace FamilyFarm.DataAccess.DAOs
     public class ChatDetailDAO
     {
         private readonly IMongoCollection<ChatDetail> _chatDetails;
-        private readonly IMongoCollection<Chat> _chats;
 
         /// <summary>
         /// Constructor to initialize the DAO with the MongoDB collection for chat details.
@@ -22,7 +21,6 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             // Initialize the MongoDB collection for chat details.
             _chatDetails = database.GetCollection<ChatDetail>("ChatDetail");
-            _chats = database.GetCollection<Chat>("Chat");
         }
 
         /// <summary>

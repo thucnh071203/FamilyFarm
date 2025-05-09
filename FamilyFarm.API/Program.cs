@@ -64,6 +64,7 @@ builder.Services.AddScoped<NotificationStatusDAO>();
 builder.Services.AddScoped<ProcessDAO>();
 builder.Services.AddScoped<SharePostDAO>();
 builder.Services.AddScoped<SharePostTagDAO>();
+builder.Services.AddScoped<CategoryNotificationDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -96,6 +97,7 @@ builder.Services.AddScoped<INotificationStatusRepository, NotificationStatusRepo
 builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
 builder.Services.AddScoped<ISharePostRepository, SharePostRepository>();
 builder.Services.AddScoped<ISharePostTagRepository, SharePostTagRepository>();
+builder.Services.AddScoped<ICategoryNotificationRepository, CategoryNotificationRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -134,7 +136,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3000") // thay bằng đúng origin đang test
+        policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://127.0.0.1:5500") // thay bằng đúng origin đang test
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // khi dùng SignalR

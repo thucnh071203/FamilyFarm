@@ -23,6 +23,11 @@ namespace FamilyFarm.Repositories.Implementations
             return await _notificationStatusDAO.GetByIdAsync(notifiStatusId);
         }
 
+        public async Task<NotificationStatus> GetByAccAndNotifiAsync(string accId, string notifiId)
+        {
+            return await _notificationStatusDAO.GetByAccAndNotifiAsync(accId, notifiId);
+        }
+
         public async Task CreateAsync(NotificationStatus status)
         {
             await _notificationStatusDAO.CreateAsync(status);

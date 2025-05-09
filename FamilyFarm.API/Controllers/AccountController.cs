@@ -180,7 +180,7 @@ namespace FamilyFarm.API.Controllers
             if (account == null)
                 return BadRequest("Error encountered during execution.");
 
-            var data = _mapper.Map<MyProfileDTO>(account);
+            var data = _mapper.Map<ProfileDTO>(account);
 
             return Ok(new MyProfileResponseDTO
             {

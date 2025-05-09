@@ -27,6 +27,19 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="accId"></param>
+        /// <param name="notifiId"></param>
+        /// <returns></returns>
+        public async Task<NotificationStatus> GetByAccAndNotifiAsync(string accId, string notifiId)
+        {
+            return await _notificationStatuses
+                .Find(n => n.NotifiId == notifiId && n.AccId == accId)
+                .FirstOrDefaultAsync();
+        }
+
+        /// <summary>
         /// Inserts a new NotificationStatus document into the database.
         /// </summary>
         /// <param name="status">The NotificationStatus object to insert.</param>

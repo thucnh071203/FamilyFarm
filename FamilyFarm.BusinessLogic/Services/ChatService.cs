@@ -6,6 +6,7 @@ using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
@@ -28,6 +29,7 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IUploadFileService _uploadFileService;
         private readonly INotificationService _notificationService;
         private readonly IAccountRepository _accountRepository;
+        private readonly ICategoryNotificationRepository _categoryNotificationRepository;
 
         /// <summary>
         /// Constructor to initialize the chat service with required repositories and SignalR context.
@@ -35,7 +37,7 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <param name="chatRepository">The repository for managing chat data.</param>
         /// <param name="chatDetailRepository">The repository for managing chat messages (chat details).</param>
         /// <param name="chatHubContext">The SignalR hub context to send notifications to clients.</param>
-        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService, INotificationService notificationService, IAccountRepository accountRepository)
+        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService, INotificationService notificationService, IAccountRepository accountRepository, ICategoryNotificationRepository categoryNotificationRepository)
         {
             _chatRepository = chatRepository;
             _chatDetailRepository = chatDetailRepository;
@@ -44,6 +46,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _uploadFileService = uploadFileService;
             _notificationService = notificationService;
             _accountRepository = accountRepository;
+            _categoryNotificationRepository = categoryNotificationRepository;
         }
 
         /// <summary>
@@ -194,16 +197,17 @@ namespace FamilyFarm.BusinessLogic.Services
             bool shouldNotify = lastMessage == null ||
                                 (chatDetail.SendAt - lastMessage.SendAt).TotalMilliseconds >= TIME_THRESHOLD_MS;
 
+            var account = await _accountRepository.GetAccountByIdAsync(senderId);
             if (shouldNotify)
             {
                 var notiRequest = new SendNotificationRequestDTO
                 {
                     ReceiverIds = new List<string> { request.ReceiverId },
                     SenderId = senderId,
-                    CategoryNotiId = senderId, // Update if needed
+                    CategoryNotiId = "",
                     TargetId = chat.ChatId,
                     TargetType = "Chat",
-                    Content = $"You have a new message from {senderId}"
+                    Content = ""
                 };
 
                 var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);
@@ -267,20 +271,20 @@ namespace FamilyFarm.BusinessLogic.Services
         public async Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId)
         {
             // Revoke a specific ChatDetail (marking it as revoked)
-            var revokedChatDetail = await _chatDetailRepository.RecallChatDetailByIdAsync(chatDetailId);
-            if (revokedChatDetail == null)
+            var recalledChatDetail = await _chatDetailRepository.RecallChatDetailByIdAsync(chatDetailId);
+            if (recalledChatDetail == null)
                 return null;  // If no message is found to revoke, return null.
 
             // Fetch the associated chat information to notify the users
-            var chat = await _chatRepository.GetChatByIdAsync(revokedChatDetail.ChatId);
+            var chat = await _chatRepository.GetChatByIdAsync(recalledChatDetail.ChatId);
             if (chat != null)
             {
                 // Notify both users that the chat history (message) has been revoked
                 await _chatHubContext.Clients.Users(new[] { chat.Acc1Id, chat.Acc2Id })
-                    .SendAsync("ChatRevoked", revokedChatDetail.ChatId);
+                    .SendAsync("ChatRevoked", recalledChatDetail.ChatId);
             }
 
-            return revokedChatDetail;  // Return the revoked chat detail object.
+            return recalledChatDetail;  // Return the revoked chat detail object.
         }
     }
 }
