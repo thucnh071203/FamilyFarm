@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace FamilyFarm.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/category-reaction")]
     public class CategoryReactionController : ControllerBase
     {
         private readonly ICategoryReactionService _categoryReactionService;
@@ -35,8 +35,8 @@ namespace FamilyFarm.Controllers
         [HttpGet("all")]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _categoryReactionService.GetAllAsync();
-            return Ok(result);
+            var list = await _categoryReactionService.GetAllAsync();
+            return Ok(new CategoryReactionResponse<List<CategoryReaction>>(true, "Lấy danh sách reaction thành công", list));
         }
 
         /// <summary>
@@ -52,14 +52,14 @@ namespace FamilyFarm.Controllers
         }
 
 
-        [HttpGet("getAllCategoryReaction")]
-        public async Task<IActionResult> GetAllCategoryReaction()
-        {
-            var list = await _categoryReactionService.GetAllAsync();
-            return Ok(new CategoryReactionResponse<List<CategoryReaction>>(true, "Lấy danh sách reaction thành công", list));
-        }
+        //[HttpGet("getAllCategoryReaction")]
+        //public async Task<IActionResult> GetAllCategoryReaction()
+        //{
+        //    var list = await _categoryReactionService.GetAllAsync();
+        //    return Ok(new CategoryReactionResponse<List<CategoryReaction>>(true, "Lấy danh sách reaction thành công", list));
+        //}
 
-        [HttpGet("getByIDCategoryReaction/{id}")]
+        [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetByIdCategoryReaction(string id)
         {
             var item = await _categoryReactionService.GetByIdAsync(id);
@@ -70,7 +70,7 @@ namespace FamilyFarm.Controllers
         }
 
 
-        [HttpPost("createCategoryReaction")]
+        [HttpPost("create")]
         [Authorize]
         public async Task<IActionResult> Create([FromBody] CategoryReaction model)
         {
@@ -86,7 +86,7 @@ namespace FamilyFarm.Controllers
             return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Tạo reaction thành công", model));
         }
 
-        [HttpPut("updateCategoryReaction/{id}")]
+        [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateCategoryReaction(string id, [FromBody] CategoryReaction model)
         {
             var user = _authenService.GetDataFromToken();
@@ -100,7 +100,7 @@ namespace FamilyFarm.Controllers
             return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Cập nhật thành công", model));
         }
 
-        [HttpDelete("deleteCategoryReaction/{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteCategoryReaction(string id)
         {
             var result = await _categoryReactionService.DeleteAsync(id);

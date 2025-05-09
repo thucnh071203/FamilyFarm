@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyFarm.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/booking-service")]
     [ApiController]
     public class BookingServiceController : ControllerBase
     {
