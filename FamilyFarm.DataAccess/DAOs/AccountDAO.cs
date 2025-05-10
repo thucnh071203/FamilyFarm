@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.Models;
 using MongoDB.Bson;
+using MongoDB.Driver.Linq;
 using MongoDB.Driver;
 
 namespace FamilyFarm.DataAccess.DAOs
@@ -14,9 +15,11 @@ namespace FamilyFarm.DataAccess.DAOs
     public class AccountDAO
     {
         private readonly IMongoCollection<Account> _Accounts;
+        private readonly IMongoCollection<Role> _Roles;
         public AccountDAO(IMongoDatabase database)
         {
-            _Accounts = database.GetCollection<Account>("Account");    
+            _Accounts = database.GetCollection<Account>("Account");
+            _Roles = database.GetCollection<Role>("Role");
         }
 
         /// <summary>
@@ -320,5 +323,60 @@ namespace FamilyFarm.DataAccess.DAOs
             var accounts = await _Accounts.Find(filter).ToListAsync();
             return accounts.Select(a => a.AccId).ToList();
         }
+
+        public async Task<int> CountByRoleIdAsync(string roleId)
+        {
+            return (int)await _Accounts.CountDocumentsAsync(a => a.RoleId == roleId && a.Status == 1);
+        }
+
+        public async Task<Dictionary<string, int>> GetTotalByRoleIdsAsync(List<string> roleIds)
+        {
+            var filter = Builders<Account>.Filter.In(a => a.RoleId, roleIds);
+
+            var aggregation = await _Accounts.Aggregate()
+                .Match(filter)
+                .Group(a => a.RoleId, g => new { RoleId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var roleNames = await _Roles.Find(r => roleIds.Contains(r.RoleId))
+                .ToListAsync();
+
+            return aggregation.ToDictionary(
+                x => roleNames.FirstOrDefault(r => r.RoleId == x.RoleId)?.RoleName ?? "Unknown",
+                x => x.Count
+            );
+        }
+
+        public async Task<Dictionary<string, int>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate)
+        {
+            var groupedData = await _Accounts
+                .AsQueryable()
+                .Where(x => x.CreatedAt >= fromDate && x.CreatedAt <= toDate)
+                .GroupBy(x => new
+                {
+                    x.CreatedAt.Year,
+                    x.CreatedAt.Month,
+                    x.CreatedAt.Day
+                })
+                .Select(g => new
+                {
+                    g.Key.Year,
+                    g.Key.Month,
+                    g.Key.Day,
+                    Count = g.Count()
+                })
+                .ToListAsync();
+
+            var result = groupedData
+                .OrderBy(x => new DateTime(x.Year, x.Month, x.Day))
+                .ToDictionary(
+                    x => new DateTime(x.Year, x.Month, x.Day).ToString("dd/MM/yyyy"),
+                    x => x.Count
+                );
+
+            return result;
+        }
+
+
     }
 }

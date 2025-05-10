@@ -157,5 +157,40 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = data
             };
         }
+
+        //public async Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetTotalByRoleIdsAsync(List<string> roleIds)
+        //{
+        //    var counts = await _accountRepository.CountByRoleIdsAsync(roleIds);
+
+        //    return new TotalFarmerExpertDTO<Dictionary<string, int>>
+        //    {
+        //        IsSuccess = true,
+        //        Message = "Counts by RoleId fetched successfully",
+        //        Data = counts
+        //    };
+        //}
+        public async Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetTotalByRoleIdsAsync(List<string> roleIds)
+        {
+            var result = await _accountRepository.GetTotalByRoleIdsAsync(roleIds);
+            return new TotalFarmerExpertDTO<Dictionary<string, int>>
+            {
+                IsSuccess = true,
+                Message = "Successfully total expert/farmer.",
+                Data = result
+            };
+        }
+
+        public async Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate)
+        {
+            var result = await _accountRepository.GetUserGrowthOverTimeAsync(fromDate, toDate);
+
+            return new TotalFarmerExpertDTO<Dictionary<string, int>>
+            {
+                IsSuccess = true,
+                Message = $"User growth from {fromDate:yyyy-MM-dd} to {toDate:yyyy-MM-dd}.",
+                Data = result
+            };
+        }
+
     }
 }
