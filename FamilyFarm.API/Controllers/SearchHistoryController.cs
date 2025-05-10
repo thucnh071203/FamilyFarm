@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyFarm.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/search-history")]
     [ApiController]
     public class SearchHistoryController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace FamilyFarm.API.Controllers
             _searchHistoryService = searchHistoryService;
             _authenService = authenService;
         }
-        [HttpGet("list-search-history")]
+        [HttpGet("list")]
         [Authorize]
         public async Task<ActionResult> GetListSearchHistory() {
             var userClaims = _authenService.GetDataFromToken();
@@ -30,7 +30,7 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
-        [HttpPost("add-search-history/{searchKey}")]
+        [HttpPost("create/{searchKey}")]
         [Authorize]
         public async Task<ActionResult> AddSearchHistory(string searchKey)
         {
@@ -43,7 +43,7 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
-        [HttpDelete("delete-search-history/{searchId}")]
+        [HttpDelete("delete/{searchId}")]
         [Authorize]
         public async Task<ActionResult> DeleteSearchHistory(string searchId)
         {

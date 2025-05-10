@@ -10,6 +10,10 @@ namespace FamilyFarm.BusinessLogic.Interfaces
 {
     public interface ISharePostService
     {
+        Task<ListSharePostResponseDTO?> GetSharePostsByAccId(string? accId);
         Task<SharePostResponseDTO?> CreateSharePost(string? accId, SharePostRequestDTO? request);
+        Task<SharePostResponseDTO?> UpdateSharePost(string? sharePostId, UpdateSharePostRequestDTO? request);
+        Task<SharePostResponseDTO?> SoftDeleteSharePost(string? sharePostId);
+        Task<SharePostResponseDTO?> HardDeleteSharePost(string? sharePostId);
     }
 }

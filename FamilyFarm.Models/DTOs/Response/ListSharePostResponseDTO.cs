@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace FamilyFarm.Models.DTOs.Response
 {
-    public class SharePostResponseDTO
+    public class ListSharePostResponseDTO
     {
         public bool Success { get; set; }
         public string? Message { get; set; }
-        public SharePostDTO? SharePostData { get; set; }
+        public int? Count { get; set; }
+        public List<SharePostDTO>? SharePostDatas { get; set; }
     }
 }

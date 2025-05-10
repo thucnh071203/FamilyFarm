@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyFarm.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/category-post")]
     [ApiController]
     public class CategoryPostController : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace FamilyFarm.API.Controllers
             _authenticationService = authenticationService;
         }
 
-        [HttpGet("list-category-of-post")]
+        [HttpGet("list")]
         [Authorize]
         public async Task<ActionResult<CategoryPostResponseDTO?>> GetListCategory()
         {
@@ -41,7 +41,7 @@ namespace FamilyFarm.API.Controllers
             return Ok(cat);
         }
 
-        [HttpPost("create-new-category-of-post")]
+        [HttpPost("create")]
         [Authorize]
         public async Task<ActionResult<CategoryPostResponseDTO?>> CreateCategoryOfPost([FromBody] Category category)
         {
@@ -54,7 +54,7 @@ namespace FamilyFarm.API.Controllers
             return Ok(cat);
         }
 
-        [HttpPut("edit-category-of-post")]
+        [HttpPut("update")]
         [Authorize]
         public async Task<ActionResult<CategoryPostResponseDTO?>> EditCategoryOfPost([FromBody] Category category)
         {
@@ -65,7 +65,7 @@ namespace FamilyFarm.API.Controllers
             return Ok(cat);
         }
 
-        [HttpPut("delete-category-of-post/{catId}")]
+        [HttpDelete("delete/{catId}")]
         [Authorize]
         public async Task<ActionResult<CategoryPostResponseDTO?>> DeleteCategoryOfPost(string catId)
         {
