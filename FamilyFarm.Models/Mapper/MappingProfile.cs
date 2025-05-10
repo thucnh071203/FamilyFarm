@@ -31,7 +31,7 @@ namespace FamilyFarm.Models.Mapper
              .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             CreateMap<Notification, SendNotificationResponseDTO>();
-            CreateMap<Account, ProfileDTO>();
+            CreateMap<Account, MyProfileDTO>();
 
         }
     }

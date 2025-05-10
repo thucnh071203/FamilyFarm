@@ -413,5 +413,22 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return posts;
         }
+
+       
+
+        public async Task<List<Post>> GetAllPostsAsync()
+        {
+            try
+            {
+                var filter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false); // chỉ lấy những post chưa bị xóa
+                return await _post.Find(filter).SortByDescending(p => p.CreatedAt).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting all posts: {ex.Message}");
+                return new List<Post>();
+            }
+        }
+
     }
 }

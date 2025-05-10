@@ -16,12 +16,14 @@ namespace FamilyFarm.API.Controllers
         private readonly IPostService _postService;
         private readonly IAuthenticationService _authenService;
         private readonly ISearchHistoryService _searchHistoryService;
+        private readonly ISavedPostService _savedPostService;
 
-        public PostController(IPostService postService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService)
+        public PostController(IPostService postService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService, ISavedPostService savedPostService)
         {
             _postService = postService;
             _authenService = authenService;
             _searchHistoryService = searchHistoryService;
+            _savedPostService = savedPostService;
         }
 
         ///// <summary>
@@ -335,7 +337,7 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("list-checked_by-AI")]
+        [HttpGet("list-checked-by-AI")]
         public async Task<ActionResult<ListPostResponseDTO?>> GetListPostCheckedAI()
         {
             var result = await _postService.GetListPostCheckedAI();
@@ -345,6 +347,25 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+
+        [HttpPost("saved-post")]
+        [Authorize]
+        public async Task<ActionResult<CreateSavedPostRequestDTO>> SavedPost([FromBody] CreateSavedPostRequestDTO request)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+
+            var result = await _savedPostService.SavedPost(acc_id, request);
+            if (result == null)
+                return BadRequest();
+
+            if(result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
 
     }
 }

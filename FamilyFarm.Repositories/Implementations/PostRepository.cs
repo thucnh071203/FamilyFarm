@@ -13,10 +13,13 @@ namespace FamilyFarm.Repositories.Implementations
     public class PostRepository : IPostRepository
     {
         private readonly PostDAO _postDAO;
-
-        public PostRepository(PostDAO postDAO)
+        private readonly ReactionDAO _reactionDAO;
+        private readonly CommentDAO _commentDAO;
+        public PostRepository(PostDAO postDAO, ReactionDAO reactionDAO, CommentDAO commentDAO)
         {
             _postDAO = postDAO;
+            _reactionDAO = reactionDAO;
+            _commentDAO = commentDAO;
         }
 
         public async Task<List<Post>> SearchPostsByKeyword(string keyword)
@@ -89,5 +92,6 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.GetByAccId(accId);
         }
+       
     }
 }

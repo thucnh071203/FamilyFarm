@@ -186,7 +186,7 @@ namespace FamilyFarm.BusinessLogic.Services
                     var accountReaction = new AccountReactionDTO
                     {
                         Reaction = reaction,
-                        AccountOfReaction = _mapper.Map<ProfileDTO>(accountOfReaction),
+                        AccountOfReaction = _mapper.Map<MyProfileDTO>(accountOfReaction),
                         CategoryReaction = await _categoryReactionRepository.GetByIdAsync(reaction.CategoryReactionId)
                     };
 
