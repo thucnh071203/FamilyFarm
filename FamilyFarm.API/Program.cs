@@ -64,6 +64,7 @@ builder.Services.AddScoped<NotificationStatusDAO>();
 builder.Services.AddScoped<ProcessDAO>();
 builder.Services.AddScoped<SharePostDAO>();
 builder.Services.AddScoped<SharePostTagDAO>();
+builder.Services.AddScoped<CategoryNotificationDAO>();
 builder.Services.AddScoped<StatisticDAO>();
 builder.Services.AddScoped<SavedPostDAO>();
 
@@ -98,6 +99,7 @@ builder.Services.AddScoped<INotificationStatusRepository, NotificationStatusRepo
 builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
 builder.Services.AddScoped<ISharePostRepository, SharePostRepository>();
 builder.Services.AddScoped<ISharePostTagRepository, SharePostTagRepository>();
+builder.Services.AddScoped<ICategoryNotificationRepository, CategoryNotificationRepository>();
 builder.Services.AddScoped<IStatisticRepository, StatisticRepository>();
 builder.Services.AddScoped<ISavedPostRepository, SavedPostRepository>();
 
@@ -129,9 +131,9 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICohereService, CohereService>();
 builder.Services.AddScoped<IProcessService, ProcessService>();
 builder.Services.AddScoped<ISharePostService, SharePostService>();
+builder.Services.AddSingleton<INotificationTemplateService, NotificationTemplateService>();
 builder.Services.AddScoped<IStatisticService, StatisticService>();
 builder.Services.AddScoped<ISavedPostService, SavedPostService>();
-
 
 //builder.Services.AddScoped<FirebaseConnection>();
 
@@ -140,7 +142,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3000") // thay bằng đúng origin đang test
+        policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://127.0.0.1:5500") // thay bằng đúng origin đang test
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // khi dùng SignalR

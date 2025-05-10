@@ -2,10 +2,12 @@
 using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
@@ -28,6 +30,8 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IUploadFileService _uploadFileService;
         private readonly INotificationService _notificationService;
         private readonly IAccountRepository _accountRepository;
+        private readonly ICategoryNotificationRepository _categoryNotificationRepository;
+        private readonly INotificationTemplateService _notificationTemplate;
 
         /// <summary>
         /// Constructor to initialize the chat service with required repositories and SignalR context.
@@ -35,7 +39,7 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <param name="chatRepository">The repository for managing chat data.</param>
         /// <param name="chatDetailRepository">The repository for managing chat messages (chat details).</param>
         /// <param name="chatHubContext">The SignalR hub context to send notifications to clients.</param>
-        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService, INotificationService notificationService, IAccountRepository accountRepository)
+        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService, INotificationService notificationService, IAccountRepository accountRepository, ICategoryNotificationRepository categoryNotificationRepository, INotificationTemplateService notificationTemplate)
         {
             _chatRepository = chatRepository;
             _chatDetailRepository = chatDetailRepository;
@@ -44,6 +48,8 @@ namespace FamilyFarm.BusinessLogic.Services
             _uploadFileService = uploadFileService;
             _notificationService = notificationService;
             _accountRepository = accountRepository;
+            _categoryNotificationRepository = categoryNotificationRepository;
+            _notificationTemplate = notificationTemplate;
         }
 
         /// <summary>
@@ -81,9 +87,50 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </summary>
         /// <param name="accId">The user ID to retrieve chats for.</param>
         /// <returns>Returns a list of chats for the user.</returns>
-        public async Task<List<Chat>> GetUserChatsAsync(string accId)
+        //public async Task<List<Chat>> GetUserChatsAsync(string accId)
+        //{
+        //    return await _chatRepository.GetChatsByUserAsync(accId);  // Fetch the user's chats from the repository.
+        //}
+        public async Task<ListChatResponseDTO> GetUserChatsAsync(string accId)
         {
-            return await _chatRepository.GetChatsByUserAsync(accId);  // Fetch the user's chats from the repository.
+            var response = new ListChatResponseDTO();
+
+            // Lấy danh sách cuộc trò chuyện
+            var chats = await _chatRepository.GetChatsByUserAsync(accId);
+            if (chats == null || !chats.Any())
+            {
+                response.Success = false;
+                response.Message = "No chats found for the user.";
+                return response;
+            }
+
+            // Chuẩn bị danh sách ChatDTO
+            var chatDTOs = new List<ChatDTO>();
+            foreach (var chat in chats)
+            {
+                var chatDetails = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(chat.Acc1Id, chat.Acc2Id);
+
+                // Lấy tin nhắn cuối cùng
+                var lastMessage = chatDetails.LastOrDefault();
+                var lastMessageContent = lastMessage?.Message ?? (lastMessage?.FileName != null ? "File: " + lastMessage.FileName : "No messages yet");
+
+                // Lấy số tin nhắn chưa đọc
+                var unreadCount = chatDetails.Count(c => c.IsSeen != true && c.ReceiverId == accId);
+
+                chatDTOs.Add(new ChatDTO
+                {
+                    ChatId = chat.ChatId,
+                    Acc1Id = chat.Acc1Id,
+                    Acc2Id = chat.Acc2Id,
+                    CreateAt = chat.CreateAt,
+                    LastMessage = lastMessageContent,
+                    UnreadCount = unreadCount
+                });
+            }
+
+            response.Chats = chatDTOs;
+            response.Message = "Chats retrieved successfully.";
+            return response;
         }
 
         /// <summary>
@@ -120,9 +167,50 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </summary>
         /// <param name="chatId">The ID of the chat to retrieve messages for.</param>
         /// <returns>Returns a list of chat details (messages) for the chat.</returns>
-        public async Task<List<ChatDetail>> GetChatMessagesAsync(string acc1Id, string acc2Id)
+        public async Task<ListChatDetailsResponseDTO> GetChatMessagesAsync(string acc1Id, string acc2Id)
         {
-            return await _chatDetailRepository.GetChatDetailsByAccIdsAsync(acc1Id, acc2Id);  // Fetch the chat details (messages) for the provided chat ID.
+            var response = new ListChatDetailsResponseDTO();
+
+            // Lấy danh sách tin nhắn
+            var messages = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(acc1Id, acc2Id);
+            if (messages == null || !messages.Any())
+            {
+                response.Success = false;
+                response.Message = "No messages found for this chat.";
+                return response;
+            }
+
+            // Đánh dấu tin nhắn là "đã đọc" khi Get Chat Messages
+            var chatId = messages.First().ChatId;
+            await _chatDetailRepository.MarkMessagesAsSeenAsync(chatId, acc1Id);
+
+            // lấy mới nhất sau khi MarkMessagesAsSeen
+            var newMessages = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(acc1Id, acc2Id);
+            response.ChatDetails = newMessages;
+
+            response.Message = "Messages retrieved successfully.";
+            return response;
+        }
+
+        /// <summary>
+        /// Marks all unseen messages in the specified chat as seen by the given receiver,
+        /// and broadcasts a "MessageSeen" event to all connected clients.
+        /// </summary>
+        /// <param name="chatId">The ID of the chat whose messages are to be marked as seen.</param>
+        /// <param name="receiverId">The ID of the receiver who has seen the messages.</param>
+        /// <returns>
+        /// True if the operation was initiated successfully; otherwise, false if the chatId or receiverId is null or empty.
+        /// </returns>
+        public async Task<bool> MarkMessagesAsSeenAsync(string chatId, string receiverId)
+        {
+            if (string.IsNullOrEmpty(chatId) || string.IsNullOrEmpty(receiverId))
+                return false;
+
+            await _chatDetailRepository.MarkMessagesAsSeenAsync(chatId, receiverId);
+
+            await _chatHubContext.Clients.All.SendAsync("MessageSeen", chatId);
+
+            return true;
         }
 
         /// <summary>
@@ -194,16 +282,24 @@ namespace FamilyFarm.BusinessLogic.Services
             bool shouldNotify = lastMessage == null ||
                                 (chatDetail.SendAt - lastMessage.SendAt).TotalMilliseconds >= TIME_THRESHOLD_MS;
 
+            var categoryNotification = await _categoryNotificationRepository.GetByNameAsync("Chat");
+            if (categoryNotification == null)
+            {
+                throw new InvalidOperationException("Chat notification category not found.");
+            }
+
+            var templateNotifi = _notificationTemplate.GetNotificationTemplate("Chat");
+            var account = await _accountRepository.GetAccountByIdAsync(senderId);
             if (shouldNotify)
             {
                 var notiRequest = new SendNotificationRequestDTO
                 {
                     ReceiverIds = new List<string> { request.ReceiverId },
                     SenderId = senderId,
-                    CategoryNotiId = senderId, // Update if needed
+                    CategoryNotiId = categoryNotification.CategoryNotifiId,
                     TargetId = chat.ChatId,
                     TargetType = "Chat",
-                    Content = $"You have a new message from {senderId}"
+                    Content = string.Format(templateNotifi, account?.FullName)
                 };
 
                 var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);
@@ -222,16 +318,6 @@ namespace FamilyFarm.BusinessLogic.Services
             response.Message = "Message sent successfully.";
             response.Success = true;
             return response;
-        }
-
-        /// <summary>
-        /// Marks a message as "seen" by updating its "IsSeen" flag.
-        /// </summary>
-        /// <param name="chatDetailId">The ID of the chat detail (message) to mark as seen.</param>
-        /// <returns>Returns a task representing the asynchronous operation.</returns>
-        public async Task<ChatDetail> MarkAsSeenAsync(string chatDetailId)
-        {
-            return await _chatDetailRepository.UpdateIsSeenAsync(chatDetailId);  // Update the message's "IsSeen" flag to true.
         }
 
         /// <summary>
@@ -267,20 +353,20 @@ namespace FamilyFarm.BusinessLogic.Services
         public async Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId)
         {
             // Revoke a specific ChatDetail (marking it as revoked)
-            var revokedChatDetail = await _chatDetailRepository.RecallChatDetailByIdAsync(chatDetailId);
-            if (revokedChatDetail == null)
+            var recalledChatDetail = await _chatDetailRepository.RecallChatDetailByIdAsync(chatDetailId);
+            if (recalledChatDetail == null)
                 return null;  // If no message is found to revoke, return null.
 
             // Fetch the associated chat information to notify the users
-            var chat = await _chatRepository.GetChatByIdAsync(revokedChatDetail.ChatId);
+            var chat = await _chatRepository.GetChatByIdAsync(recalledChatDetail.ChatId);
             if (chat != null)
             {
                 // Notify both users that the chat history (message) has been revoked
                 await _chatHubContext.Clients.Users(new[] { chat.Acc1Id, chat.Acc2Id })
-                    .SendAsync("ChatRevoked", revokedChatDetail.ChatId);
+                    .SendAsync("ChatRecalled", recalledChatDetail.ChatId);
             }
 
-            return revokedChatDetail;  // Return the revoked chat detail object.
+            return recalledChatDetail;  // Return the revoked chat detail object.
         }
     }
 }

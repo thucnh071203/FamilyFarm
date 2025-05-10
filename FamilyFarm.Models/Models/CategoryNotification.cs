@@ -12,8 +12,9 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string CategoryNotiId { get; set; }
-        public required string CategoryNotiName { get; set; }
+        public required string CategoryNotifiId { get; set; }
+        public required string CategoryNotifiName { get; set; }  // thông báo là hành động gì (ví dụ: "Like", "Comment", "Share", "Joined Group", ...)
         public required string Description { get; set; }
+        public required string ContentTemplate { get; set; }
     }
 }
