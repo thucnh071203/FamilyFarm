@@ -7,6 +7,7 @@ using FamilyFarm.DataAccess.DAOs;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace FamilyFarm.Repositories
 {
@@ -141,5 +142,14 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.GetAccountIdsByFullNameAsync(fullName);
         }
+        public async Task<Dictionary<string, int>> GetTotalByRoleIdsAsync(List<string> roleIds)
+        {
+            return await _dao.GetTotalByRoleIdsAsync(roleIds);
+        }
+        public async Task<Dictionary<string, int>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate)
+        {
+            return await _dao.GetUserGrowthOverTimeAsync(fromDate, toDate);
+        }
+
     }
 }

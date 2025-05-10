@@ -40,6 +40,8 @@ namespace FamilyFarm.Models.Models
         public DateTime? CreateOtp { get; set; }
         public string? FacebookId { get; set; }
         public bool IsFacebook { get; set; }
+        public DateTime CreatedAt { get; set; }
+
 
     }
 }
