@@ -12,11 +12,11 @@ namespace FamilyFarm.BusinessLogic.Interfaces
     public interface IChatService
     {
         Task<Chat> StartChatAsync(string user1Id, string user2Id);
-        Task<List<Chat>> GetUserChatsAsync(string userId);
+        Task<ListChatResponseDTO> GetUserChatsAsync(string userId);
         Task<List<Chat>> SearchChatsByFullNameAsync(string userId, string fullName);
-        Task<List<ChatDetail>> GetChatMessagesAsync(string acc1Id, string acc2Id);
+        Task<ListChatDetailsResponseDTO> GetChatMessagesAsync(string acc1Id, string acc2Id);
         Task<SendMessageResponseDTO> SendMessageAsync(string senderId, SendMessageRequestDTO request);
-        Task<ChatDetail> MarkAsSeenAsync(string chatDetailId);
+        Task<bool> MarkMessagesAsSeenAsync(string chatId, string receiverId);
         Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId);
         Task DeleteChatHistoryAsync(string chatDetailId);
     }

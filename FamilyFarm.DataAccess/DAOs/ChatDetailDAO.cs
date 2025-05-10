@@ -68,34 +68,24 @@ namespace FamilyFarm.DataAccess.DAOs
                 .ToListAsync();
         }
 
-
         /// <summary>
-        /// Updates the "IsSeen" status of a specific chat detail to "true".
+        /// Marks all unseen messages in a chat as seen for a specific receiver.
         /// </summary>
-        /// <param name="chatDetailId">The ID of the chat detail to update.</param>
-        /// <returns>Returns a task representing the asynchronous update operation.</returns>
-        public async Task<ChatDetail> UpdateIsSeenAsync(string chatDetailId)
+        /// <param name="chatId">The ID of the chat containing the messages.</param>
+        /// <param name="receiverId">The ID of the receiver who has seen the messages.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public async Task MarkMessagesAsSeenAsync(string chatId, string receiverId)
         {
-            if (!ObjectId.TryParse(chatDetailId, out _))
-                return null;
+            var filter = Builders<ChatDetail>.Filter.And(
+                Builders<ChatDetail>.Filter.Eq(cd => cd.ChatId, chatId),
+                Builders<ChatDetail>.Filter.Eq(cd => cd.ReceiverId, receiverId),
+                Builders<ChatDetail>.Filter.Eq(cd => cd.IsSeen, false)
+            );
 
-            // Create a filter to find the specific chat detail by its ID.
-            var filter = Builders<ChatDetail>.Filter.Eq(cd => cd.ChatDetailId, chatDetailId);
+            var update = Builders<ChatDetail>.Update
+                .Set(cd => cd.IsSeen, true);
 
-            // Create an update operation to set "IsSeen" to true.
-            var update = Builders<ChatDetail>.Update.Set(cd => cd.IsSeen, true);
-
-            // Perform the update operation.
-            var result = await _chatDetails.UpdateOneAsync(filter, update);
-
-            // Check if the update was successful (matched documents).
-            if (result.MatchedCount == 0)
-            {
-                return null;  // No document was found with the provided ID.
-            }
-
-            // If update was successful, retrieve the updated chat detail from the database.
-            return await _chatDetails.Find(filter).FirstOrDefaultAsync();
+            await _chatDetails.UpdateManyAsync(filter, update);
         }
 
         /// <summary>

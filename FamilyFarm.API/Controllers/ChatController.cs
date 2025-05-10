@@ -25,30 +25,6 @@ namespace FamilyFarm.API.Controllers
         }
 
         /// <summary>
-        /// Starts a new chat between two users by their AccIds.
-        /// If any of the AccIds is invalid, it returns a BadRequest error.
-        /// </summary>
-        /// <param name="request">The request data containing the User1Id and User2Id for starting the chat.</param>
-        /// <returns>
-        /// Returns an HTTP 200 status with the created chat object if successful,
-        /// or a BadRequest with an error message if the AccIds are invalid.
-        /// </returns>
-        [HttpPost("start")]
-        public async Task<IActionResult> StartChat([FromBody] StartChatRequestDTO request)
-        {
-            var account = _authenService.GetDataFromToken();
-            if (account == null)
-                return Unauthorized("Invalid token or user not found.");
-
-            if (!ObjectId.TryParse(account.AccId, out _) || !ObjectId.TryParse(request.Acc2Id, out _))
-                return BadRequest("Invalid AccIds.");
-
-            var chat = await _chatService.StartChatAsync(account.AccId, request.Acc2Id);
-
-            return Ok(chat);
-        }
-
-        /// <summary>
         /// Retrieves all chats for a specific user by their accId.
         /// If no chats are found, it returns a NotFound status.
         /// </summary>
@@ -149,23 +125,28 @@ namespace FamilyFarm.API.Controllers
         }
 
         /// <summary>
-        /// Marks a specific chat detail (message) as "seen" by updating the "IsSeen" field to true.
-        /// This method will return the updated chat detail if successful, or an error message if no matching chat detail is found.
+        /// Marks all unseen messages in the specified chat as seen by the currently authenticated user.
         /// </summary>
-        /// <param name="chatDetailId">The ID of the chat detail (message) to mark as seen.</param>
+        /// <param name="chatId">The ID of the chat whose messages are to be marked as seen.</param>
         /// <returns>
-        /// Returns an HTTP 200 status with the updated ChatDetail if successful, 
-        /// or an HTTP 404 status with an error message if the chat detail is not found.
+        /// An IActionResult indicating the result of the operation:
+        /// - 200 OK if messages were successfully marked as seen,
+        /// - 400 Bad Request if the operation failed,
+        /// - 401 Unauthorized if the user is not authenticated.
         /// </returns>
-        [HttpPut("mark-as-seen/{chatDetailId}")]
-        public async Task<IActionResult> MarkAsSeen(string chatDetailId)
+        [HttpPut("mark-messages-as-seen/{chatId}")]
+        [Authorize]
+        public async Task<IActionResult> MarkMessagesAsSeen(string chatId)
         {
-            var chatDetail = await _chatService.MarkAsSeenAsync(chatDetailId);
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
 
-            if (chatDetail == null)
-                return NotFound("No chat details found!");  // If no chat detail is found, return 404 with an error message.
+            var success = await _chatService.MarkMessagesAsSeenAsync(chatId, account.AccId);
+            if (!success)
+                return BadRequest("Failed to mark messages as seen.");
 
-            return Ok(chatDetail);  // Return the updated chat detail with HTTP 200 status.
+            return Ok("Messages marked as seen.");
         }
 
         /// <summary>

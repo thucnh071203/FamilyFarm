@@ -12,7 +12,7 @@ namespace FamilyFarm.Repositories.Interfaces
     {
         Task<ChatDetail> CreateChatDetailAsync(ChatDetail chatDetail);
         Task<List<ChatDetail>> GetChatDetailsByAccIdsAsync(string accId1, string accId2);
-        Task<ChatDetail> UpdateIsSeenAsync(string chatDetailId);
+        Task MarkMessagesAsSeenAsync(string chatId, string receiverId);
         Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId);
         Task DeleteChatDetailsByChatIdAsync(string chatId);
     }

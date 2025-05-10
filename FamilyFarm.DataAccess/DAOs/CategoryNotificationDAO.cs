@@ -18,6 +18,13 @@ namespace FamilyFarm.DataAccess.DAOs
             _categoryNotification = database.GetCollection<CategoryNotification>("CategoryNotification");
         }
 
+        /// <summary>
+        /// Retrieves a category notification by its unique identifier.
+        /// </summary>
+        /// <param name="id">The ID of the category notification to retrieve.</param>
+        /// <returns>
+        /// The matching <see cref="CategoryNotification"/> if found; otherwise, null.
+        /// </returns>
         public async Task<CategoryNotification?> GetByIdAsync(string? id)
         {
             if (string.IsNullOrEmpty(id))
@@ -29,14 +36,21 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return category;
         }
-        
+
+        /// <summary>
+        /// Retrieves a category notification by its name (case-insensitive).
+        /// </summary>
+        /// <param name="name">The name of the category notification to retrieve.</param>
+        /// <returns>
+        /// The matching <see cref="CategoryNotification"/> if found; otherwise, null.
+        /// </returns>
         public async Task<CategoryNotification?> GetByNameAsync(string? name)
         {
             if (string.IsNullOrEmpty(name))
                 return null;
 
             var category = await _categoryNotification
-                .Find(c => c.CategoryNotifiName == name)
+                .Find(c => c.CategoryNotifiName.Equals(name, StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefaultAsync();
 
             return category;

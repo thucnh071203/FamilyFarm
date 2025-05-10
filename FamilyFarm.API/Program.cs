@@ -127,7 +127,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICohereService, CohereService>();
 builder.Services.AddScoped<IProcessService, ProcessService>();
 builder.Services.AddScoped<ISharePostService, SharePostService>();
-
+builder.Services.AddSingleton<INotificationTemplateService, NotificationTemplateService>();
 
 //builder.Services.AddScoped<FirebaseConnection>();
 
