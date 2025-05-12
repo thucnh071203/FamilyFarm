@@ -4,11 +4,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 
 namespace FamilyFarm.Models.DTOs.Request
 {
     public class ResetPasswordDTO
     {
+        [Required]
+        public string AccId { get; set; }
         [Required]
         public int Otp { get; set; }
         [Required]
