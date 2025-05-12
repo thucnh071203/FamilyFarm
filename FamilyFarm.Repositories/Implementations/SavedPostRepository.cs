@@ -25,7 +25,7 @@ namespace FamilyFarm.Repositories.Implementations
 
         public async Task<List<SavedPost>?> ListSavedPostOfAccount(string? accId)
         {
-            return await _savedPostDAO.GetListByAccount(accId);
+            return await _savedPostDAO.GetListAvailableByAccount(accId);
         }
     }
 }
