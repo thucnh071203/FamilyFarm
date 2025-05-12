@@ -16,7 +16,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public SavedPostDAO(IMongoDatabase database)
         {
-            _savedPostCollection = database.GetCollection<SavedPost>("SavePost");
+            _savedPostCollection = database.GetCollection<SavedPost>("SavedPost");
         }
 
 
@@ -45,12 +45,16 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <summary>
         ///     Get list all saved post of account
         /// </summary>
-        public async Task<List<SavedPost>?> GetListByAccount(string? accId)
+        public async Task<List<SavedPost>?> GetListAvailableByAccount(string? accId)
         {
             if (string.IsNullOrEmpty(accId))
                 return null;
 
-            var filter = Builders<SavedPost>.Filter.Eq(x => x.AccId, accId);
+            var filter = Builders<SavedPost>.Filter.And(
+                Builders<SavedPost>.Filter.Eq(x => x.AccId, accId),
+                Builders<SavedPost>.Filter.Eq(x => x.IsDeleted, false)
+            );
+
             var savedPosts = await _savedPostCollection.Find(filter).ToListAsync();
 
             return savedPosts;

@@ -348,13 +348,14 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-
         [HttpPost("saved-post")]
         [Authorize]
         public async Task<ActionResult<CreateSavedPostRequestDTO>> SavedPost([FromBody] CreateSavedPostRequestDTO request)
         {
             var userClaims = _authenService.GetDataFromToken();
             var acc_id = userClaims?.AccId;
+            if(acc_id == null)
+                return Unauthorized();
 
             var result = await _savedPostService.SavedPost(acc_id, request);
             if (result == null)
@@ -366,6 +367,25 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("list-saved")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> GetListSavedPostByAccount()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
 
+            if(acc_id == null)
+                return Unauthorized();
+
+            var result = await _savedPostService.ListSavedPostOfAccount(acc_id);
+
+            if (result == null)
+                return BadRequest();
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
     }
 }
