@@ -142,12 +142,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://127.0.0.1:5500") // thay bằng đúng origin đang test
+        policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://127.0.0.1:5500", "https://localhost:7218") // thay bằng đúng origin đang test
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // khi dùng SignalR
     });
 });
+
+
 builder.Services.AddSignalR();
 
 builder.Services.AddHttpClient();
@@ -227,7 +229,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll"); 
+app.UseCors("AllowAll");
 app.UseAuthentication();
 
 app.UseAuthorization();
@@ -235,4 +237,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<NotificationHub>("/notificationHub");
-app.Run();  
+app.MapHub<TopEngagedPostHub>("/topEngagedPostHub");
+
+app.Run();

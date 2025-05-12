@@ -8,7 +8,9 @@ using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 
 namespace FamilyFarm.BusinessLogic.Services
@@ -20,14 +22,18 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IAccountRepository _accountRepository;
         private readonly ICategoryReactionRepository _categoryReactionRepository;
         private readonly IMapper _mapper;
+        private readonly IStatisticService _statisticService;
+        private readonly IHubContext _hubContext;
 
-        public CommentService(ICommentRepository commentRepository, IMapper mapper, IReactionRepository reactionRepository, IAccountRepository accountRepository, ICategoryReactionRepository categoryReactionRepository)
+        public CommentService(ICommentRepository commentRepository, IMapper mapper, IReactionRepository reactionRepository, IAccountRepository accountRepository, ICategoryReactionRepository categoryReactionRepository, IStatisticService statisticService, IHubContext hubContext)
         {
             _commentRepository = commentRepository;
             _mapper = mapper;
             _reactionRepository = reactionRepository;
             _accountRepository = accountRepository;
             _categoryReactionRepository = categoryReactionRepository;
+            _statisticService = statisticService;
+            _hubContext = hubContext;
         }
 
         /// <summary>
@@ -82,6 +88,8 @@ namespace FamilyFarm.BusinessLogic.Services
             var response = _mapper.Map<CommentResponseDTO>(createdComment);
             response.Success = true;
             response.Message = "Comment created successfully";
+            var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
+            await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
             return response;
         }
 
