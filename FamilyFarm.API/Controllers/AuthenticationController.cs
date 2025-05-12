@@ -229,8 +229,8 @@ namespace FamilyFarm.API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPut("generate-OTP/{id}")]
-        public async Task<IActionResult> GenerateOtp(string id)
+        [HttpPut("generate-OTP")]
+        public async Task<IActionResult> GenerateOtp([FromForm] string id)
         {
             var account = await _accountService.GetAccountById(id);
             if (account == null)
@@ -257,10 +257,10 @@ namespace FamilyFarm.API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPut("forgot-password/{id}")]
-        public async Task<IActionResult> ForgotPassword(string id, [FromBody] ResetPasswordDTO request)
+        [HttpPut("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ResetPasswordDTO request)
         {
-            var account = await _accountService.GetAccountById(id);
+            var account = await _accountService.GetAccountById(request.AccId);
             if (account == null)
                 return NotFound("Account not found");
 
@@ -276,7 +276,7 @@ namespace FamilyFarm.API.Controllers
             account.PasswordHash = request.Password;
             account.Otp = null;
             account.CreateOtp = null;
-            await _accountService.UpdateAsync(id, account);
+            await _accountService.UpdateAsync(request.AccId, account);
             return Ok("Password reset successfully!");
         }
 
