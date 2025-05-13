@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,10 +15,10 @@ namespace FamilyFarm.Models.DTOs.Request
         public required string City { get; set; }
         public required string Country { get; set; }
         public string? Address { get; set; }
-        public string? Background { get; set; }
+        public IFormFile? Background { get; set; }
 
         // Expert
-        public string? Certificate { get; set; }
+        public IFormFile? Certificate { get; set; }
         public string? WorkAt { get; set; }
         public string? StudyAt { get; set; }
     }
