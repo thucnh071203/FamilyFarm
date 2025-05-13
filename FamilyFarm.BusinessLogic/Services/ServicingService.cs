@@ -18,12 +18,14 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IServiceRepository _serviceRepository;
         private readonly ICategoryServiceRepository _categoryServiceRepository;
         private readonly IAccountRepository _accountRepository;
+        private readonly IUploadFileService _uploadFileService;
 
-        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository, IAccountRepository accountRepository)
+        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository, IAccountRepository accountRepository, IUploadFileService uploadFileService)
         {
             _serviceRepository = serviceRepository;
             _categoryServiceRepository = categoryServiceRepository;
             _accountRepository = accountRepository;
+            _uploadFileService = uploadFileService;
         }
 
         public async Task<ServiceResponseDTO> GetAllService()
@@ -145,6 +147,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            var imageURL = await _uploadFileService.UploadImage(item.ImageUrl);
+
             var addNewService = new Service 
             {
                 ServiceId = null,
@@ -153,7 +157,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 ServiceName = item.ServiceName,
                 ServiceDescription = item.ServiceDescription,
                 Price = item.Price,
-                ImageUrl = item.ImageUrl
+                ImageUrl = imageURL.UrlFile ?? ""
             };
             
             var created = await _serviceRepository.CreateService(addNewService);
@@ -208,6 +212,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            var imageURL = await _uploadFileService.UploadImage(item.ImageUrl);
+
             var updateService = new Service
             {
                 ServiceId = null,
@@ -216,7 +222,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 ServiceName = item.ServiceName,
                 ServiceDescription = item.ServiceDescription,
                 Price = item.Price,
-                ImageUrl = item.ImageUrl
+                ImageUrl = imageURL.UrlFile ?? ""
             };
 
             var updated = await _serviceRepository.UpdateService(serviceId, updateService);

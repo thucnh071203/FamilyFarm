@@ -1,5 +1,6 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +32,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpPost("create")]
+        [Authorize]
         public async Task<IActionResult> CreateCategoryService([FromBody] CategoryService category)
         {
             var result = await _categoryServicingService.CreateCategoryService(category);
@@ -38,6 +40,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpPut("update/{categoryServiceId}")]
+        [Authorize]
         public async Task<IActionResult> UpdateCategoryService(string categoryServiceId, [FromBody] CategoryService category)
         {
             var result = await _categoryServicingService.UpdateCategoryService(categoryServiceId, category);
@@ -45,6 +48,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpDelete("delete/{categoryServiceId}")]
+        [Authorize]
         public async Task<IActionResult> DeleteCategoryService(string categoryServiceId)
         {
             var result = await _categoryServicingService.DeleteCategoryService(categoryServiceId);

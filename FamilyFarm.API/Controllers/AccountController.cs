@@ -89,7 +89,8 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }*/
         [HttpPut("update-profile/{username}")]
-        public async Task<IActionResult> UpdateProfile(string username, UpdateProfileRequestDTO updateProfile)
+        [Authorize]
+        public async Task<IActionResult> UpdateProfile(string username,[FromForm] UpdateProfileRequestDTO updateProfile)
         {
             var checkAccount = await _accountService.GetAccountByUsername(username);
 
@@ -107,7 +108,7 @@ namespace FamilyFarm.API.Controllers
 
             if (checkAccount.RoleId.Equals("68007b2a87b41211f0af1d57"))
             {
-                if (string.IsNullOrEmpty(updateProfile.Certificate) ||
+                if (updateProfile.Certificate == null ||
                     string.IsNullOrEmpty(updateProfile.WorkAt) ||
                     string.IsNullOrEmpty(updateProfile.StudyAt))
                 {
