@@ -18,19 +18,19 @@ namespace FamilyFarm.BusinessLogic.Services
         public NotificationTemplateService()
         {
             _templates = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "Chat", "You have a new message from {0}" },
-            { "Post", "You have a new comment on your post from {0}" },
-            { "FriendRequest", "{0} sent you a friend request" },
-            { "Booking", "Your booking for {0} has been confirmed" },
-            { "JoinedGroup", "{0} has joined your group" },
-            { "Reaction", "{0} reacted to your post" },
-            { "SharePost", "{0} shared your post" },
-            { "Review", "{0} reviewed your service" },
-            { "Report", "{0} reported your {1}" },
-            { "SavedPost", "{0} saved your post" }
-            // Thêm các template khác nếu cần
-        };
+            {
+                { "Chat", "You have a new message from {0}" },
+                { "Post", "You have a new comment on your post from {0}" },
+                { "FriendRequest", "{0} sent you a friend request" },
+                { "Booking", "Your booking for {0} has been confirmed" },
+                { "JoinedGroup", "{0} has joined your group" },
+                { "Reaction", "{0} reacted to your post" },
+                { "SharePost", "{0} shared your post" },
+                { "Review", "{0} reviewed your service" },
+                { "Report", "{0} reported your {1}" },
+                { "SavedPost", "{0} saved your post" }
+                // Thêm các template khác nếu cần
+            };
         }
 
         /// <summary>

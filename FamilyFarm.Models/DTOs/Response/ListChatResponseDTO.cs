@@ -11,6 +11,7 @@ namespace FamilyFarm.Models.DTOs.Response
     {
         public bool Success { get; set; } = true;
         public string? Message { get; set; }
+        public int? unreadChatCount { get; set; } // số đoạn chat chưa đọc
         public List<ChatDTO> Chats { get; set; } = new List<ChatDTO>();
     }
 }

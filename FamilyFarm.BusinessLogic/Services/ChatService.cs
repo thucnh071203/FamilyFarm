@@ -105,7 +105,7 @@ namespace FamilyFarm.BusinessLogic.Services
             }
 
             // Chuẩn bị danh sách ChatDTO
-            var chatDTOs = new List<ChatDTO>();
+            var listChatDTOs = new List<ChatDTO>();
             foreach (var chat in chats)
             {
                 var chatDetails = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(chat.Acc1Id, chat.Acc2Id);
@@ -117,18 +117,18 @@ namespace FamilyFarm.BusinessLogic.Services
                 // Lấy số tin nhắn chưa đọc
                 var unreadCount = chatDetails.Count(c => c.IsSeen != true && c.ReceiverId == accId);
 
-                chatDTOs.Add(new ChatDTO
-                {
-                    ChatId = chat.ChatId,
-                    Acc1Id = chat.Acc1Id,
-                    Acc2Id = chat.Acc2Id,
-                    CreateAt = chat.CreateAt,
-                    LastMessage = lastMessageContent,
-                    UnreadCount = unreadCount
-                });
+                // Map ChatDTO từ Chat
+                var chatDTO = _mapper.Map<ChatDTO>(chat);
+                chatDTO.LastMessage = lastMessageContent;
+                chatDTO.LastMessageAt = lastMessage?.SendAt;
+                chatDTO.UnreadCount = unreadCount;
+
+                listChatDTOs.Add(chatDTO);
             }
 
-            response.Chats = chatDTOs;
+            // Sắp xếp theo tin chat có tin nhắn mới nhất
+            response.Chats = listChatDTOs.OrderByDescending(c => c.LastMessageAt).ToList();
+            response.unreadChatCount = listChatDTOs.Count(c => c.UnreadCount != 0);
             response.Message = "Chats retrieved successfully.";
             return response;
         }

@@ -13,6 +13,7 @@ namespace FamilyFarm.Models.DTOs.EntityDTO
         public string Acc2Id { get; set; }
         public DateTime? CreateAt { get; set; }
         public string LastMessage { get; set; } // Tin nhắn cuối cùng
-        public int UnreadCount { get; set; } // Số tin nhắn chưa đọc
+        public DateTime? LastMessageAt{ get; set; } // Tin nhắn cuối cùng được gửi lúc ...
+        public int UnreadCount { get; set; } = 0; // Số tin nhắn chưa đọc
     }
 }
