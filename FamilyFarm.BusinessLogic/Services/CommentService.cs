@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models;
 using FamilyFarm.Models.DTOs.EntityDTO;
@@ -8,7 +9,9 @@ using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 
 namespace FamilyFarm.BusinessLogic.Services
@@ -18,16 +21,19 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly ICommentRepository _commentRepository;
         private readonly IReactionRepository _reactionRepository;
         private readonly IAccountRepository _accountRepository;
+        private readonly IStatisticService _statisticService;
         private readonly ICategoryReactionRepository _categoryReactionRepository;
         private readonly IMapper _mapper;
-
-        public CommentService(ICommentRepository commentRepository, IMapper mapper, IReactionRepository reactionRepository, IAccountRepository accountRepository, ICategoryReactionRepository categoryReactionRepository)
+        private readonly IHubContext<TopEngagedPostHub> _hubContext;
+        public CommentService(ICommentRepository commentRepository, IMapper mapper, IReactionRepository reactionRepository, IAccountRepository accountRepository, ICategoryReactionRepository categoryReactionRepository, IHubContext<TopEngagedPostHub> hubContext, IStatisticService statisticService)
         {
             _commentRepository = commentRepository;
             _mapper = mapper;
             _reactionRepository = reactionRepository;
             _accountRepository = accountRepository;
             _categoryReactionRepository = categoryReactionRepository;
+            _hubContext = hubContext;
+            _statisticService = statisticService;
         }
 
         /// <summary>
@@ -82,6 +88,10 @@ namespace FamilyFarm.BusinessLogic.Services
             var response = _mapper.Map<CommentResponseDTO>(createdComment);
             response.Success = true;
             response.Message = "Comment created successfully";
+  
+            //var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
+            //Console.WriteLine("DEBUG: Sending Top Engaged Posts => " + JsonConvert.SerializeObject(updatedPosts));
+            //await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
             return response;
         }
 

@@ -76,14 +76,18 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            var imageBackgroundURL = await _uploadFileService.UploadImage(request.Background);
+
+            var imageCertificateURL = await _uploadFileService.UploadImage(request.Certificate);
+
             account.FullName = request.FullName;
             account.Birthday = request.Birthday;
             account.Gender = request.Gender;
             account.City = request.City;
             account.Country = request.Country;
             account.Address = request.Address;
-            account.Background = request.Background;
-            account.Certificate = request.Certificate;
+            account.Background = imageBackgroundURL.UrlFile ?? "";
+            account.Certificate = imageCertificateURL.UrlFile ?? "";
             account.WorkAt = request.WorkAt;
             account.StudyAt = request.StudyAt;
 
