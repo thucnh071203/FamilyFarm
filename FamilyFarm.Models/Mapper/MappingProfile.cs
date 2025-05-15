@@ -32,6 +32,7 @@ namespace FamilyFarm.Models.Mapper
 
             CreateMap<Notification, SendNotificationResponseDTO>();
             CreateMap<Account, MyProfileDTO>();
+            CreateMap<Chat, ChatDTO>();
 
         }
     }
