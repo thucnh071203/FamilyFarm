@@ -22,11 +22,11 @@ namespace FamilyFarm.BusinessLogic.Services
             this.accountRepository = accountRepository;
         }
 
-        public async Task<FriendResponseDTO?> GetListFriends(string username)
+        public async Task<FriendResponseDTO?> GetListFriends(string accId)
         {
-            if (string.IsNullOrEmpty(username)) return null;
+            if (string.IsNullOrEmpty(accId)) return null;
             //get account from username
-            var acc = await accountRepository.GetAccountByUsername(username);
+            var acc = await accountRepository.GetAccountById(accId);
 
             var listFriend = await friendRepository.GetListFriends(acc.AccId);
             if (listFriend.Count == 0) {
@@ -168,12 +168,12 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
         }
-        public async Task<bool> Unfriend(string sender, string receiver)
+        public async Task<bool> Unfriend(string senderId, string receiverId)
         {
-            if (string.IsNullOrEmpty(sender)||string.IsNullOrEmpty(receiver)) return false;
-            //get account from username
-            var acc = await accountRepository.GetAccountByUsername(sender);
-            var acc1 = await accountRepository.GetAccountByUsername(receiver);
+            if (string.IsNullOrEmpty(senderId)||string.IsNullOrEmpty(receiverId)) return false;
+            //get account from ID
+            var acc = await accountRepository.GetAccountById(senderId);
+            var acc1 = await accountRepository.GetAccountById(receiverId);
 
             return await friendRepository.Unfriend(acc.AccId, acc1.AccId);
         }
