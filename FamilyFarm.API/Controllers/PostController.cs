@@ -337,7 +337,7 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("list-checked-by-AI")]
+        [HttpGet("list-checked-by-ai")]
         public async Task<ActionResult<ListPostResponseDTO?>> GetListPostCheckedAI()
         {
             var result = await _postService.GetListPostCheckedAI();

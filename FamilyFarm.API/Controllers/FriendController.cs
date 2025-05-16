@@ -206,9 +206,9 @@ namespace FamilyFarm.API.Controllers
         public async Task<ActionResult<FriendResponseDTO>> GetListFriends()
         {
             var userClaims = _authenService.GetDataFromToken();
-            var username = userClaims?.Username;
+            var accId = userClaims?.AccId;
 
-            var result = await _serviceOfFriend.GetListFriends(username);
+            var result = await _serviceOfFriend.GetListFriends(accId);
 
             if (result == null)
                 return BadRequest();
@@ -219,11 +219,15 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("list-friend-other/{usernameOther}")]
+        [HttpGet("list-friend-other/{accIdOfOther}")]
         [Authorize]
-        public async Task<ActionResult<FriendResponseDTO>> GetListFriends(string usernameOther)
+        public async Task<ActionResult<FriendResponseDTO>> GetListFriends(string accIdOfOther)
         {
-            var result = await _serviceOfFriend.GetListFriends(usernameOther);
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.Username;
+            if(username == null) return Unauthorized();
+
+            var result = await _serviceOfFriend.GetListFriends(accIdOfOther);
 
             if (result == null)
                 return BadRequest();
@@ -270,14 +274,14 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("unfriend/{usernameOther}")]
+        [HttpDelete("unfriend/{accId}")]
         [Authorize]
-        public async Task<ActionResult> Unfriend(string usernameOther)
+        public async Task<ActionResult> Unfriend(string accId)
         {
             var userClaims = _authenService.GetDataFromToken();
-            var username = userClaims?.Username;
+            var accountId = userClaims?.AccId;
 
-            var result = await _serviceOfFriend.Unfriend(username, usernameOther);
+            var result = await _serviceOfFriend.Unfriend(accountId, accId);
 
             if (result == false)
                 return BadRequest();
