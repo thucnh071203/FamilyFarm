@@ -15,6 +15,13 @@ namespace FamilyFarm.BusinessLogic.Hubs
         {
             await Clients.All.SendAsync("topEngagedPostHub", posts);
         }
-
+        public async Task SendRoleCounts(int expertCount, int farmerCount)
+        {
+            await Clients.All.SendAsync("UpdateAccountCount", new { expertCount, farmerCount });
+        }
+        public async Task SendUserGrowth(Dictionary<string, int> growthData)
+        {
+            await Clients.All.SendAsync("ReceiveUserGrowth", growthData);
+        }
     }
 }

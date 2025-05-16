@@ -3,6 +3,7 @@ using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyFarm.API.Controllers
@@ -42,10 +43,40 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        //[HttpGet("user-growth")]
+        //public async Task<IActionResult> GetUserGrowth(DateTime? fromDate, DateTime? toDate)
+        //{
+        //    DateTime endDate = toDate ?? DateTime.Today; // Nếu toDate null thì lấy ngày hôm nay
+        //    DateTime startDate = fromDate ?? endDate.AddDays(-30); // Nếu fromDate null thì lấy 30 ngày trước đó
+
+        //    if (fromDate > toDate)
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            isSuccess = false,
+        //            message = "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.",
+        //            data = (object)null
+        //        });
+        //    }
+
+        //    var data = await _accountService.GetUserGrowthOverTimeAsync(startDate, endDate);
+
+        //    return Ok(new
+        //    {
+        //        isSuccess = true,
+        //        message = $"User growth from {fromDate:yyyy-MM-dd} to {toDate:yyyy-MM-dd}.",
+        //        data
+        //    });
+        //}
         [HttpGet("user-growth")]
-        public async Task<IActionResult> GetUserGrowth(DateTime fromDate, DateTime toDate)
+        public async Task<IActionResult> GetUserGrowth(DateTime? fromDate, DateTime? toDate)
         {
-            if (fromDate > toDate)
+
+            DateTime endDate = (toDate ?? DateTime.Today).AddDays(1);
+            DateTime startDate = (fromDate ?? endDate.AddDays(-31)).ToUniversalTime();
+
+
+            if (startDate > endDate)
             {
                 return BadRequest(new
                 {
@@ -55,13 +86,13 @@ namespace FamilyFarm.API.Controllers
                 });
             }
 
-            var data = await _accountService.GetUserGrowthOverTimeAsync(fromDate, toDate);
+            var data = await _accountService.GetUserGrowthOverTimeAsync(startDate, endDate);
 
             return Ok(new
             {
-                isSuccess = true,
-                message = $"User growth from {fromDate:yyyy-MM-dd} to {toDate:yyyy-MM-dd}.",
-                data
+                isSuccess = data.IsSuccess,
+                message = data.Message,
+                data = data.Data
             });
         }
 

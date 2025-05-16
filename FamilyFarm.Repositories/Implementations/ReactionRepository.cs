@@ -35,6 +35,7 @@ namespace FamilyFarm.Repositories.Implementations
 
         public async Task<Reaction> CreateAsync(Reaction reaction)
         {
+
             return await _reactionDAO.CreateAsync(reaction);
         }
 

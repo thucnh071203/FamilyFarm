@@ -88,10 +88,10 @@ namespace FamilyFarm.BusinessLogic.Services
             var response = _mapper.Map<CommentResponseDTO>(createdComment);
             response.Success = true;
             response.Message = "Comment created successfully";
-  
-            //var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
-            //Console.WriteLine("DEBUG: Sending Top Engaged Posts => " + JsonConvert.SerializeObject(updatedPosts));
-            //await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
+
+            var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
+            Console.WriteLine("DEBUG: Sending Top Engaged Posts => " + JsonConvert.SerializeObject(updatedPosts));
+            await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
             return response;
         }
 

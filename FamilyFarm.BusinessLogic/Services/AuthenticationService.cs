@@ -7,6 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using FamilyFarm.BusinessLogic.Hubs;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
@@ -15,9 +17,11 @@ using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FamilyFarm.BusinessLogic.Services
 {
@@ -30,8 +34,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IRoleRepository _roleRepository;
         private readonly IUploadFileService _uploadFileService;
+        private readonly IHubContext<TopEngagedPostHub> _hubContext;
 
-        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters, IHttpContextAccessor httpContextAccessor, IRoleRepository roleRepository, IUploadFileService uploadFileService)
+        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters, IHttpContextAccessor httpContextAccessor, IRoleRepository roleRepository, IUploadFileService uploadFileService, IHubContext<TopEngagedPostHub> hubContext)
         {
             _configuration = configuration;
             _accountRepository = accountRepository;
@@ -40,6 +45,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _httpContextAccessor = httpContextAccessor;
             _roleRepository = roleRepository;
             _uploadFileService = uploadFileService;
+            _hubContext = hubContext;
         }
 
         public async Task<LoginResponseDTO?> Login(LoginRequestDTO request)
@@ -344,8 +350,27 @@ namespace FamilyFarm.BusinessLogic.Services
 
 
                     });
+                    int farmerCount = await _accountRepository.CountAccountsByRole("68007b0387b41211f0af1d56");
+                    int expertCount = await _accountRepository.CountAccountsByRole("68007b2a87b41211f0af1d57");
+
+                    await _hubContext.Clients.All.SendAsync("UpdateAccountCount", new
+                    {
+                        farmerCount,
+                        expertCount
+                    });
+
+
+                    DateTime startDate = DateTime.Today.AddDays(-30);
+                    DateTime endDate = DateTime.Today;
+
+                    var userGrowth = await _accountRepository.GetUserGrowthOverTimeAsync(startDate, endDate);
+
+                    await _hubContext.Clients.All.SendAsync("ReceiveUserGrowth", userGrowth);
+
+
                     return new RegisterExpertReponseDTO
                     {
+
                         IsSuccess = true,
                         MessageError = null
                     };
@@ -500,12 +525,28 @@ namespace FamilyFarm.BusinessLogic.Services
                 LockedUntil = null,
                 TokenExpiry = null,
                 RefreshToken = null,
-                CreateOtp = null
+                CreateOtp = null,
+                CreatedAt = DateTime.UtcNow
             };
 
             var createdAccount = await _accountRepository.CreateFarmer(newAccount);
             if (createdAccount != null)
             {
+                int farmerCount = await _accountRepository.CountAccountsByRole("68007b0387b41211f0af1d56");
+                int expertCount = await _accountRepository.CountAccountsByRole("68007b2a87b41211f0af1d57");
+
+                await _hubContext.Clients.All.SendAsync("UpdateAccountCount", new
+                {
+                    farmerCount,
+                    expertCount
+                });
+
+                await _hubContext.Clients.All.SendAsync("UserRegistered", new
+                {
+                    Date = DateTime.UtcNow.ToString("yyyy-MM-dd")
+                });
+                await _hubContext.Clients.All.SendAsync("UsersByProvinceChanged");
+
                 return new RegisterFarmerResponseDTO
                 {
                     IsSuccess = true,
