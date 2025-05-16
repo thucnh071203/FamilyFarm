@@ -1,8 +1,11 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic.Hubs;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +18,15 @@ namespace FamilyFarm.BusinessLogic.Services
     {
         private readonly IReactionRepository _reactionRepository;
         private readonly ICategoryReactionRepository _categoryReactionRepository;
+        private readonly IHubContext<TopEngagedPostHub> _hubContext;
+        private readonly IStatisticService _statisticService;
 
-        public ReactionService(IReactionRepository reactionRepository, ICategoryReactionRepository categoryReactionRepository)
+        public ReactionService(IReactionRepository reactionRepository, ICategoryReactionRepository categoryReactionRepository, IHubContext<TopEngagedPostHub> hubContext, IStatisticService statisticService)
         {
             _reactionRepository = reactionRepository;
             _categoryReactionRepository = categoryReactionRepository;
+            _hubContext = hubContext;
+            _statisticService = statisticService;
         }
 
         public async Task<bool> ToggleReactionAsync(string entityId, string entityType, string accId, string categoryReactionId)
@@ -48,6 +55,9 @@ namespace FamilyFarm.BusinessLogic.Services
                     CategoryReactionId = categoryReactionId,
                 };
                 await _reactionRepository.CreateAsync(newReaction);
+                var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
+                Console.WriteLine("DEBUG: Sending Top Engaged Posts => " + JsonConvert.SerializeObject(updatedPosts));
+                await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
                 return true;
             }
             else
@@ -56,9 +66,36 @@ namespace FamilyFarm.BusinessLogic.Services
                 if (existingReaction.CategoryReactionId == categoryReactionId)
                 {
                     if (existingReaction.IsDeleted == true)
-                        return await _reactionRepository.RestoreAsync(existingReaction.ReactionId);
+                    {
+                        var result = await _reactionRepository.RestoreAsync(existingReaction.ReactionId);
+                        if (result)
+                        {
+                            var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
+                            Console.WriteLine("DEBUG: Sending Top Engaged Posts => " + JsonConvert.SerializeObject(updatedPosts));
+                            await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
+                        }
+                        return result;
+
+                    }
+
+                    //tao đổi tại chỗ này để nhét thêm cái thống kê vào đây
+                    // logic cũ , chỉ là thêm dòng để thêm code thống kê
+                    //return await _reactionRepository.RestoreAsync(existingReaction.ReactionId);
+
+
                     else
-                        return await _reactionRepository.DeleteAsync(existingReaction.ReactionId);
+                    {
+                        var result = await _reactionRepository.DeleteAsync(existingReaction.ReactionId);
+                        if (result)
+                        {
+                            var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
+                            Console.WriteLine("DEBUG: Sending Top Engaged Posts => " + JsonConvert.SerializeObject(updatedPosts));
+                            await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
+                        }
+                        return result;
+
+                    }
+                    //return await _reactionRepository.DeleteAsync(existingReaction.ReactionId);
                 }
                 else
                 {

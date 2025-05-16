@@ -151,5 +151,11 @@ namespace FamilyFarm.Repositories
             return await _dao.GetUserGrowthOverTimeAsync(fromDate, toDate);
         }
 
+        public async Task<int> CountAccountsByRole(string roleId)
+        {
+            return await _dao.CountAccountsByRole(roleId);
+        }
+
+
     }
 }

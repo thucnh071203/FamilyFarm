@@ -377,6 +377,23 @@ namespace FamilyFarm.DataAccess.DAOs
             return result;
         }
 
+        /// <summary>
+        /// Đếm số lượng tài khoản theo RoleId
+        /// </summary>
+        /// <param name="roleId">ID của vai trò (Role)</param>
+        /// <returns>Số lượng tài khoản có RoleId tương ứng</returns>
+        public async Task<int> CountAccountsByRole(string roleId)
+        {
+            if (string.IsNullOrEmpty(roleId))
+            {
+                return 0;
+            }
+
+            var filter = Builders<Account>.Filter.Eq(a => a.RoleId, roleId);
+            return (int)await _Accounts.CountDocumentsAsync(filter);
+        }
+
+
 
     }
 }
