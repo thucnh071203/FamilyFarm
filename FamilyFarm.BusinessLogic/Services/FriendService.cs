@@ -5,6 +5,7 @@ using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,10 +30,12 @@ namespace FamilyFarm.BusinessLogic.Services
             var acc = await accountRepository.GetAccountById(accId);
 
             var listFriend = await friendRepository.GetListFriends(acc.AccId);
-            if (listFriend.Count == 0) {
+            if (listFriend.Count == 0)
+            {
                 return new FriendResponseDTO
                 {
                     Message = "You dont have friend!",
+                    Count = 0,
                     IsSuccess = false,
                 };
             }
@@ -41,6 +44,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 List<FriendMapper> listAcc = new List<FriendMapper>();
                 foreach (var friend in listFriend)
                 {
+                    var listMutualFriend = await MutualFriend(accId, friend.AccId);
                     var friendMapper = new FriendMapper
                     {
                         AccId = friend.AccId,
@@ -58,6 +62,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        MutualFriend = listMutualFriend.Count
 
                     };
                     listAcc.Add(friendMapper);
@@ -65,6 +70,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 return new FriendResponseDTO
                 {
                     IsSuccess = true,
+                    Count = listAcc.Count,
                     Data = listAcc,
                 };
             }
@@ -83,6 +89,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 return new FriendResponseDTO
                 {
                     Message = "You dont have follower!",
+                    Count = 0,
                     IsSuccess = false,
                 };
             }
@@ -91,6 +98,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 List<FriendMapper> listAcc = new List<FriendMapper>();
                 foreach (var friend in listFollower)
                 {
+                    var listMutualFriend = await MutualFriend(acc.AccId, friend.AccId);
                     var friendMapper = new FriendMapper
                     {
                         AccId = friend.AccId,
@@ -108,6 +116,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        MutualFriend = listMutualFriend.Count
 
                     };
                     listAcc.Add(friendMapper);
@@ -115,6 +124,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 return new FriendResponseDTO
                 {
                     IsSuccess = true,
+                    Count = listAcc.Count,
                     Data = listAcc,
                 };
             }
@@ -132,6 +142,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 return new FriendResponseDTO
                 {
                     Message = "You dont have following!",
+                    Count = 0,
                     IsSuccess = false,
                 };
             }
@@ -139,6 +150,66 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 List<FriendMapper> listAcc = new List<FriendMapper>();
                 foreach (var friend in listFollowing)
+                {
+                    var listMutualFriend = await MutualFriend(acc.AccId, friend.AccId);
+                    var friendMapper = new FriendMapper
+                    {
+                        AccId = friend.AccId,
+                        RoleId = friend.RoleId,
+                        Username = friend.Username,
+                        FullName = friend.FullName,
+                        Birthday = friend.Birthday,
+                        Gender = friend.Gender,
+                        City = friend.City,
+                        Country = friend.Country,
+                        Address = friend.Address,
+                        Avatar = friend.Avatar,
+                        Background = friend.Background,
+                        Certificate = friend.Certificate,
+                        WorkAt = friend.WorkAt,
+                        StudyAt = friend.StudyAt,
+                        Status = friend.Status,
+                        MutualFriend = listMutualFriend.Count
+
+                    };
+                    listAcc.Add(friendMapper);
+                }
+                return new FriendResponseDTO
+                {
+                    IsSuccess = true,
+                    Count = listAcc.Count,
+                    Data = listAcc,
+                };
+            }
+        }
+        public async Task<bool> Unfriend(string senderId, string receiverId)
+        {
+            if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId)) return false;
+            //get account from ID
+            var acc = await accountRepository.GetAccountById(senderId);
+            var acc1 = await accountRepository.GetAccountById(receiverId);
+
+            return await friendRepository.Unfriend(acc.AccId, acc1.AccId);
+        }
+        public async Task<FriendResponseDTO?> MutualFriend(string userId, string otherId)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(otherId)) return null;
+            var friendOfUser = await friendRepository.GetListFriends(userId);
+            var friendOfOther = await friendRepository.GetListFriends(otherId);
+            var commonAccounts = friendOfUser.Where(a1 => friendOfOther.Any(a2 => a2.AccId == a1.AccId)).ToList();
+            if (commonAccounts.Count == 0)
+            {
+                return new FriendResponseDTO
+                {
+                    Message = "You dont have mutual friend!",
+                    Count = 0,
+                    IsSuccess = false,
+                };
+            }
+            else
+            {
+                List<FriendMapper> listAcc = new List<FriendMapper>();
+                foreach (var friend in commonAccounts)
                 {
                     var friendMapper = new FriendMapper
                     {
@@ -164,18 +235,10 @@ namespace FamilyFarm.BusinessLogic.Services
                 return new FriendResponseDTO
                 {
                     IsSuccess = true,
+                    Count = listAcc.Count,
                     Data = listAcc,
                 };
             }
-        }
-        public async Task<bool> Unfriend(string senderId, string receiverId)
-        {
-            if (string.IsNullOrEmpty(senderId)||string.IsNullOrEmpty(receiverId)) return false;
-            //get account from ID
-            var acc = await accountRepository.GetAccountById(senderId);
-            var acc1 = await accountRepository.GetAccountById(receiverId);
-
-            return await friendRepository.Unfriend(acc.AccId, acc1.AccId);
         }
 
     }

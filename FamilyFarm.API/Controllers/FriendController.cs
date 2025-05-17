@@ -289,5 +289,23 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("mutual-friend/{otherId}")]
+        [Authorize]
+        public async Task<ActionResult<FriendResponseDTO>> GetListMutualFriend(string otherId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var username = userClaims?.AccId;
+
+            var result = await _serviceOfFriend.MutualFriend(username, otherId);
+
+            if (result == null)
+                return BadRequest();
+
+            if (result.IsSuccess == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
     }
 }
