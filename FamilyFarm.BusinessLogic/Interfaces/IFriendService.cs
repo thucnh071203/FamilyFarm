@@ -14,5 +14,8 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<FriendResponseDTO?> GetListFollower(string receiverId);
         Task<FriendResponseDTO?> GetListFollowing(string senderId);
         Task<bool> Unfriend(string senderId, string receiverId);
+        Task<FriendResponseDTO> MutualFriend(string userId, string otherId);
+       
+
     }
 }
