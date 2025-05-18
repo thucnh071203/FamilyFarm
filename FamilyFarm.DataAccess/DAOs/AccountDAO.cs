@@ -262,7 +262,20 @@ namespace FamilyFarm.DataAccess.DAOs
             }
             return await _Accounts.Find(filter).FirstOrDefaultAsync();
         }
+        public async Task<Account?> GetAccountByUsernameU(string username)
+        {
+            FilterDefinition<Account> filter;
 
+            if (!string.IsNullOrEmpty(username))
+            {
+                filter = Builders<Account>.Filter.Eq(a => a.Username, username);
+            }
+            else
+            {
+                return null;
+            }
+            return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
         /// <summary>
         ///     Delete Refresh Token of user by Username
         /// </summary>

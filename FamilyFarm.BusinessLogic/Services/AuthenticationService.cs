@@ -485,16 +485,27 @@ namespace FamilyFarm.BusinessLogic.Services
                     MessageError = "Information is not null."
                 };
             }
-
-            var existingAccount = await _accountRepository.GetAccountByIdentifier(request.Username);
+         
+            var existingAccount = await _accountRepository.GetAccountByIdentifierNumber(request.Identify);
             if (existingAccount != null)
             {
                 return new RegisterFarmerResponseDTO
                 {
                     IsSuccess = false,
-                    MessageError = "Username is already."
+                    MessageError = "Identify is already."
                 };
             }
+
+            var existingPhone = await _accountRepository.GetAccountByPhone(request.Phone);
+            if (existingPhone != null)
+            {
+                return new RegisterFarmerResponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "Phone is already."
+                };
+            }
+
 
             var existingEmail = await _accountRepository.GetAccountByEmail(request.Email);
             if (existingEmail != null)
@@ -505,6 +516,21 @@ namespace FamilyFarm.BusinessLogic.Services
                     MessageError = "Email is already."
                 };
             }
+
+
+
+            var existingUsername = await _accountRepository.GetAccountByUsernameU(request.Username);
+            if (existingUsername != null)
+            {
+                return new RegisterFarmerResponseDTO
+                {
+                    IsSuccess = false,
+                    MessageError = "Username is already."
+                };
+            }
+
+
+
 
             var hashedPassword = _hasher.HashPassword(request.Password);
 
@@ -520,6 +546,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 Gender = null,
                 City = request.City,
                 Country = request.Country,
+                IdentifierNumber = request.Identify,
                 Status = 1,
                 FailedAttempts = 0,
                 LockedUntil = null,
