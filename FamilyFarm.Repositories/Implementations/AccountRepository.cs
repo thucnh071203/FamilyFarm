@@ -62,6 +62,11 @@ namespace FamilyFarm.Repositories
             return _dao.GetAccountByIdentifierNumber(identifierNumber);
         }
 
+        public Task<Account?> GetAccountByUsernameU(string username)
+        {
+            return _dao.GetAccountByUsernameU(username);
+        }
+
         public async Task<Account?> GetAccountByRefreshToken(string refreshToken)
         {
             return await _dao.GetAccountByRefreshTokenAsync(refreshToken);

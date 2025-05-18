@@ -18,6 +18,7 @@ namespace FamilyFarm.Models.DTOs.Request
         public required string Email { get; set; }
         [Required]
         public required string Phone { get; set; }
+        public required string Identify { get; set; }
         public required string City { get; set; }
         public required string Country { get; set; }
 

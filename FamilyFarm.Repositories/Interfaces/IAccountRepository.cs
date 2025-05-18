@@ -29,7 +29,7 @@ namespace FamilyFarm.Repositories
         
         //Get by Username (not check status)
         Task<Account?> GetAccountByUsername(string username);
-
+        Task<Account?> GetAccountByUsernameU(string username);
         //Get by Email
         Task<Account?> GetAccountByEmail(string email);
 
