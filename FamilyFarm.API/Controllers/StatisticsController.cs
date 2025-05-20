@@ -2,6 +2,7 @@
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ namespace FamilyFarm.API.Controllers
             _accountService = accountService;
         }
 
-
+      
         [HttpGet("count-by-role")]
         public async Task<IActionResult> CountByRole()
         {
@@ -35,7 +36,7 @@ namespace FamilyFarm.API.Controllers
             var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
             return Ok(result);
         }
-
+   
         [HttpGet("growth")]
         public async Task<IActionResult> GetUserGrowthOverTime([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
         {
@@ -68,6 +69,7 @@ namespace FamilyFarm.API.Controllers
         //        data
         //    });
         //}
+
         [HttpGet("user-growth")]
         public async Task<IActionResult> GetUserGrowth(DateTime? fromDate, DateTime? toDate)
         {
@@ -98,13 +100,14 @@ namespace FamilyFarm.API.Controllers
 
 
         [HttpGet("top-engaged")]
+    
         public async Task<IActionResult> GetTopEngagedPosts([FromQuery] int top = 5)
         {
             var result = await _statisticService.GetTopEngagedPostsAsync(top);
             return Ok(result);
         }
 
-
+       
         [HttpGet("weekly-growth")]
         public async Task<IActionResult> GetWeeklyBookingGrowth()
         {
@@ -119,7 +122,7 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
-
+    
         [HttpGet("most-active-members")]
         public async Task<IActionResult> GetMostActiveMembers(DateTime startDate, DateTime endDate)
         {
@@ -131,7 +134,9 @@ namespace FamilyFarm.API.Controllers
             var mostActiveMembers = await _statisticService.GetMostActiveMembersAsync(startDate, endDate);
             return Ok(mostActiveMembers);
         }
+
         [HttpGet("users-by-province")]
+  
         public async Task<ActionResult<List<UserByProvinceResponseDTO>>> GetUsersByProvince()
         {
             var userStats = await _statisticService.GetUsersByProvinceAsync();

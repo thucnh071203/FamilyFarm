@@ -35,8 +35,8 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IRoleRepository _roleRepository;
         private readonly IUploadFileService _uploadFileService;
         private readonly IHubContext<TopEngagedPostHub> _hubContext;
-
-        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters, IHttpContextAccessor httpContextAccessor, IRoleRepository roleRepository, IUploadFileService uploadFileService, IHubContext<TopEngagedPostHub> hubContext)
+        private readonly IStatisticRepository _statisticRepository;
+        public AuthenticationService(IConfiguration configuration, IAccountRepository accountRepository, PasswordHasher hasher, TokenValidationParameters tokenValidationParameters, IHttpContextAccessor httpContextAccessor, IRoleRepository roleRepository, IUploadFileService uploadFileService, IHubContext<TopEngagedPostHub> hubContext, IStatisticRepository statisticRepository)
         {
             _configuration = configuration;
             _accountRepository = accountRepository;
@@ -46,6 +46,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _roleRepository = roleRepository;
             _uploadFileService = uploadFileService;
             _hubContext = hubContext;
+            _statisticRepository = statisticRepository;
         }
 
         public async Task<LoginResponseDTO?> Login(LoginRequestDTO request)
@@ -358,6 +359,8 @@ namespace FamilyFarm.BusinessLogic.Services
                         farmerCount,
                         expertCount
                     });
+                    var usersByProvince = await _statisticRepository.GetUsersByProvinceAsync();
+                    await _hubContext.Clients.All.SendAsync("UsersByProvince", usersByProvince);
 
 
                     DateTime startDate = DateTime.Today.AddDays(-30);
@@ -567,6 +570,8 @@ namespace FamilyFarm.BusinessLogic.Services
                     farmerCount,
                     expertCount
                 });
+                var usersByProvince = await _statisticRepository.GetUsersByProvinceAsync();
+                await _hubContext.Clients.All.SendAsync("UsersByProvince", usersByProvince);
 
                 await _hubContext.Clients.All.SendAsync("UserRegistered", new
                 {
