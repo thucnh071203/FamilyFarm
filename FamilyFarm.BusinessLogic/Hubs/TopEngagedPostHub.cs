@@ -23,5 +23,11 @@ namespace FamilyFarm.BusinessLogic.Hubs
         {
             await Clients.All.SendAsync("ReceiveUserGrowth", growthData);
         }
+
+        public async Task SendUsersByProvince(List<UserByProvinceResponseDTO> usersByProvince)
+        {
+            await Clients.All.SendAsync("UsersByProvince", usersByProvince);
+        }
+
     }
 }
