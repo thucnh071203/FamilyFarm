@@ -29,7 +29,7 @@ namespace FamilyFarm.BusinessLogic.Services
             //get account from username
             var acc = await accountRepository.GetAccountById(accId);
 
-            var listFriend = await friendRepository.GetListFriends(acc.AccId);
+            var listFriend = await friendRepository.GetListFriends(acc.AccId, acc.RoleId);
             if (listFriend.Count == 0)
             {
                 return new FriendResponseDTO
@@ -62,6 +62,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Friend",
                         MutualFriend = listMutualFriend.Count
 
                     };
@@ -116,6 +117,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Following",
                         MutualFriend = listMutualFriend.Count
 
                     };
@@ -134,9 +136,9 @@ namespace FamilyFarm.BusinessLogic.Services
             if (string.IsNullOrEmpty(username)) return null;
             //get account from username
             var acc = await accountRepository.GetAccountByUsername(username);
+            string roleExpert = "68007b2a87b41211f0af1d57";
 
-
-            var listFollowing = await friendRepository.GetListFollowing(acc.AccId);
+            var listFollowing = await friendRepository.GetListFollowing(acc.AccId, roleExpert);
             if (listFollowing.Count == 0)
             {
                 return new FriendResponseDTO
@@ -169,6 +171,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Following",
                         MutualFriend = listMutualFriend.Count
 
                     };
@@ -193,9 +196,10 @@ namespace FamilyFarm.BusinessLogic.Services
         }
         public async Task<FriendResponseDTO?> MutualFriend(string userId, string otherId)
         {
+            var acc = await accountRepository.GetAccountById(userId);
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(otherId)) return null;
-            var friendOfUser = await friendRepository.GetListFriends(userId);
-            var friendOfOther = await friendRepository.GetListFriends(otherId);
+            var friendOfUser = await friendRepository.GetListFriends(userId, acc.RoleId);
+            var friendOfOther = await friendRepository.GetListFriends(otherId, acc.RoleId);
             var commonAccounts = friendOfUser.Where(a1 => friendOfOther.Any(a2 => a2.AccId == a1.AccId)).ToList();
             if (commonAccounts.Count == 0)
             {
