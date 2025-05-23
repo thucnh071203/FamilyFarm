@@ -16,17 +16,17 @@ namespace FamilyFarm.Repositories.Implementations
         {
             _friendDao = friendDao;
         }
-        public async Task<List<Account>> GetListFriends(string userid)
+        public async Task<List<Account>> GetListFriends(string userid, string roleId)
         {
-            return await _friendDao.GetListFriends(userid);
+            return await _friendDao.GetListFriends(userid, roleId);
         }
         public async Task<List<Account>> GetListFollower(string receiverId)
         {
             return await _friendDao.GetListFollower(receiverId);
         }
-        public async Task<List<Account>> GetListFollowing(string senderId)
+        public async Task<List<Account>> GetListFollowing(string senderId, string roleId)
         {
-            return await _friendDao.GetListFollowing(senderId);
+            return await _friendDao.GetListFollowing(senderId, roleId);
         }
         public async Task<bool> Unfriend(string senderId, string receiverId)
         {

@@ -61,6 +61,8 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Pending"
+
 
                     };
                     listSent.Add(friendMapper);
@@ -109,6 +111,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Pending"
 
                     };
                     listReceive.Add(friendMapper);

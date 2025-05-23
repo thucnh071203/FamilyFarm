@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.Models.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,13 @@ namespace FamilyFarm.DataAccess.DAOs
     {
         private readonly IMongoCollection<Friend> _Friend;
         private readonly IMongoCollection<Account> _Account;
+        private readonly AccountDAO _accountDao;
 
-        public FriendDAO(IMongoDatabase database)
+        public FriendDAO(IMongoDatabase database, AccountDAO accountDao)
         {
             _Friend = database.GetCollection<Friend>("Friend");
             _Account = database.GetCollection<Account>("Account");
+            _accountDao = accountDao;
         }
 
         public async Task<List<Friend>> GetAllAsync()
@@ -28,11 +31,12 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         /// <param name="userid"> cũng có thể là receiverId</param>
         /// <returns></returns>
-        public async Task<List<Account>> GetListFriends(string userId)
+        public async Task<List<Account>> GetListFriends(string userId, string roleId)   
         {
+          
             // Lấy danh sách receiverId từ các Friend đã là friend
             var friendFilter = Builders<Friend>.Filter.And(
-        Builders<Friend>.Filter.Eq(f => f.Status, "Accepted"),
+        Builders<Friend>.Filter.Eq(f => f.Status, "Friend"),
         Builders<Friend>.Filter.Or(
             Builders<Friend>.Filter.Eq(f => f.SenderId, userId),
             Builders<Friend>.Filter.Eq(f => f.ReceiverId, userId)
@@ -47,8 +51,9 @@ namespace FamilyFarm.DataAccess.DAOs
             ).Distinct().ToList();
 
             //  Lấy thông tin account từ receiverIds
-            var accountFilter = Builders<Account>.Filter.In(a => a.AccId, friendIds);
+            var accountFilter = Builders<Account>.Filter.In(a => a.AccId, friendIds)& Builders<Account>.Filter.Eq(b => b.RoleId, roleId);
             var friendAccounts = await _Account.Find(accountFilter).ToListAsync();
+           
 
             return friendAccounts;
         }
@@ -63,7 +68,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var friendFilter = Builders<Friend>.Filter.And(
                 Builders<Friend>.Filter.Eq(f => f.ReceiverId, receiverId),
-                Builders<Friend>.Filter.Eq(f => f.Status, "Pending")
+                Builders<Friend>.Filter.Eq(f => f.Status, "Following")
             );
 
             var friends = await _Friend.Find(friendFilter).ToListAsync();
@@ -81,19 +86,19 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         /// <param name="senderId">là người gửi yêu cầu kết bạn đến receiverId, tức đang following receiverId </param>
         /// <returns></returns>
-        public async Task<List<Account>> GetListFollowing(string senderId)
+        public async Task<List<Account>> GetListFollowing(string senderId, string roleId)
         {
 
             var friendFilter = Builders<Friend>.Filter.And(
                 Builders<Friend>.Filter.Eq(f => f.SenderId, senderId),
-                Builders<Friend>.Filter.Eq(f => f.Status, "Pending")
+                Builders<Friend>.Filter.Eq(f => f.Status, "Following")
             );
 
             var friends = await _Friend.Find(friendFilter).ToListAsync();
             var receiverId = friends.Select(f => f.ReceiverId).ToList();
 
 
-            var accountFilter = Builders<Account>.Filter.In(a => a.AccId, receiverId);
+            var accountFilter = Builders<Account>.Filter.In(a => a.AccId, receiverId)&Builders<Account>.Filter.Eq(b => b.RoleId, roleId);
             var followerAccounts = await _Account.Find(accountFilter).ToListAsync();
 
             return followerAccounts;
@@ -152,5 +157,7 @@ namespace FamilyFarm.DataAccess.DAOs
             var result = await _Friend.DeleteOneAsync(filter);
             return result.DeletedCount > 0;
         }
+        
+       
     }
 }
