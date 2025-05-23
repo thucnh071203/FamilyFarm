@@ -63,13 +63,13 @@ namespace FamilyFarm.BusinessLogic.Services
             postRequest.PostScope = request.Privacy;
             postRequest.AccId = ownAccount.AccId;
             postRequest.CreatedAt = DateTime.UtcNow;
-            if (AICheck)
+            if (AICheck)//if true, status is 0, mean that content is Agriculture
             {
                 postRequest.Status = 0;
             }
             else
             {
-                postRequest.Status = 1;
+                postRequest.Status = 1;//if false, status is 1, mean that content is not Agriculture
             }
 
             var newPost = await _postRepository.CreatePost(postRequest);
@@ -1030,6 +1030,26 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        public async Task<bool?> CheckPostByAI(string postId)
+        {
+            if (string.IsNullOrEmpty(postId)) return null;
+            var post = await _postRepository.GetPostById(postId);
+           
+            var check = await _cohereService.IsAgricultureRelatedAsync(post.PostContent);
+            if (check == false)
+            {
+                post.Status = 1;
+                var update = await _postRepository.UpdatePost(post);
+                return false;
+            }
+            else
+            {
+                post.Status = 0;
+                var update = await _postRepository.UpdatePost(post);
+                return true;
+            }
+           
+        }
  
     }
 }

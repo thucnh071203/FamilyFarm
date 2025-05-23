@@ -17,13 +17,15 @@ namespace FamilyFarm.API.Controllers
         private readonly IAuthenticationService _authenService;
         private readonly ISearchHistoryService _searchHistoryService;
         private readonly ISavedPostService _savedPostService;
+        private readonly ICohereService _cohereService;
 
-        public PostController(IPostService postService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService, ISavedPostService savedPostService)
+        public PostController(IPostService postService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService, ISavedPostService savedPostService, ICohereService cohereService)
         {
             _postService = postService;
             _authenService = authenService;
             _searchHistoryService = searchHistoryService;
             _savedPostService = savedPostService;
+            _cohereService = cohereService;
         }
 
         ///// <summary>
@@ -384,6 +386,24 @@ namespace FamilyFarm.API.Controllers
 
             if (result.Success == false)
                 return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("moderation-post/{postId}")]
+        [Authorize]
+        public async Task<ActionResult<bool?>> ModerationPostByAI(string postId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+
+            if (acc_id == null)
+                return Unauthorized();
+
+            var result = await _postService.CheckPostByAI(postId);
+
+            if (result == null)
+                return BadRequest();
 
             return Ok(result);
         }
