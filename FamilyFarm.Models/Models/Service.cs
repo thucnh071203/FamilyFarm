@@ -23,6 +23,9 @@ namespace FamilyFarm.Models.Models
         public required string ServiceDescription { get; set; }
         public required decimal Price { get; set; }
         public string? ImageUrl { get; set; }
+        public int Status { get; set; }
+        public decimal? AverageRate { get; set; }
+        public int? RateCount { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
         public bool? IsDeleted { get; set; }

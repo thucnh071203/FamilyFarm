@@ -14,6 +14,9 @@ namespace FamilyFarm.Models.DTOs.Request
         public required string ServiceName { get; set; }
         public required string ServiceDescription { get; set; }
         public required decimal Price { get; set; }
+        public required int Status { get; set; }
+        public required decimal AverageRate { get; set; }
+        public required int RateCount { get; set; }
         public IFormFile? ImageUrl { get; set; }
     }
 }

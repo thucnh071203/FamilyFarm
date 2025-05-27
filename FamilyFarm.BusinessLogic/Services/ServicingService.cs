@@ -157,7 +157,10 @@ namespace FamilyFarm.BusinessLogic.Services
                 ServiceName = item.ServiceName,
                 ServiceDescription = item.ServiceDescription,
                 Price = item.Price,
-                ImageUrl = imageURL.UrlFile ?? ""
+                ImageUrl = imageURL.UrlFile ?? "",
+                Status = item.Status,
+                AverageRate = item.AverageRate,
+                RateCount = item.RateCount
             };
             
             var created = await _serviceRepository.CreateService(addNewService);
@@ -212,6 +215,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            //if (item.ImageUrl == null) item.ImageUrl = "default.jpg";
+
             var imageURL = await _uploadFileService.UploadImage(item.ImageUrl);
 
             var updateService = new Service
@@ -222,7 +227,10 @@ namespace FamilyFarm.BusinessLogic.Services
                 ServiceName = item.ServiceName,
                 ServiceDescription = item.ServiceDescription,
                 Price = item.Price,
-                ImageUrl = imageURL.UrlFile ?? ""
+                ImageUrl = imageURL.UrlFile ?? "",
+                Status = item.Status,
+                AverageRate = item.AverageRate,
+                RateCount = item.RateCount
             };
 
             var updated = await _serviceRepository.UpdateService(serviceId, updateService);
