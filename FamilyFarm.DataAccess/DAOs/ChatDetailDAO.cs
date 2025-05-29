@@ -47,10 +47,10 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <param name="senderId">The ID of the first user (sender).</param>
         /// <param name="receiverId">The ID of the second user (receiver).</param>
         /// <returns>Returns a sorted list of chat details for the conversation between the two users.</returns>
-        public async Task<List<ChatDetail>> GetChatDetailsByAccIdsAsync(string senderId, string receiverId)
+        public async Task<List<ChatDetail>> GetChatDetailsByAccIdsAsync(string senderId, string receiverId, int skip = 0, int take = 20)
         {
             if (!ObjectId.TryParse(senderId, out _) || !ObjectId.TryParse(receiverId, out _))
-                return null;
+                return new List<ChatDetail>();
 
             var filter = Builders<ChatDetail>.Filter.Or(
                 Builders<ChatDetail>.Filter.And(
@@ -64,8 +64,33 @@ namespace FamilyFarm.DataAccess.DAOs
             );
 
             return await _chatDetails.Find(filter)
-                .SortBy(cd => cd.SendAt)
+                .SortByDescending(cd => cd.SendAt) // Sắp xếp theo SendAt giảm dần để lấy tin nhắn mới nhất
+                .Skip(skip) // Bỏ qua số tin nhắn đã lấy trước đó
+                .Limit(take) // Lấy số lượng tin nhắn được yêu cầu
                 .ToListAsync();
+        }
+
+        public async Task<int> GetTotalChatDetailsCountAsync(string acc1Id, string acc2Id)
+        {
+            var filter = Builders<ChatDetail>.Filter.And(
+                // Kiểm tra IsRecalled là false hoặc null
+                Builders<ChatDetail>.Filter.Or(
+                    Builders<ChatDetail>.Filter.Eq(c => c.IsRecalled, false),
+                    Builders<ChatDetail>.Filter.Eq(c => c.IsRecalled, null)
+                ),
+                Builders<ChatDetail>.Filter.Or(
+                    Builders<ChatDetail>.Filter.And(
+                        Builders<ChatDetail>.Filter.Eq(c => c.SenderId, acc1Id),
+                        Builders<ChatDetail>.Filter.Eq(c => c.ReceiverId, acc2Id)
+                    ),
+                    Builders<ChatDetail>.Filter.And(
+                        Builders<ChatDetail>.Filter.Eq(c => c.SenderId, acc2Id),
+                        Builders<ChatDetail>.Filter.Eq(c => c.ReceiverId, acc1Id)
+                    )
+                )
+            );
+
+            return (int)await _chatDetails.CountDocumentsAsync(filter);
         }
 
         /// <summary>

@@ -24,9 +24,9 @@ namespace FamilyFarm.Repositories.Implementations
             return await _chatDetailDAO.CreateChatDetailAsync(chatDetail);
         }
 
-        public async Task<List<ChatDetail>> GetChatDetailsByAccIdsAsync(string accId1, string accId2)
+        public async Task<List<ChatDetail>> GetChatDetailsByAccIdsAsync(string accId1, string accId2, int skip = 0, int take = 20)
         {
-            return await _chatDetailDAO.GetChatDetailsByAccIdsAsync(accId1, accId2);
+            return await _chatDetailDAO.GetChatDetailsByAccIdsAsync(accId1, accId2, skip, take);
         }
 
         public async Task MarkMessagesAsSeenAsync(string chatId, string receiverId)
@@ -42,6 +42,11 @@ namespace FamilyFarm.Repositories.Implementations
         public async Task DeleteChatDetailsByChatIdAsync(string chatId)
         {
             await _chatDetailDAO.DeleteChatDetailsByChatIdAsync(chatId);
+        }
+
+        public async Task<int> GetTotalChatDetailsCountAsync(string acc1Id, string acc2Id)
+        {
+            return await _chatDetailDAO.GetTotalChatDetailsCountAsync(acc1Id, acc2Id);
         }
     }
 }

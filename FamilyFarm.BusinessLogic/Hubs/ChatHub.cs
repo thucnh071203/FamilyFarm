@@ -1,5 +1,9 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
@@ -12,10 +16,20 @@ namespace FamilyFarm.BusinessLogic.Hubs
         // The key is the account ID, and the value is a list of connection IDs associated with that account.
         private static readonly Dictionary<string, List<string>> _accConnections = new();
         private readonly IChatRepository _chatRepository;
+        private readonly IChatDetailRepository _chatDetailRepository;
+        private readonly IAccountRepository _accountRepository;
+        private readonly IMapper _mapper;
 
-        public ChatHub(IChatRepository chatRepository)
+        public ChatHub(
+            IChatRepository chatRepository,
+            IChatDetailRepository chatDetailRepository,
+            IAccountRepository accountRepository,
+            IMapper mapper)
         {
             _chatRepository = chatRepository;
+            _chatDetailRepository = chatDetailRepository;
+            _accountRepository = accountRepository;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -91,9 +105,62 @@ namespace FamilyFarm.BusinessLogic.Hubs
         /// <returns></returns>
         public async Task SendMessage(ChatDetail chatDetail, string senderId, string receiverId)
         {
-            // Send the "ReceiveMessage" event to both the sender and receiver
-            await Clients.Users(new[] { senderId, receiverId }).SendAsync("ReceiveMessage", chatDetail);
+            try
+            {
+                if (chatDetail == null || string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId))
+                {
+                    Console.WriteLine($"Invalid SendMessage parameters: chatDetail={chatDetail}, senderId={senderId}, receiverId={receiverId}");
+                    return;
+                }
 
+                var chat = await _chatRepository.GetChatByUsersAsync(senderId, receiverId);
+                if (chat == null)
+                {
+                    Console.WriteLine($"Chat not found for senderId: {senderId}, receiverId: {receiverId}");
+                    return;
+                }
+
+                var sender = await _accountRepository.GetAccountById(senderId);
+                var receiver = await _accountRepository.GetAccountById(receiverId);
+                if (sender == null || receiver == null)
+                {
+                    Console.WriteLine($"User not found: senderId={senderId}, receiverId={receiverId}");
+                    return;
+                }
+
+                var chatDetails = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(senderId, receiverId);
+                var unreadCount = chatDetails.Count(c => c.IsSeen != true && c.ReceiverId == receiverId);
+
+                // ChatDTO cho người gửi
+                var senderChatDTO = new ChatDTO
+                {
+                    ChatId = chat.ChatId,
+                    Receiver = _mapper.Map<MyProfileDTO>(receiver),
+                    LastMessageAccId = chatDetail.SenderId ?? "",
+                    LastMessage = chatDetail.Message ?? (chatDetail.FileName != null ? "File: " + chatDetail.FileName : "No messages yet"),
+                    LastMessageAt = chatDetail.SendAt,
+                    UnreadCount = 0
+                };
+
+                // ChatDTO cho người nhận
+                var receiverChatDTO = new ChatDTO
+                {
+                    ChatId = chat.ChatId,
+                    Receiver = _mapper.Map<MyProfileDTO>(sender),
+                    LastMessageAccId = chatDetail.SenderId ?? "",
+                    LastMessage = chatDetail.Message ?? (chatDetail.FileName != null ? "File: " + chatDetail.FileName : "No messages yet"),
+                    LastMessageAt = chatDetail.SendAt,
+                    UnreadCount = unreadCount
+                };
+
+                await Clients.User(senderId).SendAsync("ReceiveMessage", chatDetail, senderChatDTO);
+                await Clients.User(receiverId).SendAsync("ReceiveMessage", chatDetail, receiverChatDTO);
+                Console.WriteLine($"Sent ReceiveMessage: chatId={chat.ChatId}, senderId={senderId}, receiverId={receiverId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in SendMessage: {ex.Message}, StackTrace: {ex.StackTrace}");
+            }
         }
 
         /// <summary>
@@ -106,11 +173,8 @@ namespace FamilyFarm.BusinessLogic.Hubs
         /// <returns></returns>
         public async Task ChatHistoryDeleted(string chatId, string accId1, string accId2)
         {
-            // Define the target account IDs to notify.
-            var targetAccIds = new[] { accId1, accId2 };
-
-            // Send the "ChatHistoryDeleted" notification to the target users.
-            await Clients.Users(targetAccIds).SendAsync("ChatHistoryDeleted", chatId);
+            // Gửi sự kiện ChatHistoryDeleted với chatId
+            await Clients.Users(new[] { accId1, accId2 }).SendAsync("ChatHistoryDeleted", chatId);
         }
 
         /// <summary>
@@ -123,25 +187,25 @@ namespace FamilyFarm.BusinessLogic.Hubs
             var chat = await _chatRepository.GetChatByIdAsync(chatId);
             if (chat == null) return;
 
-            string accId1 = chat.Acc1Id;
-            string accId2 = chat.Acc2Id;
+            var otherUserId = chat.Acc1Id; // Hoặc Acc2Id, tùy vào người nhận
+            var receiver = await _accountRepository.GetAccountById(otherUserId);
+            if (receiver == null) return;
 
-            // Gửi sự kiện MessageSeen đến cả hai người dùng
-            if (_accConnections.ContainsKey(accId1))
-            {
-                foreach (var connectionId in _accConnections[accId1])
-                {
-                    await Clients.Client(connectionId).SendAsync("MessageSeen", chatId);
-                }
-            }
+            var chatDetails = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(chat.Acc1Id, chat.Acc2Id);
+            var unreadCount = chatDetails.Count(c => c.IsSeen != true && c.ReceiverId == otherUserId);
 
-            if (_accConnections.ContainsKey(accId2))
+            var chatDTO = _mapper.Map<ChatDTO>(chat);
+            chatDTO.Receiver = _mapper.Map<MyProfileDTO>(receiver);
+            var lastMessage = chatDetails.OrderByDescending(c => c.SendAt).FirstOrDefault();
+            if (lastMessage != null)
             {
-                foreach (var connectionId in _accConnections[accId2])
-                {
-                    await Clients.Client(connectionId).SendAsync("MessageSeen", chatId);
-                }
+                chatDTO.LastMessageAccId = lastMessage.SenderId ?? "";
+                chatDTO.LastMessage = lastMessage.Message ?? (lastMessage.FileName != null ? "File: " + lastMessage.FileName : "No messages yet");
+                chatDTO.LastMessageAt = lastMessage.SendAt;
             }
+            chatDTO.UnreadCount = unreadCount;
+
+            await Clients.Users(new[] { chat.Acc1Id, chat.Acc2Id }).SendAsync("MessageSeen", chatId, chatDTO);
         }
 
         /// <summary>
@@ -154,13 +218,59 @@ namespace FamilyFarm.BusinessLogic.Hubs
         /// <returns></returns>
         public async Task ChatRecalled(string chatId, string accId1, string accId2, string chatDetailId)
         {
-            // Target both users in the chat to notify about the message revocation
-            var targetAccIds = new[] { accId1, accId2 };
+            try
+            {
+                if (string.IsNullOrEmpty(chatId) || string.IsNullOrEmpty(accId1) || string.IsNullOrEmpty(accId2) || string.IsNullOrEmpty(chatDetailId))
+                {
+                    Console.WriteLine($"Invalid ChatRecalled parameters: chatId={chatId}, accId1={accId1}, accId2={accId2}, chatDetailId={chatDetailId}");
+                    return;
+                }
 
-            // Send the "ChatRecalled" event to the users involved in the chat
-            await Clients.Users(targetAccIds).SendAsync("ChatRecalled", chatId, chatDetailId);
+                var chat = await _chatRepository.GetChatByIdAsync(chatId);
+                if (chat == null)
+                {
+                    Console.WriteLine($"Chat not found for chatId: {chatId}");
+                    return;
+                }
+
+                var receiverId = accId1 == chat.Acc1Id ? chat.Acc2Id : chat.Acc1Id;
+                var receiver = await _accountRepository.GetAccountById(receiverId);
+                if (receiver == null)
+                {
+                    Console.WriteLine($"Receiver not found for receiverId: {receiverId}");
+                    return;
+                }
+
+                var chatDetails = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(accId1, accId2);
+                var lastMessage = chatDetails
+                    .Where(c => c.IsRecalled != true) // Handle nullable boolean
+                    .OrderByDescending(c => c.SendAt)
+                    .FirstOrDefault();
+
+                var chatDTO = new ChatDTO
+                {
+                    ChatId = chat.ChatId,
+                    Receiver = _mapper.Map<MyProfileDTO>(receiver),
+                    LastMessageAccId = lastMessage?.SenderId ?? "",
+                    LastMessage = lastMessage?.Message ?? (lastMessage?.FileName != null ? "File: " + lastMessage.FileName : "No messages yet"),
+                    LastMessageAt = lastMessage?.SendAt,
+                    UnreadCount = chatDetails.Count(c => c.IsSeen != true && c.ReceiverId == receiverId)
+                };
+
+                if (chatDTO == null)
+                {
+                    Console.WriteLine("Failed to create chatDTO for ChatRecalled");
+                    return;
+                }
+
+                await Clients.Users(new[] { accId1, accId2 }).SendAsync("ChatRecalled", chatId, chatDetailId, chatDTO);
+                Console.WriteLine($"Sent ChatRecalled: chatId={chatId}, chatDetailId={chatDetailId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ChatRecalled: {ex.Message}, StackTrace: {ex.StackTrace}");
+            }
         }
-
         /// <summary>
         /// This method is called to notify the recipient that the sender is typing.
         /// It sends the "ReceiveTypingNotification" to the recipient.
