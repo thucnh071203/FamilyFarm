@@ -24,6 +24,20 @@ namespace FamilyFarm.API.Controllers
             _authenService = authenService;
         }
 
+        [HttpPost("start-chat/{receiverId}")]
+        public async Task<IActionResult> StartChats(string receiverId)
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            var chats = await _chatService.StartChatAsync(account.AccId, receiverId);
+            if (chats == null)
+                return NotFound("No chats found!");
+
+            return Ok(chats);
+        }
+
         /// <summary>
         /// Retrieves all chats for a specific user by their accId.
         /// If no chats are found, it returns a NotFound status.
@@ -112,16 +126,40 @@ namespace FamilyFarm.API.Controllers
         /// or a NotFound status if no messages are found for the given chatId.
         /// </returns>
         [HttpGet("get-messages/{receiverId}")]
-        public async Task<IActionResult> GetMessages(string receiverId)
+        public async Task<IActionResult> GetMessages(string receiverId, [FromQuery] int skip = 0, [FromQuery] int take = 20)
         {
-            var account = _authenService.GetDataFromToken();
+            try
+            {
+                // Lấy thông tin người dùng từ token
+                var account = _authenService.GetDataFromToken();
+                if (account == null)
+                {
+                    return Unauthorized(new ListChatDetailsResponseDTO
+                    {
+                        Success = false,
+                        Message = "Unauthorized access"
+                    });
+                }
 
-            var messages = await _chatService.GetChatMessagesAsync(account.AccId, receiverId);
+                // Gọi service để lấy danh sách tin nhắn
+                var response = await _chatService.GetChatMessagesAsync(account.AccId, receiverId, skip, take);
 
-            if (messages == null)
-                return NotFound("No chats found!");
-
-            return Ok(messages);
+                // Trả về kết quả
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return NotFound(response);
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi nếu cần
+                return StatusCode(500, new ListChatDetailsResponseDTO
+                {
+                    Success = false,
+                    Message = $"An error occurred: {ex.Message}"
+                });
+            }
         }
 
         /// <summary>

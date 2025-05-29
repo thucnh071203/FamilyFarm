@@ -197,6 +197,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
             return new LoginResponseDTO
             {
+                AccId = account.AccId,
                 Username = account.Username,
                 AccessToken = accessToken,
                 TokenExpiryIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds,

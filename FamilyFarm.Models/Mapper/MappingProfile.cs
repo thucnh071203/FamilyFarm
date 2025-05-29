@@ -33,7 +33,17 @@ namespace FamilyFarm.Models.Mapper
             CreateMap<Notification, SendNotificationResponseDTO>();
             CreateMap<Account, MyProfileDTO>();
             CreateMap<Chat, ChatDTO>();
-
+            CreateMap<Chat, ChatDTO>()
+                .ForMember(dest => dest.ChatId, opt => opt.MapFrom(src => src.ChatId))
+                .ForMember(dest => dest.UnreadCount, opt => opt.Ignore())
+                .ForMember(dest => dest.LastMessage, opt => opt.Ignore())
+                .ForMember(dest => dest.LastMessageAt, opt => opt.Ignore())
+                .ForMember(dest => dest.LastMessageAccId, opt => opt.Ignore())
+                .ForMember(dest => dest.Receiver, opt => opt.Ignore());
+                        CreateMap<Account, MyProfileDTO>()
+                            .ForMember(dest => dest.AccId, opt => opt.MapFrom(src => src.AccId))
+                            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                            .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar));
         }
     }
 }

@@ -23,8 +23,8 @@ namespace FamilyFarm.BusinessLogic.Services
 {
     public class ChatService : IChatService
     {
-        private readonly IChatRepository _chatRepository; 
-        private readonly IChatDetailRepository _chatDetailRepository;  
+        private readonly IChatRepository _chatRepository;
+        private readonly IChatDetailRepository _chatDetailRepository;
         private readonly IHubContext<ChatHub> _chatHubContext;
         private readonly IMapper _mapper;
         private readonly IUploadFileService _uploadFileService;
@@ -108,27 +108,50 @@ namespace FamilyFarm.BusinessLogic.Services
             var listChatDTOs = new List<ChatDTO>();
             foreach (var chat in chats)
             {
+                // Xác định ID của đối phương
+                var otherUserId = chat.Acc1Id == accId ? chat.Acc2Id : chat.Acc1Id;
+                // Lấy thông tin tài khoản của đối phương
+                var receiver = await _accountRepository.GetAccountById(otherUserId);
+                if (receiver == null)
+                {
+                    // Xử lý trường hợp không tìm thấy tài khoản đối phương
+                    continue; // Bỏ qua cuộc trò chuyện này hoặc xử lý theo cách khác
+                }
+
+                var receiverDTO = _mapper.Map<MyProfileDTO>(receiver);
+
                 var chatDetails = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(chat.Acc1Id, chat.Acc2Id);
-
-                // Lấy tin nhắn cuối cùng
-                var lastMessage = chatDetails.LastOrDefault();
-                var lastMessageContent = lastMessage?.Message ?? (lastMessage?.FileName != null ? "File: " + lastMessage.FileName : "No messages yet");
-
-                // Lấy số tin nhắn chưa đọc
-                var unreadCount = chatDetails.Count(c => c.IsSeen != true && c.ReceiverId == accId);
 
                 // Map ChatDTO từ Chat
                 var chatDTO = _mapper.Map<ChatDTO>(chat);
-                chatDTO.LastMessage = lastMessageContent;
-                chatDTO.LastMessageAt = lastMessage?.SendAt;
+                chatDTO.Receiver = receiverDTO;
+                // Lấy tin nhắn cuối cùng
+                var lastMessage = chatDetails.OrderByDescending(c => c.SendAt).FirstOrDefault(); // Lấy tin nhắn mới nhất
+                if (lastMessage != null)
+                {
+                    chatDTO.LastMessageAccId = lastMessage.SenderId ?? "";
+                    chatDTO.LastMessage = lastMessage.Message ?? (lastMessage.FileName != null ? "File: " + lastMessage.FileName : "No messages yet");
+                    chatDTO.LastMessageAt = lastMessage.SendAt;
+                }
+                else
+                {
+                    chatDTO.LastMessageAccId = "";
+                    chatDTO.LastMessage = "No messages yet";
+                    chatDTO.LastMessageAt = null;
+                }
+
+                // Lấy số tin nhắn chưa đọc
+                var unreadCount = chatDetails.Count(c => c.IsSeen != true && c.ReceiverId == accId);
                 chatDTO.UnreadCount = unreadCount;
 
                 listChatDTOs.Add(chatDTO);
             }
 
             // Sắp xếp theo tin chat có tin nhắn mới nhất
-            response.Chats = listChatDTOs.OrderByDescending(c => c.LastMessageAt).ToList();
-            response.unreadChatCount = listChatDTOs.Count(c => c.UnreadCount != 0);
+            response.Chats = listChatDTOs
+                .OrderByDescending(c => c.UnreadCount > 0)  // Ưu tiên có tin nhắn chưa đọc
+                .ThenByDescending(c => c.LastMessageAt)     // Sau đó theo thời gian tin nhắn cuối
+                .ToList(); response.unreadChatCount = listChatDTOs.Count(c => c.UnreadCount != 0);
             response.Message = "Chats retrieved successfully.";
             return response;
         }
@@ -167,27 +190,25 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </summary>
         /// <param name="chatId">The ID of the chat to retrieve messages for.</param>
         /// <returns>Returns a list of chat details (messages) for the chat.</returns>
-        public async Task<ListChatDetailsResponseDTO> GetChatMessagesAsync(string acc1Id, string acc2Id)
+        public async Task<ListChatDetailsResponseDTO> GetChatMessagesAsync(string acc1Id, string acc2Id, int skip = 0, int take = 20)
         {
             var response = new ListChatDetailsResponseDTO();
 
-            // Lấy danh sách tin nhắn
-            var messages = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(acc1Id, acc2Id);
+            // Lấy tổng số tin nhắn không bị recalled
+            var totalMessages = await _chatDetailRepository.GetTotalChatDetailsCountAsync(acc1Id, acc2Id);
+
+            // Lấy danh sách tin nhắn với phân trang
+            var messages = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(acc1Id, acc2Id, skip, take);
             if (messages == null || !messages.Any())
             {
-                response.Success = false;
+                response.Success = messages != null;
                 response.Message = "No messages found for this chat.";
+                response.TotalMessages = totalMessages;
                 return response;
             }
 
-            // Đánh dấu tin nhắn là "đã đọc" khi Get Chat Messages
-            var chatId = messages.First().ChatId;
-            await _chatDetailRepository.MarkMessagesAsSeenAsync(chatId, acc1Id);
-
-            // lấy mới nhất sau khi MarkMessagesAsSeen
-            var newMessages = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(acc1Id, acc2Id);
-            response.ChatDetails = newMessages;
-
+            response.ChatDetails = messages;
+            response.TotalMessages = totalMessages;
             response.Message = "Messages retrieved successfully.";
             return response;
         }
@@ -208,11 +229,34 @@ namespace FamilyFarm.BusinessLogic.Services
 
             await _chatDetailRepository.MarkMessagesAsSeenAsync(chatId, receiverId);
 
-            await _chatHubContext.Clients.All.SendAsync("MessageSeen", chatId);
+            // Lấy thông tin chat để tạo chatDTO
+            var chat = await _chatRepository.GetChatByIdAsync(chatId);
+            if (chat == null) return false;
+
+            var otherUserId = chat.Acc1Id == receiverId ? chat.Acc2Id : chat.Acc1Id;
+            var receiver = await _accountRepository.GetAccountById(otherUserId);
+            if (receiver == null) return false;
+
+            var chatDetails = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(chat.Acc1Id, chat.Acc2Id);
+            var unreadCount = chatDetails.Count(c => c.IsSeen != true && c.ReceiverId == receiverId);
+
+            var chatDTO = _mapper.Map<ChatDTO>(chat);
+            chatDTO.Receiver = _mapper.Map<MyProfileDTO>(receiver);
+            var lastMessage = chatDetails.OrderByDescending(c => c.SendAt).FirstOrDefault();
+            if (lastMessage != null)
+            {
+                chatDTO.LastMessageAccId = lastMessage.SenderId ?? "";
+                chatDTO.LastMessage = lastMessage.Message ?? (lastMessage.FileName != null ? "File: " + lastMessage.FileName : "No messages yet");
+                chatDTO.LastMessageAt = lastMessage.SendAt;
+            }
+            chatDTO.UnreadCount = unreadCount;
+
+            // Gửi thông báo tới cả hai người dùng
+            await _chatHubContext.Clients.Users(new[] { chat.Acc1Id, chat.Acc2Id })
+                                 .SendAsync("MessageSeen", chatId, chatDTO);
 
             return true;
         }
-
         /// <summary>
         /// Sends a message in a chat by mapping the request to a ChatDetail object, 
         /// notifying users via SignalR, and saving the message to the database.
@@ -228,14 +272,14 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </returns>
         public async Task<SendMessageResponseDTO> SendMessageAsync(string senderId, SendMessageRequestDTO request)
         {
-            const int TIME_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+            const int TIME_THRESHOLD_MS = 5 * 60 * 1000;
 
             if (request == null || string.IsNullOrEmpty(request.ReceiverId))
             {
                 return new SendMessageResponseDTO { Message = "ReceiverId is required.", Success = false };
             }
 
-            // Ensure chat exists (create if not)
+            // Ensure chat exists
             var chat = await _chatRepository.GetChatByUsersAsync(senderId, request.ReceiverId);
             if (chat == null)
             {
@@ -248,7 +292,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 await _chatRepository.CreateChatAsync(chat);
             }
 
-            // Handle file upload if exists
+            // Handle file upload
             if (request.File?.Length > 0)
             {
                 try
@@ -267,18 +311,56 @@ namespace FamilyFarm.BusinessLogic.Services
                 }
             }
 
-            // Map and assign required fields
+            // Map and assign fields
             var chatDetail = _mapper.Map<ChatDetail>(request);
             chatDetail.ChatId = chat.ChatId;
             chatDetail.SenderId = senderId;
+            chatDetail.SendAt = DateTime.UtcNow;
+
+            // Save message
+            var saved = await _chatDetailRepository.CreateChatDetailAsync(chatDetail);
+            if (saved == null)
+                return new SendMessageResponseDTO { Message = "Message send failed.", Success = false };
+
+            // Construct chatDTO
+            var receiver = await _accountRepository.GetAccountById(request.ReceiverId);
+            if (receiver == null)
+            {
+                Console.WriteLine($"Receiver not found for receiverId: {request.ReceiverId}");
+                return new SendMessageResponseDTO { Message = "Receiver not found.", Success = false };
+            }
+
+            var senderChatDTO = new ChatDTO
+            {
+                ChatId = chat.ChatId,
+                Receiver = _mapper.Map<MyProfileDTO>(receiver),
+                LastMessageAccId = chatDetail.SenderId ?? "",
+                LastMessage = chatDetail.Message ?? (chatDetail.FileName != null ? "File: " + chatDetail.FileName : "No messages yet"),
+                LastMessageAt = chatDetail.SendAt,
+                UnreadCount = 0 // Người gửi không có tin nhắn chưa đọc
+            };
+
+            // Construct chatDTO for receiver
+            var chatDetails = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(senderId, request.ReceiverId);
+            var unreadCount = chatDetails.Count(c => c.IsSeen != true && c.ReceiverId == request.ReceiverId);
+            var receiverChatDTO = new ChatDTO
+            {
+                ChatId = chat.ChatId,
+                Receiver = _mapper.Map<MyProfileDTO>(await _accountRepository.GetAccountById(senderId)), // Người nhận thấy thông tin người gửi
+                LastMessageAccId = chatDetail.SenderId ?? "",
+                LastMessage = chatDetail.Message ?? (chatDetail.FileName != null ? "File: " + chatDetail.FileName : "No messages yet"),
+                LastMessageAt = chatDetail.SendAt,
+                UnreadCount = unreadCount // Số tin nhắn chưa đọc cho người nhận
+            };
 
             // Notify via SignalR
-            await _chatHubContext.Clients.Users(new[] { senderId, request.ReceiverId })
-                                 .SendAsync("ReceiveMessage", chatDetail);
+            Console.WriteLine($"Sending ReceiveMessage: chatId={chat.ChatId}, senderId={senderId}, receiverId={request.ReceiverId}");
+            await _chatHubContext.Clients.User(senderId).SendAsync("ReceiveMessage", chatDetail, senderChatDTO);
+            await _chatHubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveMessage", chatDetail, receiverChatDTO);
 
             // Check for notification spam
             var messages = await _chatDetailRepository.GetChatDetailsByAccIdsAsync(senderId, request.ReceiverId);
-            var lastMessage = messages.OrderByDescending(c => c.SendAt).FirstOrDefault();
+            var lastMessage = messages.OrderByDescending(c => c.SendAt).Skip(1).FirstOrDefault();
             bool shouldNotify = lastMessage == null ||
                                 (chatDetail.SendAt - lastMessage.SendAt).TotalMilliseconds >= TIME_THRESHOLD_MS;
 
@@ -309,11 +391,6 @@ namespace FamilyFarm.BusinessLogic.Services
                 }
             }
 
-            // Save message
-            var saved = await _chatDetailRepository.CreateChatDetailAsync(chatDetail);
-            if (saved == null)
-                return new SendMessageResponseDTO { Message = "Message send failed.", Success = false };
-
             var response = _mapper.Map<SendMessageResponseDTO>(saved);
             response.Message = "Message sent successfully.";
             response.Success = true;
@@ -327,19 +404,14 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <returns>Returns a task representing the asynchronous delete operation.</returns>
         public async Task DeleteChatHistoryAsync(string chatId)
         {
-            // Xóa tất cả các ChatDetail liên quan đến chatId
-            await _chatDetailRepository.DeleteChatDetailsByChatIdAsync(chatId);
+            var chat = await _chatRepository.GetChatByIdAsync(chatId);
+            if (chat == null) return;
 
-            // Xóa toàn bộ chat
+            await _chatDetailRepository.DeleteChatDetailsByChatIdAsync(chatId);
             await _chatRepository.DeleteChatAsync(chatId);
 
-            // Gửi thông báo đến người dùng rằng lịch sử chat đã bị xóa
-            var chat = await _chatRepository.GetChatByIdAsync(chatId);
-            if (chat != null)
-            {
-                await _chatHubContext.Clients.Users(new[] { chat.Acc1Id, chat.Acc2Id })
-                    .SendAsync("ChatHistoryDeleted", chatId);
-            }
+            await _chatHubContext.Clients.Users(new[] { chat.Acc1Id, chat.Acc2Id })
+                                 .SendAsync("ChatHistoryDeleted", chatId);
         }
 
         /// <summary>
@@ -352,21 +424,18 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </returns>
         public async Task<ChatDetail> RecallChatDetailByIdAsync(string chatDetailId)
         {
-            // Revoke a specific ChatDetail (marking it as revoked)
             var recalledChatDetail = await _chatDetailRepository.RecallChatDetailByIdAsync(chatDetailId);
             if (recalledChatDetail == null)
-                return null;  // If no message is found to revoke, return null.
+                return null;
 
-            // Fetch the associated chat information to notify the users
             var chat = await _chatRepository.GetChatByIdAsync(recalledChatDetail.ChatId);
             if (chat != null)
             {
-                // Notify both users that the chat history (message) has been revoked
                 await _chatHubContext.Clients.Users(new[] { chat.Acc1Id, chat.Acc2Id })
-                    .SendAsync("ChatRecalled", recalledChatDetail.ChatId);
+                                     .SendAsync("ChatRecalled", recalledChatDetail.ChatId, chatDetailId);
             }
 
-            return recalledChatDetail;  // Return the revoked chat detail object.
+            return recalledChatDetail;
         }
     }
 }
