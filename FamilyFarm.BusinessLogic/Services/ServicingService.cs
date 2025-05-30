@@ -58,6 +58,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Success = true,
                 Message = "Get all services successfully",
+                Count = listAllService.Count,
                 Data = serviceMappers
             };
         }
@@ -100,6 +101,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Success = true,
                 Message = "Get all services successfully",
+                Count = services.Count,
                 Data = serviceMappers
             };
         }
