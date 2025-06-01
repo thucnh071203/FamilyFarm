@@ -13,8 +13,8 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<FriendResponseDTO?> GetAllSendFriendRequests(string senderId);
 
         Task<FriendResponseDTO?> GetAllReceiveFriendRequests(string receveiId);
-Task<bool> AcceptFriendRequestAsync(string friendId);
-     Task<bool> RejectFriendRequestAsync(string friendId);
+Task<bool> AcceptFriendRequestAsync(string senderId, string receiverId);
+     Task<bool> RejectFriendRequestAsync(string senderId, string receiverId);
         Task<bool> SendFriendRequestAsync(string senderId, string receiverId);
 
     }
