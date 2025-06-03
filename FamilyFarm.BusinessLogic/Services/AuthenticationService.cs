@@ -550,6 +550,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 Gender = null,
                 City = request.City,
                 Country = request.Country,
+                Address = request.Address,
                 IdentifierNumber = request.Identify,
                 Status = 1,
                 FailedAttempts = 0,
