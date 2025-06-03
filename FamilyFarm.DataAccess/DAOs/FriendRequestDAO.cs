@@ -64,10 +64,28 @@ namespace FamilyFarm.DataAccess.DAOs
 
 
 
+        //// Chấp nhận yêu cầu kết bạn 
+        //public async Task<bool> AcceptFriendRequestAsync(string friendId)
+        //{
+        //    var filter = Builders<Friend>.Filter.Eq(f => f.FriendId, friendId);
+        //    var update = Builders<Friend>.Update
+        //        .Set(f => f.Status, "Friend")
+        //        .Set(f => f.UpdateAt, DateTime.UtcNow);
+
+        //    var result = await _Friends.UpdateOneAsync(filter, update);
+        //    return result.ModifiedCount > 0;
+        //}
+
         // Chấp nhận yêu cầu kết bạn 
-        public async Task<bool> AcceptFriendRequestAsync(string friendId)
+        public async Task<bool> AcceptFriendRequestAsync(string senderId, string reveiverId)
         {
-            var filter = Builders<Friend>.Filter.Eq(f => f.FriendId, friendId);
+            var filter = Builders<Friend>.Filter.And(
+                Builders<Friend>.Filter.Eq(f => f.SenderId, reveiverId),
+                Builders<Friend>.Filter.Eq(f => f.ReceiverId, senderId),
+                Builders<Friend>.Filter.Eq(f => f.Status, "Pending")
+            );
+
+
             var update = Builders<Friend>.Update
                 .Set(f => f.Status, "Friend")
                 .Set(f => f.UpdateAt, DateTime.UtcNow);
@@ -76,13 +94,28 @@ namespace FamilyFarm.DataAccess.DAOs
             return result.ModifiedCount > 0;
         }
 
+        //// Xóa yêu cầu kết bạn 
+        //public async Task<bool> RejectFriendRequestAsync(string senderId)
+        //{
+        //    var filter = Builders<Friend>.Filter.Eq(f => f.FriendId, friendId);
+
+        //    var result = await _Friends.DeleteOneAsync(filter);
+        //    return result.DeletedCount > 0;
+        //}
+
         // Xóa yêu cầu kết bạn 
-        public async Task<bool> RejectFriendRequestAsync(string friendId)
+        public async Task<bool> RejectFriendRequestAsync(string senderId, string receiverId)
         {
-            var filter = Builders<Friend>.Filter.Eq(f => f.FriendId, friendId);
+            var filter = Builders<Friend>.Filter.And(
+                Builders<Friend>.Filter.Eq(f => f.SenderId, receiverId),
+                Builders<Friend>.Filter.Eq(f => f.ReceiverId, senderId),
+                Builders<Friend>.Filter.Eq(f => f.Status, "Pending")
+            );
+
             var result = await _Friends.DeleteOneAsync(filter);
             return result.DeletedCount > 0;
         }
+
 
         // Lấy yêu cầu kết bạn theo FriendId
         public async Task<Friend> GetFriendRequestAsync(string friendId)
