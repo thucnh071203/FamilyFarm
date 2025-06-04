@@ -187,7 +187,6 @@ namespace FamilyFarm.API.Controllers
             {
                 return StatusCode(423, result);
             }
-
             return result is not null ? result : Unauthorized();
         }
 
