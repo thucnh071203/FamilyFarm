@@ -199,6 +199,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 AccId = account.AccId,
                 Username = account.Username,
+                RoleId = account.RoleId,
                 AccessToken = accessToken,
                 TokenExpiryIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds,
                 RefreshToken = await GenerateRefreshToken(account)

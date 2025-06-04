@@ -10,6 +10,7 @@ namespace FamilyFarm.Models.DTOs.Response
     {
         public string? AccId { get; set; }
         public string? Username { get; set; }
+        public string? RoleId { get; set; }
         public string? AccessToken { get; set; }
         public int TokenExpiryIn { get; set; }
         public string? RefreshToken { get; set; }
