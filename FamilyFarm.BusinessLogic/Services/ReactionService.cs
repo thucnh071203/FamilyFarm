@@ -1,7 +1,10 @@
-﻿using FamilyFarm.BusinessLogic.Hubs;
+﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
@@ -20,13 +23,17 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly ICategoryReactionRepository _categoryReactionRepository;
         private readonly IHubContext<TopEngagedPostHub> _hubContext;
         private readonly IStatisticService _statisticService;
+        private readonly IAccountRepository _accountRepository;
+        private readonly IMapper _mapper;
 
-        public ReactionService(IReactionRepository reactionRepository, ICategoryReactionRepository categoryReactionRepository, IHubContext<TopEngagedPostHub> hubContext, IStatisticService statisticService)
+        public ReactionService(IReactionRepository reactionRepository, ICategoryReactionRepository categoryReactionRepository, IHubContext<TopEngagedPostHub> hubContext, IStatisticService statisticService, IAccountRepository accountRepository, IMapper mapper)
         {
             _reactionRepository = reactionRepository;
             _categoryReactionRepository = categoryReactionRepository;
             _hubContext = hubContext;
             _statisticService = statisticService;
+            _accountRepository = accountRepository;
+            _mapper = mapper;
         }
 
         public async Task<bool> ToggleReactionAsync(string entityId, string entityType, string accId, string categoryReactionId)
@@ -56,7 +63,6 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
                 await _reactionRepository.CreateAsync(newReaction);
                 var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
-                Console.WriteLine("DEBUG: Sending Top Engaged Posts => " + JsonConvert.SerializeObject(updatedPosts));
                 await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
                 return true;
             }
@@ -71,7 +77,6 @@ namespace FamilyFarm.BusinessLogic.Services
                         if (result)
                         {
                             var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
-                            Console.WriteLine("DEBUG: Sending Top Engaged Posts => " + JsonConvert.SerializeObject(updatedPosts));
                             await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
                         }
                         return result;
@@ -89,7 +94,6 @@ namespace FamilyFarm.BusinessLogic.Services
                         if (result)
                         {
                             var updatedPosts = await _statisticService.GetTopEngagedPostsAsync(5);
-                            Console.WriteLine("DEBUG: Sending Top Engaged Posts => " + JsonConvert.SerializeObject(updatedPosts));
                             await _hubContext.Clients.All.SendAsync("topEngagedPostHub", updatedPosts);
                         }
                         return result;
@@ -118,18 +122,37 @@ namespace FamilyFarm.BusinessLogic.Services
                     Success = false,
                     Message = "No reaction found!.",
                     AvailableCount = 0,
-                    Reactions = new List<Reaction>()
+                    ReactionDTOs = new List<ReactionDTO>()
                 };
 
             var reactions = await _reactionRepository.GetAllByEntityAsync(entityId, entityType);
+
+            // Tạo danh sách DTOs
+            var reactionDTOs = new List<ReactionDTO>();
+
+            foreach (var reaction in reactions.Where(r => r.IsDeleted != true))
+            {
+                var categoryReaction = await _categoryReactionRepository.GetByIdAsync(reaction.CategoryReactionId);
+                var account = await _accountRepository.GetAccountById(reaction.AccId); // hoặc map thủ công nếu có Account model
+
+                var dto = new ReactionDTO
+                {
+                    Reaction = reaction,
+                    CategoryReaction = categoryReaction,
+                    Account = _mapper.Map<MyProfileDTO>(account)
+                };
+
+                reactionDTOs.Add(dto);
+            }
 
             return new ListReactionResponseDTO
             {
                 Success = true,
                 Message = "Get list of reactions successfully!",
-                AvailableCount = reactions.Where(r => r.IsDeleted != true).Count(),
-                Reactions = reactions
+                AvailableCount = reactionDTOs.Count,
+                ReactionDTOs = reactionDTOs
             };
+
         }
     }
 }

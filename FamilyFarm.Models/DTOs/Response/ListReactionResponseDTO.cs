@@ -1,4 +1,5 @@
-﻿using FamilyFarm.Models.Models;
+﻿using FamilyFarm.Models.DTOs.EntityDTO;
+using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,6 @@ namespace FamilyFarm.Models.DTOs.Response
         public bool Success { get; set; }
         public string? Message { get; set; }
         public int? AvailableCount { get; set; }
-        public List<Reaction>? Reactions { get; set; }
+        public List<ReactionDTO>? ReactionDTOs { get; set; }
     }
 }
