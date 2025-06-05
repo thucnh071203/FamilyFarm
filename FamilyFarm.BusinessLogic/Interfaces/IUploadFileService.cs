@@ -13,6 +13,8 @@ namespace FamilyFarm.BusinessLogic
         Task<FileUploadResponseDTO> UploadImage(IFormFile fileImage);
         Task<FileUploadResponseDTO> UploadOtherFile(IFormFile file);
         Task<List<FileUploadResponseDTO>> UploadListImage(List<IFormFile> files);
+        Task<FileUploadResponseDTO> UploadImageFromStream(Stream stream, string originalFileName);
+        Task<Stream?> DownloadImageFromUrl(string? url);
         Task<bool> DeleteFile(string? urlFile);
     }
 }
