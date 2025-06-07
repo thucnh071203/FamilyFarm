@@ -15,7 +15,8 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<FriendResponseDTO?> GetListFollowing(string senderId);
         Task<bool> Unfriend(string senderId, string receiverId);
         Task<FriendResponseDTO> MutualFriend(string userId, string otherId);
-        Task<FriendResponseDTO?> GetListSuggestionFriends(string userId);
+        Task<FriendResponseDTO?> GetListSuggestionFriends(string userId, int number);
+        Task<FriendResponseDTO?> GetSuggestedExperts(string userId, int number);
 
 
     }

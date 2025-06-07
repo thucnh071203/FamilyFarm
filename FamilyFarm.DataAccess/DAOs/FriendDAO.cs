@@ -165,9 +165,8 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
         //get friend suggestion for farmer hoặc expert
-        public async Task<List<Account>> GetListSuggestionFriends(string userId)
+        public async Task<List<Account>> GetListSuggestionFriends(string userId, int number)
         {
-
             // 1. Lấy account hiện tại
             var currentUser = await _Account.Find(a => a.AccId == userId).FirstOrDefaultAsync();
             if (currentUser == null) return new List<Account>();
@@ -176,24 +175,59 @@ namespace FamilyFarm.DataAccess.DAOs
 
             // 2. Lấy danh sách ID đã có mối quan hệ với currentUser
             var relatedIds = await _Friend.Find(f =>
-                    f.SenderId == userId || f.ReceiverId == userId)
-                .ToListAsync();
+                f.SenderId == userId || f.ReceiverId == userId
+            ).ToListAsync();
 
-            var relatedUserIds = relatedIds
-                .Select(f => f.SenderId == userId ? f.ReceiverId : f.SenderId)
-                .Distinct()
-                .ToList();
+            // Nếu bảng Friend chưa có dữ liệu thì relatedUserIds sẽ rỗng
+            var relatedUserIds = relatedIds != null && relatedIds.Any()
+                ? relatedIds
+                    .Select(f => f.SenderId == userId ? f.ReceiverId : f.SenderId)
+                    .Distinct()
+                    .ToList()
+                : new List<string>();
 
             relatedUserIds.Add(userId); // Không gợi ý chính mình
 
             // 3. Trả về tối đa 8 người cùng role, chưa có quan hệ
             var suggestions = await _Account.Find(a =>
                     a.RoleId == currentRole &&
-                    !relatedUserIds.Contains(a.AccId))//chỉ chọn những người mà accId của họ không có trong list relatedUserIds
-                .Limit(8)
+                    !relatedUserIds.Contains(a.AccId)) // Không nằm trong danh sách đã quen biết
+                .Limit(number)
                 .ToListAsync();
 
             return suggestions;
         }
+
+        public async Task<List<Account>> GetSuggestedExperts(string userId, int number)
+        {
+            // 1. Lấy tài khoản hiện tại
+            var currentUser = await _Account.Find(a => a.AccId == userId).FirstOrDefaultAsync();
+            if (currentUser == null) return new List<Account>();
+
+            // 2. Lấy RoleId của Expert 
+            var expertRoleId = "68007b2a87b41211f0af1d57"; // ID role của Expert 
+
+            // 3. Lấy danh sách các expert mà người dùng đã follow (status = "Following")
+            var followedExperts = await _Friend
+                .Find(f => f.SenderId == userId && f.Status == "Following")
+                .ToListAsync() ?? new List<Friend>(); // đảm bảo không null
+
+            var followedExpertIds = followedExperts
+                .Select(f => f.ReceiverId)
+                .Distinct()
+                .ToList();
+
+            followedExpertIds.Add(userId); // loại trừ chính mình
+
+            // 4. Gợi ý expert chưa được follow
+            var suggestions = await _Account.Find(a =>
+                    a.RoleId == expertRoleId &&
+                    !followedExpertIds.Contains(a.AccId))
+                .Limit(number)
+                .ToListAsync();
+
+            return suggestions ?? new List<Account>();
+        }
+
     }
 }
