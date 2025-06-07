@@ -19,5 +19,7 @@ namespace FamilyFarm.Models.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string AccId { get; set; }
         public string? Username { get; set; }
+        public string? Fullname { get; set; }
+        public string? Avatar {  get; set; }
     }
 }

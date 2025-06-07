@@ -1,4 +1,6 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
@@ -24,8 +26,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IUploadFileService _uploadFileService;
         private readonly IAccountRepository _accountRepository;
         private readonly ICohereService _cohereService;
+        private readonly IMapper _mapper;
 
-        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService)
+        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper)
         {
             _postRepository = postRepository;
             _postCategoryRepository = postCategoryRepository;
@@ -36,6 +39,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _uploadFileService = uploadFileService;
             _accountRepository = accountRepository;
             _cohereService = cohereService;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -944,9 +948,12 @@ namespace FamilyFarm.BusinessLogic.Services
             List<PostMapper> data = new List<PostMapper>();
             foreach (var post in posts)
             {
+                var account  = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
                 var postMapper = new PostMapper
                 {
                     Post = post,
+                    OwnerPost = ownerPost,
                     PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
                     HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
                     PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
