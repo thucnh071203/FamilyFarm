@@ -245,5 +245,53 @@ namespace FamilyFarm.BusinessLogic.Services
             }
         }
 
+        public async Task<FriendResponseDTO?> GetListSuggestionFriends(string userId)
+        {
+            if (string.IsNullOrEmpty(userId)) return null;
+            var list = await friendRepository.GetListSuggestionFriends(userId);
+            if (list.Count == 0)
+            {
+                return new FriendResponseDTO
+                {
+                    Message = "You dont have friend suggestion!",
+                    Count = 0,
+                    IsSuccess = false,
+                };
+            }
+            else
+            {
+                List<FriendMapper> listAcc = new List<FriendMapper>();
+                foreach (var friend in list)
+                {
+                    var listMutualFriend = await MutualFriend(userId, friend.AccId);
+                    var friendMapper = new FriendMapper
+                    {
+                        AccId = friend.AccId,
+                        RoleId = friend.RoleId,
+                        Username = friend.Username,
+                        FullName = friend.FullName,
+                        Birthday = friend.Birthday,
+                        Gender = friend.Gender,
+                        City = friend.City,
+                        Country = friend.Country,
+                        Address = friend.Address,
+                        Avatar = friend.Avatar,
+                        Background = friend.Background,
+                        Certificate = friend.Certificate,
+                        WorkAt = friend.WorkAt,
+                        StudyAt = friend.StudyAt,
+                        MutualFriend = listMutualFriend.Count,
+                    };
+                    listAcc.Add(friendMapper);
+                }
+                return new FriendResponseDTO
+                {
+                    IsSuccess = true,
+                    Count = listAcc.Count,
+                    Data = listAcc,
+                };
+            }
+
+        }
     }
 }

@@ -32,5 +32,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _friendDao.Unfriend(senderId, receiverId);
         }
+
+        public async Task<List<Account>> GetListSuggestionFriends(string userId)
+        {
+            return await _friendDao.GetListSuggestionFriends(userId);
+        }
     }
 }
