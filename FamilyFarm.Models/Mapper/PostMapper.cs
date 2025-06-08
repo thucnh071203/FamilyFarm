@@ -10,6 +10,9 @@ namespace FamilyFarm.Models.Mapper
 {
     public class PostMapper
     {
+        public int? ReactionCount { get; set; } = 0;
+        public int? CommentCount { get; set; } = 0;
+        public int? ShareCount { get; set; } = 0;
         public Post? Post { get; set; }
         public MyProfileDTO? OwnerPost { get; set; }
         public List<PostCategory>? PostCategories { get; set; }

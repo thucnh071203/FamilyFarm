@@ -11,6 +11,7 @@ namespace FamilyFarm.Repositories.Interfaces
     {
         Task<SharePost?> GetById(string? sharePostId);
         Task<List<SharePost>?> GetByAccId(string? postId);
+        Task<List<SharePost>?> GetByPost(string? postId);
         Task<SharePost?> CreateAsync(SharePost? sharePost);
         Task<SharePost?> UpdateAsync(SharePost? request);
         Task<bool> HardDeleteAsync(string? sharePostId);
