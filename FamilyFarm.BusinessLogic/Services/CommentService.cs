@@ -184,6 +184,8 @@ namespace FamilyFarm.BusinessLogic.Services
                     continue;
                 }
 
+                var account = await _accountRepository.GetAccountById(comment.AccId);
+                var accountComment = _mapper.Map<MyProfileDTO>(account);
                 //Nếu có reaction, lập qua reaction lấy thông tin như account của người reaction và category của reaction đó
                 //Thêm reaction vào list 
                 var listAccountReaction = new List<AccountReactionDTO>();
@@ -207,7 +209,9 @@ namespace FamilyFarm.BusinessLogic.Services
                 var commentMapper = new CommentMapper
                 {
                     Comment = comment,
+                    Account = accountComment,
                     ReactionsOfComment = listAccountReaction
+                    
                 };
                 data.Add(commentMapper);
             }
