@@ -22,6 +22,10 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.GetAllAsync();
         }
 
+        public async Task<List<Group>> GetAllByUserId(string userId)
+        {
+            return await _dao.GetAllByUserId(userId);
+        }
         public async Task<Group> GetGroupById(string groupId)
         {
             return await _dao.GetByIdAsync(groupId);

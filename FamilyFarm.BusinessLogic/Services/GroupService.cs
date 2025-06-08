@@ -25,6 +25,11 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _groupRepository.GetAllGroup();
         }
 
+        public async Task<List<Group>> GetAllByUserId(string userId)
+        {
+            return await _groupRepository.GetAllByUserId(userId);
+        }
+
         public async Task<Group> GetGroupById(string groupId)
         {
             return await _groupRepository.GetGroupById(groupId);

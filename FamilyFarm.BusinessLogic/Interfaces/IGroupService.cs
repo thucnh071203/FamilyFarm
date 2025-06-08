@@ -14,5 +14,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<Group> CreateGroup(Group item);
         Task<Group> UpdateGroup(string groupId, Group item);
         Task<long> DeleteGroup(string groupId);
+        Task<List<Group>> GetAllByUserId(string userId);
     }
 }
