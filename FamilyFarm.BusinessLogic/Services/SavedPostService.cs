@@ -81,6 +81,12 @@ namespace FamilyFarm.BusinessLogic.Services
                 var postMapper = new PostMapper();
                 postMapper.Post = post;
 
+                //Lấy thông tin chủ bài viết
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+
+                postMapper.OwnerPost = ownerPost;
+
                 //2.1 Lấy list images cho từng post
                 var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
                 if (listImage != null)

@@ -7,6 +7,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -310,6 +311,48 @@ namespace FamilyFarm.API.Controllers
                 return NotFound(result);
 
             return Ok(result);
+        }
+
+        //get list suggestion friend in Friend and profile
+        [HttpGet("suggestion-friend")]
+        [Authorize]
+        public async Task<ActionResult<List<Account>>> GetListSuggestionFriends()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _serviceOfFriend.GetListSuggestionFriends(accId, 8);
+
+            return Ok(result);
+
+
+        }
+
+        //get list suggestion friend in Friend and profile
+        [HttpGet("suggestion-friend-home")]
+        [Authorize]
+        public async Task<ActionResult<List<Account>>> GetListSuggestionFriendsHome()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _serviceOfFriend.GetListSuggestionFriends(accId, 4);
+
+            return Ok(result);
+
+
+        }
+
+        //get list suggestion friend in Friend and profile
+        [HttpGet("suggestion-expert")]
+        [Authorize]
+        public async Task<ActionResult<List<Account>>> GetSuggestedExperts()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _serviceOfFriend.GetSuggestedExperts(accId, 6);
+
+            return Ok(result);
+
+
         }
 
     }

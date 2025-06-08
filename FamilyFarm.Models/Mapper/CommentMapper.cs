@@ -11,6 +11,7 @@ namespace FamilyFarm.Models.Mapper
     public class CommentMapper
     {
         public Comment? Comment { get; set; }
+        public MyProfileDTO Account { get; set; }
         public List<AccountReactionDTO>? ReactionsOfComment { get; set; }
     }
 }

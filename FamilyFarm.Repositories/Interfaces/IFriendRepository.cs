@@ -12,6 +12,8 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<Account>> GetListFriends(string userId, string roleId);
         Task<List<Account>> GetListFollower(string receiverId);
         Task<List<Account>> GetListFollowing(string senderId, string roleId);
+        Task<List<Account>>  GetListSuggestionFriends(string userId, int number);
+        Task<List<Account>> GetSuggestedExperts(string userId, int number);
         Task<bool> Unfriend(string senderId, string receiverId);
     }
 }

@@ -326,6 +326,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("infinite")]
+        [Authorize]
         public async Task<ActionResult<ListPostResponseDTO>> ListPostInfinite([FromQuery] string? lastPostId, [FromQuery] int pageSize)
         {
             if (pageSize <= 0 || pageSize > 50)
