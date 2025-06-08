@@ -49,11 +49,6 @@ namespace FamilyFarm.API.Controllers
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
-            if (account.RoleId != "68007b2a87b41211f0af1d57")
-            {
-                return BadRequest("Account is not expert.");
-            }
-
             if (addGroup == null)
                 return BadRequest("addGroup object is null");
 
@@ -85,11 +80,6 @@ namespace FamilyFarm.API.Controllers
 
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
-
-            if (account.RoleId != "68007b2a87b41211f0af1d57")
-            {
-                return BadRequest("Account is not expert.");
-            }
 
             var group = await _groupService.GetGroupById(groupId);
             if (group == null)
@@ -124,11 +114,6 @@ namespace FamilyFarm.API.Controllers
 
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
-
-            if (account.RoleId != "68007b2a87b41211f0af1d57")
-            {
-                return BadRequest("Account is not expert.");
-            }
 
             var group = await _groupService.GetGroupById(groupId);
             if (group == null)
