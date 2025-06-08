@@ -31,6 +31,16 @@ namespace FamilyFarm.API.Controllers
             return Ok(groups);
         }
 
+        [HttpGet("all-group-user")]//get all group of user
+        [Authorize]
+        public async Task<IActionResult> GetAllByUserid()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var groups = await _groupService.GetAllByUserId(accId);
+            return Ok(groups);
+        }
+
         [HttpGet("get-by-id/{groupId}")]
         public async Task<IActionResult> GetGroupById(string groupId)
         {
