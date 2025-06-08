@@ -41,6 +41,17 @@ namespace FamilyFarm.DataAccess.DAOs
             return posts;
         }
 
+        public async Task<List<SharePost>?> GetByPost(string? postId)
+        {
+            if (string.IsNullOrEmpty(postId))
+                return null;
+
+            var filter = Builders<SharePost>.Filter.Eq(x => x.PostId, postId);
+
+            var posts = await _sharePosts.Find(filter).ToListAsync();
+            return posts;
+        }
+
         public async Task<SharePost?> CreateAsync(SharePost? request)
         {
             if (request == null)
