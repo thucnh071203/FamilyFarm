@@ -219,7 +219,18 @@ namespace FamilyFarm.BusinessLogic.Services
 
             //if (item.ImageUrl == null) item.ImageUrl = "default.jpg";
 
-            var imageURL = await _uploadFileService.UploadImage(item.ImageUrl);
+            //var imageURL = await _uploadFileService.UploadImage(item.ImageUrl);
+
+            string finalImageUrl = checkOwner.ImageUrl; // mặc định giữ ảnh cũ
+
+            if (item.ImageUrl != null)
+            {
+                var imageURL = await _uploadFileService.UploadImage(item.ImageUrl);
+                if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                {
+                    finalImageUrl = imageURL.UrlFile;
+                }
+            }
 
             var updateService = new Service
             {
@@ -229,7 +240,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 ServiceName = item.ServiceName,
                 ServiceDescription = item.ServiceDescription,
                 Price = item.Price,
-                ImageUrl = imageURL.UrlFile ?? "",
+                ImageUrl = finalImageUrl,
                 Status = item.Status,
                 AverageRate = item.AverageRate,
                 RateCount = item.RateCount
@@ -251,6 +262,27 @@ namespace FamilyFarm.BusinessLogic.Services
                 Success = true,
                 Message = "Service updated successfully",
                 Data = new List<ServiceMapper> { new ServiceMapper { service = updated } }
+            };
+        }
+
+        public async Task<ServiceResponseDTO> ChangeStatusService(string serviceId)
+        {
+            var changeStatus = await _serviceRepository.ChangeStatusService(serviceId);
+
+            if (changeStatus == 0)
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Failed to change status service"
+                };
+            }
+
+            return new ServiceResponseDTO
+            {
+                Success = true,
+                Message = "Service change status successfully",
+                Data = null
             };
         }
 

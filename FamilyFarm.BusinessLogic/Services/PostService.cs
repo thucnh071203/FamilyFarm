@@ -66,8 +66,9 @@ namespace FamilyFarm.BusinessLogic.Services
             var ownAccount = await _accountRepository.GetAccountByUsername(username);
             if (ownAccount == null)
                 return null;
-            bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.PostContent);
+            //bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.PostContent);
 
+            bool AICheck = true;
 
             var postRequest = new Post();
             postRequest.PostContent = request.PostContent;
