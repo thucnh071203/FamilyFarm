@@ -96,6 +96,34 @@ namespace FamilyFarm.DataAccess.DAOs
             return updatedService;
         }
 
+        public async Task<long> ChangeStatusAsync(string serviceId)
+        {
+            if (!ObjectId.TryParse(serviceId, out _)) return 0;
+
+            var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId) &
+                         Builders<Service>.Filter.Eq(s => s.IsDeleted, false);
+
+            var checkServiceStatus = await GetByIdAsync(serviceId);
+
+            if (checkServiceStatus == null)
+                return 0;
+
+            UpdateDefinition<Service> update;
+
+            if (checkServiceStatus.Status == 0)
+            {
+                update = Builders<Service>.Update
+                .Set(s => s.Status, 1);
+            } else
+            {
+                update = Builders<Service>.Update
+                .Set(s => s.Status, 0);
+            }
+
+            var result = await _Services.UpdateOneAsync(filter, update);
+            return result.ModifiedCount;
+        }
+
         /// <summary>
         ///     Delete service
         /// </summary>

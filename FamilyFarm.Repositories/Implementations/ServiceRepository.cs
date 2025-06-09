@@ -42,6 +42,11 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.UpdateAsync(serviceId, item);
         }
 
+        public async Task<long> ChangeStatusService(string serviceId)
+        {
+            return await _dao.ChangeStatusAsync(serviceId);
+        }
+
         public async Task<long> DeleteService(string serviceId)
         {
             return await _dao.DeleteAsync(serviceId);
