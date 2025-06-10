@@ -176,6 +176,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
                     var postTag = new PostTag();
                     postTag.AccId = account.AccId;
+                    postTag.Fullname = account.FullName;
                     postTag.Username = account.Username;
                     postTag.PostId = newPost.PostId;
                     postTag.CreatedAt = DateTime.UtcNow;
