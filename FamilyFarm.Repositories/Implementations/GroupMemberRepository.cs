@@ -23,9 +23,14 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.GetByIdAsync(groupMemberId);
         }
 
-        public async Task<GroupMember> AddGroupMember(GroupMember item)
+        public async Task<GroupMember> AddGroupMember(string groupId, string accountId, string inviterId)
         {
-            return await _dao.AddAsync(item);
+            return await _dao.AddAsync(groupId, accountId, inviterId);
+        }
+
+        public async Task<GroupMember> AddGroupOwner(string groupId, string accountId)
+        {
+            return await _dao.AddOwnersync(groupId, accountId);
         }
 
         public async Task<long> DeleteGroupMember(string groupMemberId)

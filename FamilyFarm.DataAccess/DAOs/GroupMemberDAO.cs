@@ -30,26 +30,52 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _GroupMembers.Find(g => g.GroupMemberId == groupMemberId && g.MemberStatus.Equals("Accept")).FirstOrDefaultAsync();
         }
 
-        public async Task<GroupMember> AddAsync(GroupMember groupMember)
+        public async Task<GroupMember> AddAsync(string groupId, string accountId, string inviterId)
         {
-            groupMember.GroupMemberId = ObjectId.GenerateNewId().ToString();
-            groupMember.GroupRoleId = groupMember.GroupRoleId;
-            groupMember.GroupId = groupMember.GroupId;
-            groupMember.AccId = groupMember.AccId;
-            groupMember.JointAt = DateTime.UtcNow;
-            groupMember.MemberStatus = "Accept";
-            if (!string.IsNullOrEmpty(groupMember.InviteByAccId) && ObjectId.TryParse(groupMember.InviteByAccId, out _))
-            {
-                groupMember.InviteByAccId = groupMember.InviteByAccId;
-            }
-            else
-            {
-                groupMember.InviteByAccId = null;
-            }
-            groupMember.LeftAt = null;
+            if (!ObjectId.TryParse(groupId, out _)) return null;
 
-            await _GroupMembers.InsertOneAsync(groupMember);
-            return groupMember;
+            if (!ObjectId.TryParse(accountId, out _)) return null;
+
+            var addGroupMember = new GroupMember
+            {
+                GroupMemberId = ObjectId.GenerateNewId().ToString(),
+                GroupRoleId = "680cebdfac700e1cb4c165b2", // mặc định là member
+                GroupId = groupId,
+                AccId = accountId,
+                JointAt = DateTime.Now,
+                MemberStatus = "Pending",
+                InviteByAccId = inviterId,
+                LeftAt = null
+            };
+
+
+            await _GroupMembers.InsertOneAsync(addGroupMember);
+
+            return addGroupMember;
+        }
+
+        public async Task<GroupMember> AddOwnersync(string groupId, string accountId)
+        {
+            if (!ObjectId.TryParse(groupId, out _)) return null;
+
+            if (!ObjectId.TryParse(accountId, out _)) return null;
+
+            var addGroupMember = new GroupMember
+            {
+                GroupMemberId = ObjectId.GenerateNewId().ToString(),
+                GroupRoleId = "680ce8722b3eec497a30201e", // mặc định là owner
+                GroupId = groupId,
+                AccId = accountId,
+                JointAt = DateTime.Now,
+                MemberStatus = "Accept",
+                InviteByAccId = null,
+                LeftAt = null
+            };
+
+
+            await _GroupMembers.InsertOneAsync(addGroupMember);
+
+            return addGroupMember;
         }
 
         public async Task<long> DeleteAsync(string groupMemberId)
