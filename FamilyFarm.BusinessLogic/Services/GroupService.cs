@@ -116,6 +116,28 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            var getGroupId = await _groupRepository.GetLatestGroupByCreator(item.AccountId);
+
+            if (getGroupId == null)
+            {
+                return new GroupResponseDTO
+                {
+                    Success = false,
+                    Message = "Get group id of owner failed."
+                };
+            }
+
+            var addNewOwner = await _memberRepository.AddGroupOwner(getGroupId.GroupId, item.AccountId);
+
+            if (addNewOwner == null) 
+            {
+                return new GroupResponseDTO
+                {
+                    Success = false,
+                    Message = "Add owner failed."
+                };
+            }
+
             return new GroupResponseDTO
             {
                 Success = true,
@@ -198,6 +220,27 @@ namespace FamilyFarm.BusinessLogic.Services
                 Success = true,
                 Message = "Group updated successfully",
                 Data = new List<Group> { updated }
+            };
+        }
+
+        public async Task<GroupResponseDTO> GetLatestGroupByCreator(string creatorId)
+        {
+            var group = await _groupRepository.GetLatestGroupByCreator(creatorId);
+
+            if (group == null)
+            {
+                return new GroupResponseDTO
+                {
+                    Success = false,
+                    Message = "Group not found"
+                };
+            }
+
+            return new GroupResponseDTO
+            {
+                Success = true,
+                Message = "Get group successfully",
+                Data = new List<Group> { group }
             };
         }
 

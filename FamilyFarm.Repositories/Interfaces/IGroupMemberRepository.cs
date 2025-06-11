@@ -12,7 +12,8 @@ namespace FamilyFarm.Repositories.Interfaces
     public interface IGroupMemberRepository
     {
         Task<GroupMember> GetGroupMemberById(string groupMemberId);
-        Task<GroupMember> AddGroupMember(GroupMember groupMember);
+        Task<GroupMember> AddGroupMember(string groupId, string accountId, string inviterId);
+        Task<GroupMember> AddGroupOwner(string groupId, string accountId);
         Task<long> DeleteGroupMember(string groupMemberId);
         Task<long> DeleteAllGroupMember(string groupId);
 

@@ -50,6 +50,22 @@ namespace FamilyFarm.API.Controllers
             return Ok(group);
         }
 
+        [HttpGet("get-lastest")]
+        [Authorize]
+        public async Task<IActionResult> DeleteGroup()
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            var result = await _groupService.GetLatestGroupByCreator(account.AccId);
+
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         [HttpPost("create")]
         [Authorize]
         public async Task<IActionResult> CreateGroup([FromForm] GroupRequestDTO addGroup)
@@ -57,6 +73,9 @@ namespace FamilyFarm.API.Controllers
             var account = _authenService.GetDataFromToken();
             if (account == null)
                 return Unauthorized("Invalid token or user not found.");
+
+            if (string.IsNullOrWhiteSpace(addGroup.GroupName) || string.IsNullOrWhiteSpace(addGroup.PrivacyType))
+                return BadRequest("GroupName and PrivacyType must not be empty.");
 
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
@@ -68,57 +87,12 @@ namespace FamilyFarm.API.Controllers
 
             var result = await _groupService.CreateGroup(addGroup);
             return result.Success ? Ok(result) : BadRequest(result);
-
-            //var addNewGroup = new FamilyFarm.Models.Models.Group
-            //{
-            //    GroupId = null,
-            //    OwnerId = account.AccId,
-            //    GroupName = addGroup.GroupName,
-            //    GroupAvatar = addGroup.GroupAvatar,
-            //    GroupBackground = addGroup.GroupBackground,
-            //    PrivacyType = addGroup.PrivacyType,
-            //    CreatedAt = null,
-            //    UpdatedAt = null,
-            //    DeletedAt = null
-            //};
-
-            //await _groupService.CreateGroup(addNewGroup);
-
-            //return CreatedAtAction(nameof(GetGroupById), new { groupId = addNewGroup.GroupId }, addNewGroup);
         }
 
         [HttpPut("update/{groupId}")]
         [Authorize]
         public async Task<IActionResult> UpdateGroup(string groupId, [FromForm] GroupRequestDTO updateGroup)
         {
-            //var account = _authenService.GetDataFromToken();
-            //if (account == null)
-            //    return Unauthorized("Invalid token or user not found.");
-
-            //if (!ObjectId.TryParse(account.AccId, out _))
-            //    return BadRequest("Invalid AccIds.");
-
-            //var group = await _groupService.GetGroupById(groupId);
-            //if (group == null)
-            //    return BadRequest("Group not found");
-
-            //if (group.OwnerId != account.AccId)
-            //{
-            //    return BadRequest("Account id does not match");
-            //}
-
-            //group.GroupName = updateGroup.GroupName;
-            //group.GroupAvatar = updateGroup.GroupAvatar;
-            //group.GroupBackground = updateGroup.GroupBackground;
-            //group.PrivacyType = updateGroup.PrivacyType;
-
-            //await _groupService.UpdateGroup(groupId, group);
-
-            //return Ok(new
-            //{
-            //    message = "Group updated successfully",
-            //    data = updateGroup
-            //});
             var account = _authenService.GetDataFromToken();
             if (account == null)
                 return Unauthorized("Invalid token or user not found.");
@@ -150,9 +124,6 @@ namespace FamilyFarm.API.Controllers
             if (group == null)
                 return BadRequest("Group not found");
 
-            //await _groupService.DeleteGroup(groupId);
-
-            //return Ok("Delete successfully!");
             var result = await _groupService.DeleteGroup(groupId);
             return result.Success ? Ok(result) : BadRequest(result);
         }

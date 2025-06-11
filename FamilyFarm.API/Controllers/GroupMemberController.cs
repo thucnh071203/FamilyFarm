@@ -4,8 +4,11 @@ using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FamilyFarm.API.Controllers
 {
@@ -16,12 +19,14 @@ namespace FamilyFarm.API.Controllers
         private readonly IGroupMemberService _groupMemberService;
         private readonly IAuthenticationService _authenService;
         private readonly ISearchHistoryService _searchHistoryService;
+        private readonly IAccountService _accountService;
 
-        public GroupMemberController(IGroupMemberService groupMemberService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService)
+        public GroupMemberController(IGroupMemberService groupMemberService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService, IAccountService accountService)
         {
             _groupMemberService = groupMemberService;
             _authenService = authenService;
             _searchHistoryService = searchHistoryService;
+            _accountService = accountService;
         }
 
         [HttpGet("get-by-id/{groupMemberId}")]
@@ -31,18 +36,45 @@ namespace FamilyFarm.API.Controllers
             return Ok(groupMemberId);
         }
 
-        [HttpPost("create")]
-        public async Task<IActionResult> AddGroupMember([FromBody] GroupMember addGroupMember)
+        [HttpPost("create/{groupId}/{accountId}")]
+        [Authorize]
+        public async Task<IActionResult> AddGroupMember(string groupId, string accountId)
         {
-            if (addGroupMember == null)
-                return BadRequest("addGroupMember object is null");
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
 
-            // Xác định là Role "Member"
-            addGroupMember.GroupRoleId = "680cebdfac700e1cb4c165b2";
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
 
-            await _groupMemberService.AddGroupMember(addGroupMember);
+            string inviterId = account.AccId;
 
-            return CreatedAtAction(nameof(GetGroupMemberById), new { groupMemberId = addGroupMember.GroupMemberId }, addGroupMember);
+            if (string.IsNullOrEmpty(groupId) || string.IsNullOrEmpty(accountId))
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "GroupId or AccountId is null",
+                });
+            }
+
+            var result = await _groupMemberService.AddGroupMember(groupId, accountId, inviterId);
+
+            if (result == null)
+            {
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = "Add member failed."
+                });
+            }
+
+            return Ok(new
+            {
+                Success = true,
+                Message = "Add member successfully.",
+                Data = result
+            });
         }
 
         [HttpDelete("delete/{groupMemberId}")]

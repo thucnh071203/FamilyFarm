@@ -27,9 +27,9 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _groupMemberRepository.GetGroupMemberById(groupMemberId);
         }
 
-        public async Task<GroupMember> AddGroupMember(GroupMember item)
+        public async Task<GroupMember> AddGroupMember(string groupId, string accountId, string inviterId)
         {
-            return await _groupMemberRepository.AddGroupMember(item);
+            return await _groupMemberRepository.AddGroupMember(groupId, accountId, inviterId);
         }
 
         public async Task<long> DeleteGroupMember(string groupMemberId)

@@ -13,7 +13,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
     public interface IGroupMemberService
     {
         Task<GroupMember> GetGroupMemberById(string groupMemberId);
-        Task<GroupMember> AddGroupMember(GroupMember groupMember);
+        Task<GroupMember> AddGroupMember(string groupId, string accountId, string inviterId);
         Task<long> DeleteGroupMember(string groupMemberId);
         Task<List<Account>> GetUsersInGroupAsync(string groupId);
         Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword);
