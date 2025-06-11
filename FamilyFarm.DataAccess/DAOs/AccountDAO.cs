@@ -299,7 +299,7 @@ namespace FamilyFarm.DataAccess.DAOs
         public async Task<Account?> GetAccountByIdAsync(string accId)
         {
             return await _Accounts
-                .Find(a => a.AccId == accId && a.Status == 1)
+                .Find(a => a.AccId == accId && a.Status == 0)
                 .FirstOrDefaultAsync();
         }
 
