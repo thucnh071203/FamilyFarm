@@ -52,7 +52,7 @@ namespace FamilyFarm.API.Controllers
 
         [HttpGet("get-lastest")]
         [Authorize]
-        public async Task<IActionResult> DeleteGroup()
+        public async Task<IActionResult> GetLastestGroup()
         {
             var account = _authenService.GetDataFromToken();
             if (account == null)
