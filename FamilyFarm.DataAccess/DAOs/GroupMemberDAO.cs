@@ -253,10 +253,9 @@ namespace FamilyFarm.DataAccess.DAOs
 
 
         }
-        public async Task<bool> UpdateRoleAsync(string groupId, string accId, string newGroupRoleId)
+        public async Task<bool> UpdateRoleAsync(string groupMemberId, string newGroupRoleId)
         {
-            var filter = Builders<GroupMember>.Filter.Eq(m => m.GroupId, groupId) &
-                         Builders<GroupMember>.Filter.Eq(m => m.AccId, accId) &
+            var filter = Builders<GroupMember>.Filter.Eq(m => m.GroupMemberId, groupMemberId) &
                          Builders<GroupMember>.Filter.Eq(m => m.MemberStatus, "Accept");
 
             var update = Builders<GroupMember>.Update.Set(m => m.GroupRoleId, newGroupRoleId);
