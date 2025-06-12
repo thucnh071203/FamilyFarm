@@ -191,6 +191,7 @@ namespace FamilyFarm.BusinessLogic.Services
             PostMapper data = new PostMapper();
             data.Post = newPost;
             data.PostTags = postTags;
+            data.OwnerPost = _mapper.Map<MyProfileDTO>(ownAccount);
             data.PostCategories = postCategories;
             data.PostImages = postImages;
             data.HashTags = hashTags;
