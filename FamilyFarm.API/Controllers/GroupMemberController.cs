@@ -148,10 +148,13 @@ namespace FamilyFarm.API.Controllers
                 Data = data
             });
         }
-        [HttpPost("request-to-join")]
-        public async Task<IActionResult> RequestToJoinGroup([FromBody] RequestToJoinGroupRequestDTO requestToJoinGroup)
+        [HttpPost("request-to-join/{groupId}")]
+        [Authorize]
+        public async Task<IActionResult> RequestToJoinGroup(string groupId)
         {
-            var result = await _groupMemberService.RequestToJoinGroupAsync(requestToJoinGroup.AccId, requestToJoinGroup.GroupId);
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _groupMemberService.RequestToJoinGroupAsync(accId, groupId);
             if (result == null)
                 return BadRequest(new { Success = false, Message = "You send already or you are member." });
 

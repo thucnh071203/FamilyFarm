@@ -17,7 +17,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<long> DeleteGroupMember(string groupMemberId);
         Task<long> DeleteAllGroupMember(string groupId);
 
-        Task<List<Account>> GetUsersInGroupAsync(string groupId);
+        Task<List<GroupMemberResponseDTO>> GetUsersInGroupAsync(string groupId);
         Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword);
 
         Task<List<GroupMemberRequest>> GetJoinRequestsAsync(string groupId);
