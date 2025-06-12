@@ -17,6 +17,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<FriendResponseDTO> MutualFriend(string userId, string otherId);
         Task<FriendResponseDTO?> GetListSuggestionFriends(string userId, int number);
         Task<FriendResponseDTO?> GetSuggestedExperts(string userId, int number);
+        Task<List<FriendResponseDTO>> GetAvailableFarmersAndExpertsAsync(string accId);
 
 
     }

@@ -59,9 +59,9 @@ namespace FamilyFarm.BusinessLogic.Services
 
             return await _groupMemberRepository.RespondToJoinRequestAsync(groupMemberId, responseStatus);
         }
-        public async Task<bool> UpdateMemberRoleAsync(string groupId, string accId, string newGroupRoleId)
+        public async Task<bool> UpdateMemberRoleAsync(string groupMemberId, string newGroupRoleId)
         {
-            return await _groupMemberRepository.UpdateMemberRoleAsync(groupId, accId, newGroupRoleId);
+            return await _groupMemberRepository.UpdateMemberRoleAsync(groupMemberId, newGroupRoleId);
         }
 
     }

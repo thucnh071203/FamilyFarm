@@ -185,7 +185,7 @@ namespace FamilyFarm.API.Controllers
 
             if (result)
             {
-     
+
                 return Ok(new FriendRequestResponse
                 {
                     Message = "Yêu cầu kết bạn đã được gửi.",
@@ -231,7 +231,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var username = userClaims?.Username;
-            if(username == null) return Unauthorized();
+            if (username == null) return Unauthorized();
 
             var result = await _serviceOfFriend.GetListFriends(accIdOfOther);
 
@@ -349,6 +349,20 @@ namespace FamilyFarm.API.Controllers
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
             var result = await _serviceOfFriend.GetSuggestedExperts(accId, 6);
+
+            return Ok(result);
+
+
+        }
+
+        //get list suggestion friend in Friend and profile
+        [HttpGet("list-account-no-relation")]
+        [Authorize]
+        public async Task<ActionResult<List<FriendResponseDTO>>> GetAvailableFarmersAndExperts()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _serviceOfFriend.GetAvailableFarmersAndExpertsAsync(accId);
 
             return Ok(result);
 

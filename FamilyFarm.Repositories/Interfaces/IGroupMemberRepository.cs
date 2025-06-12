@@ -25,7 +25,7 @@ namespace FamilyFarm.Repositories.Interfaces
 
         Task<bool> RespondToJoinRequestAsync(string groupMemberId, string responseStatus);
 
-        Task<bool> UpdateMemberRoleAsync(string groupId, string accId, string newGroupRoleId);
+        Task<bool> UpdateMemberRoleAsync(string groupMemberId, string newGroupRoleId);
 
 
     }
