@@ -87,13 +87,8 @@ namespace FamilyFarm.DataAccess.DAOs
 
             if (filter == null) return 0;
 
-            var update = Builders<GroupMember>.Update
-                .Set(g => g.MemberStatus, "Left")
-                .Set(g => g.LeftAt, DateTime.UtcNow);
-
-            var result = await _GroupMembers.UpdateOneAsync(filter, update);
-
-            return result.ModifiedCount;
+            var deleteResult = await _GroupMembers.DeleteOneAsync(filter);
+            return deleteResult.DeletedCount;
         }
 
         public async Task<long> DeleteAllAsync(string groupId)
@@ -114,21 +109,49 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
-        public async Task<List<Account>> GetUsersInGroupAsync(string groupId)
+        //public async Task<List<Account>> GetUsersInGroupAsync(string groupId)
+        //{
+        //    if (!ObjectId.TryParse(groupId, out _)) return new List<Account>();
+
+        //    var members = await _GroupMembers
+        //        .Find(gm => gm.GroupId == groupId && gm.MemberStatus == "Accept")
+        //        .ToListAsync();
+
+        //    var accIds = members.Select(m => m.AccId).ToList();
+
+        //    var usersInGroup = await _Accounts
+        //        .Find(acc => accIds.Contains(acc.AccId))
+        //        .ToListAsync();
+
+        //    return usersInGroup;
+        //}
+
+        public async Task<List<GroupMemberResponseDTO>> GetUsersInGroupAsync(string groupId)
         {
-            if (!ObjectId.TryParse(groupId, out _)) return new List<Account>();
+            var filter = Builders<GroupMember>.Filter.Eq(gm => gm.GroupId, groupId) &
+                         Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Accept");
 
-            var members = await _GroupMembers
-                .Find(gm => gm.GroupId == groupId && gm.MemberStatus == "Accept")
-                .ToListAsync();
+            var groupMembers = await _GroupMembers.Find(filter).ToListAsync();
 
-            var accIds = members.Select(m => m.AccId).ToList();
+            var accIds = groupMembers.Select(m => m.AccId).ToList();
 
-            var usersInGroup = await _Accounts
-                .Find(acc => accIds.Contains(acc.AccId))
-                .ToListAsync();
+            var accountFilter = Builders<Account>.Filter.In(a => a.AccId, accIds);
+            var accounts = await _Accounts.Find(accountFilter).ToListAsync();
 
-            return usersInGroup;
+            var joined = groupMembers.Join(accounts, m => m.AccId, a => a.AccId, (m, a) => new GroupMemberResponseDTO
+            {
+                GroupMemberId = m.GroupMemberId,
+                GroupId = m.GroupId,
+                AccId = m.AccId,
+                JointAt = m.JointAt,
+                MemberStatus = m.MemberStatus,
+                FullName = a.FullName,
+                Avatar = a.Avatar ?? "",
+                City = a.City,
+                RoleInGroupId = m.GroupRoleId,
+            }).ToList();
+
+            return joined;
         }
         public async Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword)
         {
@@ -170,7 +193,8 @@ namespace FamilyFarm.DataAccess.DAOs
                 InviteByAccId = m.InviteByAccId,
                 LeftAt = m.LeftAt,
                 AccountFullName = a.FullName,
-                AccountAvatar = a.Avatar ?? ""
+                AccountAvatar = a.Avatar ?? "",
+                City = a.City
             }).ToList();
 
             return joined;
@@ -187,7 +211,7 @@ namespace FamilyFarm.DataAccess.DAOs
             ).FirstOrDefaultAsync();
 
             if (existingMember != null)
-                return null; 
+                return null;
 
             var groupMember = new GroupMember
             {
@@ -213,14 +237,22 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var filter = Builders<GroupMember>.Filter.Eq(gm => gm.GroupMemberId, groupMemberId) &
                          Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Pending");
-
-            var update = Builders<GroupMember>.Update
+            if (responseStatus.Equals(validStatuses[0]))
+            {
+                var update = Builders<GroupMember>.Update
+                    .Set(gm => gm.GroupRoleId, "680cebdfac700e1cb4c165b2")
                 .Set(gm => gm.MemberStatus, responseStatus)
                 .Set(gm => gm.JointAt, DateTime.UtcNow);
+                var result = await _GroupMembers.UpdateOneAsync(filter, update);
+                return result.ModifiedCount > 0;
+            }
+            else
+            {
+                var deleteResult = await _GroupMembers.DeleteOneAsync(filter);
+                return deleteResult.DeletedCount > 0;
+            }
 
-            var result = await _GroupMembers.UpdateOneAsync(filter, update);
 
-            return result.ModifiedCount > 0;
         }
         public async Task<bool> UpdateRoleAsync(string groupId, string accId, string newGroupRoleId)
         {

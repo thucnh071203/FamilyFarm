@@ -92,6 +92,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.GetByAccId(accId);
         }
-       
+
+        public async Task<List<Post>?> GetDeletedByAccId(string? accId)
+        {
+            return await _postDAO.GetDeletedByAccId(accId);
+        }
     }
 }
