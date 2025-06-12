@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
@@ -43,7 +44,7 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.DeleteAllAsync(groupId);
         }
 
-        public async Task<List<Account>> GetUsersInGroupAsync(string groupId)
+        public async Task<List<GroupMemberResponseDTO>> GetUsersInGroupAsync(string groupId)
         {
             return await _dao.GetUsersInGroupAsync(groupId);
         }
