@@ -215,6 +215,26 @@ namespace FamilyFarm.DataAccess.DAOs
             }
         }
 
+        public async Task<List<Post>?> GetDeletedByAccId(string? accId)
+        {
+            if (string.IsNullOrEmpty(accId))
+                return null;
+
+            // Tạo bộ lọc với hai điều kiện:
+            var builder = Builders<Post>.Filter;
+            var filter = builder.Eq(x => x.AccId, accId) & builder.Eq(x => x.IsDeleted, true);
+
+            try
+            {
+                var posts = await _post.Find(filter).ToListAsync();
+                return posts;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         ///     Delete post with post id
         /// </summary>
@@ -413,8 +433,6 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return posts;
         }
-
-       
 
         public async Task<List<Post>> GetAllPostsAsync()
         {
