@@ -24,6 +24,6 @@ namespace FamilyFarm.Models.DTOs.EntityDTO
         public string? TargetType { get; set; }
         public string? TargetContent { get; set; }
 
-        public bool IsRead { get; set; }
+        public NotificationStatus? Status { get; set; }
     }
 }
