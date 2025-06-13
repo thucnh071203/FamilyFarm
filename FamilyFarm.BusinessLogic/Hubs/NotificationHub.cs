@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,15 +11,36 @@ namespace FamilyFarm.BusinessLogic.Hubs
 {
     public class NotificationHub : Hub
     {
-        /// <summary>
-        /// Sends a real-time notification to a specific user via SignalR.
-        /// </summary>
-        /// <param name="accId">The ID of the user to receive the notification.</param>
-        /// <param name="notification">The notification object to send.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
+        public override async Task OnConnectedAsync()
+        {
+            // Lấy accId từ JWT claims thay vì query parameter
+            var accId = Context.User?.FindFirst("AccId")?.Value
+                       ?? Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                       ?? Context.User?.FindFirst("sub")?.Value;
+
+
+            if (!string.IsNullOrEmpty(accId))
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, accId);
+            }
+            else
+            {
+                Console.WriteLine("No accId found in user claims");
+            }
+            await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            var accId = Context.User?.FindFirst("AccId")?.Value
+                       ?? Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                       ?? Context.User?.FindFirst("sub")?.Value;
+            await base.OnDisconnectedAsync(exception);
+        }
+
         public async Task SendNotification(string accId, Notification notification)
         {
-            await Clients.User(accId).SendAsync("ReceiveNotification", notification);
+            await Clients.Group(accId).SendAsync("ReceiveNotification", notification);
         }
     }
 }

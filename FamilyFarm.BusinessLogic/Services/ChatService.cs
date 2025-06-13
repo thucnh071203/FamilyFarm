@@ -354,7 +354,6 @@ namespace FamilyFarm.BusinessLogic.Services
             };
 
             // Notify via SignalR
-            Console.WriteLine($"Sending ReceiveMessage: chatId={chat.ChatId}, senderId={senderId}, receiverId={request.ReceiverId}");
             await _chatHubContext.Clients.User(senderId).SendAsync("ReceiveMessage", chatDetail, senderChatDTO);
             await _chatHubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveMessage", chatDetail, receiverChatDTO);
 
