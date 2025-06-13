@@ -248,12 +248,24 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             var deletedCount = await _groupRepository.DeleteGroup(groupId);
 
+
             if (deletedCount == 0)
             {
                 return new GroupResponseDTO
                 {
                     Success = false,
                     Message = "Failed to delete group"
+                };
+            }
+
+            var deleteAllMember = await _memberRepository.DeleteAllGroupMember(groupId);
+
+            if (deleteAllMember == -1)
+            {
+                return new GroupResponseDTO
+                {
+                    Success = true,
+                    Message = "Delete all member failed."
                 };
             }
 

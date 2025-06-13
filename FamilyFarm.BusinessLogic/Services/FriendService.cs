@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FamilyFarm.BusinessLogic.Services
 {
@@ -347,5 +348,96 @@ namespace FamilyFarm.BusinessLogic.Services
             }
 
         }
+        public async Task<List<FriendResponseDTO>> GetAvailableFarmersAndExpertsAsync(string accId)
+        {
+            if (string.IsNullOrEmpty(accId)) return null;
+            var listResult = new List<FriendResponseDTO>();
+            var list = await friendRepository.GetAvailableFarmersAndExpertsAsync(accId);
+            List<FriendMapper> listFarmer = new List<FriendMapper>();
+            List<FriendMapper> listExpert = new List<FriendMapper>();
+            if (list.Farmers.Count > 0)
+            {
+                foreach (var friend in list.Farmers)
+                {
+                    var friendMapper = new FriendMapper
+                    {
+                        AccId = friend.AccId,
+                        RoleId = friend.RoleId,
+                        Username = friend.Username,
+                        FullName = friend.FullName,
+                        Birthday = friend.Birthday,
+                        Gender = friend.Gender,
+                        City = friend.City,
+                        Country = friend.Country,
+                        Address = friend.Address,
+                        Avatar = friend.Avatar,
+                        Background = friend.Background,
+                        Certificate = friend.Certificate,
+                        WorkAt = friend.WorkAt,
+                        StudyAt = friend.StudyAt,
+
+                    };
+                    listFarmer.Add(friendMapper);
+                }
+                listResult.Add(new FriendResponseDTO
+                {
+                    IsSuccess = true,
+                    Data = listFarmer
+
+                });
+
+            }
+            else
+            {
+                listResult.Add(new FriendResponseDTO
+                {
+                    IsSuccess = false,
+                });
+            }
+
+            if (list.Experts.Count > 0)
+            {
+                foreach (var friend in list.Experts)
+                {
+                    var friendMapper = new FriendMapper
+                    {
+                        AccId = friend.AccId,
+                        RoleId = friend.RoleId,
+                        Username = friend.Username,
+                        FullName = friend.FullName,
+                        Birthday = friend.Birthday,
+                        Gender = friend.Gender,
+                        City = friend.City,
+                        Country = friend.Country,
+                        Address = friend.Address,
+                        Avatar = friend.Avatar,
+                        Background = friend.Background,
+                        Certificate = friend.Certificate,
+                        WorkAt = friend.WorkAt,
+                        StudyAt = friend.StudyAt,
+
+                    };
+                    listExpert.Add(friendMapper);
+                }
+                listResult.Add(new FriendResponseDTO
+                {
+                    IsSuccess = true,
+                    Data = listExpert
+
+                });
+
+            }
+            else
+            {
+                listResult.Add(new FriendResponseDTO
+                {
+                    IsSuccess = false,
+                });
+            }
+
+            return listResult;
+        }
+
+
     }
 }

@@ -229,5 +229,34 @@ namespace FamilyFarm.DataAccess.DAOs
             return suggestions ?? new List<Account>();
         }
 
+
+        public async Task<(List<Account> Farmers, List<Account> Experts)> GetAvailableFarmersAndExpertsAsync(string accId)
+        {
+            // 1. Tìm tất cả liên kết của accId trong bảng Friend (gửi hoặc nhận)
+            var relatedFriendships = await _Friend.Find(f =>
+                f.SenderId == accId || f.ReceiverId == accId
+            ).ToListAsync();
+
+            // 2. Tập hợp tất cả người đã có mối quan hệ
+            var relatedAccountIds = relatedFriendships
+                .Select(f => f.SenderId == accId ? f.ReceiverId : f.SenderId)
+                .ToHashSet();
+
+            relatedAccountIds.Add(accId); // Đừng trả về chính accId
+
+            // 3. Truy vấn tất cả accounts có Role là farmer hoặc expert và chưa liên quan
+            var availableAccounts = await _Account.Find(a =>
+                (a.RoleId == "68007b0387b41211f0af1d56" || a.RoleId == "68007b2a87b41211f0af1d57") &&
+                !relatedAccountIds.Contains(a.AccId)
+            ).ToListAsync();
+
+            // 4. Phân loại ra farmer và expert
+            var farmers = availableAccounts.Where(a => a.RoleId == "68007b0387b41211f0af1d56").ToList();
+            var experts = availableAccounts.Where(a => a.RoleId == "68007b2a87b41211f0af1d57").ToList();
+
+            return (farmers, experts);
+        }
+
+
     }
 }

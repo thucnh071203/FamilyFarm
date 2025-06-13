@@ -408,5 +408,25 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("account/deleted-post")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> ListDeletedPostByAccount()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            if (userClaims == null)
+                return BadRequest("Invalid data from request.");
+
+            var result = await _postService.GetListDeletedPostByAccount(userClaims.AccId);
+
+            if(result == null)
+                return NotFound();
+
+            if (result.Success == false)
+                return NotFound();
+
+            return Ok(result);
+        }
     }
 }

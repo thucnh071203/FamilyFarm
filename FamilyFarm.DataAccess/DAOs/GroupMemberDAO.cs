@@ -93,10 +93,11 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task<long> DeleteAllAsync(string groupId)
         {
-            if (!ObjectId.TryParse(groupId, out _)) return 0;
+            if (!ObjectId.TryParse(groupId, out _)) return -1;
 
             var filter = Builders<GroupMember>.Filter.Eq(g => g.GroupId, groupId) &
-                         Builders<GroupMember>.Filter.Eq(g => g.MemberStatus, "Accept");
+                         Builders<GroupMember>.Filter.In(g => g.MemberStatus, new[] { "Accept", "Pending" });
+
 
             var update = Builders<GroupMember>.Update
                 .Set(g => g.MemberStatus, "Left")
@@ -253,10 +254,9 @@ namespace FamilyFarm.DataAccess.DAOs
 
 
         }
-        public async Task<bool> UpdateRoleAsync(string groupId, string accId, string newGroupRoleId)
+        public async Task<bool> UpdateRoleAsync(string groupMemberId, string newGroupRoleId)
         {
-            var filter = Builders<GroupMember>.Filter.Eq(m => m.GroupId, groupId) &
-                         Builders<GroupMember>.Filter.Eq(m => m.AccId, accId) &
+            var filter = Builders<GroupMember>.Filter.Eq(m => m.GroupMemberId, groupMemberId) &
                          Builders<GroupMember>.Filter.Eq(m => m.MemberStatus, "Accept");
 
             var update = Builders<GroupMember>.Update.Set(m => m.GroupRoleId, newGroupRoleId);
