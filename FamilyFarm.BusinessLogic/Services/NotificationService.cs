@@ -131,8 +131,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 notificationDTO.CategoryName = category?.CategoryNotifiName;
 
                 Console.WriteLine($"Sending notification to {receiverId}: {Newtonsoft.Json.JsonConvert.SerializeObject(notificationDTO)}");
-                await _notificationHubContext.Clients.Group(receiverId)
-                    .SendAsync("ReceiveNotification", notificationDTO);
+                await _notificationHubContext.Clients.Group(receiverId).SendAsync("ReceiveNotification", notificationDTO);
             }
 
             return new SendNotificationResponseDTO

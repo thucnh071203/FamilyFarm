@@ -13,16 +13,15 @@ namespace FamilyFarm.BusinessLogic.Hubs
     {
         public override async Task OnConnectedAsync()
         {
-            // Lấy accId từ claim "AccId" (khớp với AuthenticationService)
-            var accId = Context.User?.FindFirst("accId")?.Value;
+            // Lấy accId từ JWT claims thay vì query parameter
+            var accId = Context.User?.FindFirst("AccId")?.Value
+                       ?? Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                       ?? Context.User?.FindFirst("sub")?.Value;
 
-            Console.WriteLine($"User connected with claims: {string.Join(", ", Context.User?.Claims.Select(c => $"{c.Type}: {c.Value}") ?? new List<string>())}");
-            Console.WriteLine($"User connected with accId: {accId ?? "null"}");
 
             if (!string.IsNullOrEmpty(accId))
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, accId);
-                Console.WriteLine($"Added to group: {accId}");
             }
             else
             {
@@ -33,14 +32,14 @@ namespace FamilyFarm.BusinessLogic.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var accId = Context.User?.FindFirst("accId")?.Value;
-            Console.WriteLine($"User disconnected with accId: {accId ?? "null"}");
+            var accId = Context.User?.FindFirst("AccId")?.Value
+                       ?? Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                       ?? Context.User?.FindFirst("sub")?.Value;
             await base.OnDisconnectedAsync(exception);
         }
 
         public async Task SendNotification(string accId, Notification notification)
         {
-            Console.WriteLine($"Sending notification to group {accId}: {Newtonsoft.Json.JsonConvert.SerializeObject(notification)}");
             await Clients.Group(accId).SendAsync("ReceiveNotification", notification);
         }
     }
