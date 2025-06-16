@@ -21,6 +21,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<GroupMember> RequestToJoinGroupAsync(string accId, string groupId);
         Task<bool> RespondToJoinRequestAsync(string groupMemberId, string responseStatus);
         Task<bool> UpdateMemberRoleAsync(string groupMemberId, string newGroupRoleId);
-
+        Task<GroupMemberResponseDTO> GetOneUserInGroupAsync(string groupId, string accId);
     }
 }

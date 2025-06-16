@@ -63,6 +63,13 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await _groupMemberRepository.UpdateMemberRoleAsync(groupMemberId, newGroupRoleId);
         }
+        public async Task<GroupMemberResponseDTO> GetOneUserInGroupAsync(string groupId, string accId)
+        {
+            var listMember = await _groupMemberRepository.GetUsersInGroupAsync(groupId);
 
+            var member = listMember.FirstOrDefault(m => m.AccId == accId);
+
+            return member;
+        }
     }
 }
