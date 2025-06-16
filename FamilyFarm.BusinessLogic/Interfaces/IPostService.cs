@@ -31,6 +31,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ListPostResponseDTO?> GetListPostCheckedAI();
         Task<bool?> CheckPostByAI(string postId);
         Task<ListPostResponseDTO?> GetListDeletedPostByAccount(string? accId);
-
+        Task<ListPostResponseDTO?> GetPostsOwner(string? accId);
+        Task<ListPostResponseDTO?> GetPostsPublicByAccId(string? accId);
     }
 }
