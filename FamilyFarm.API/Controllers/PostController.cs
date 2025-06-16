@@ -428,5 +428,43 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("self-view")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> GetPostSelfView()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            if (userClaims == null)
+                return BadRequest("Invalid data from request.");
+
+            var result = await _postService.GetPostsOwner(userClaims.AccId);
+
+            if (result == null)
+                return NotFound();
+
+            if (result.Success == false)
+                return NotFound();
+
+            return Ok(result);
+        }
+
+        [HttpGet("another-view/{accId}")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> GetPostsPublicAnother([FromRoute] string? accId)
+        {
+            if(accId == null)
+                return BadRequest("Don't have permission!");
+
+            var result = await _postService.GetPostsPublicByAccId(accId);
+
+            if (result == null)
+                return NotFound();
+
+            if (result.Success == false)
+                return NotFound();
+
+            return Ok(result);
+        }
     }
 }
