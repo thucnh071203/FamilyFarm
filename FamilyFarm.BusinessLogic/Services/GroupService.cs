@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
@@ -10,6 +11,7 @@ using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FamilyFarm.BusinessLogic.Services
@@ -19,12 +21,14 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IGroupRepository _groupRepository;
         private readonly IGroupMemberRepository _memberRepository;
         private readonly IUploadFileService _uploadFileService;
+        private readonly IHubContext<NotificationHub> _hubNotificationContext;
 
-        public GroupService(IGroupRepository groupRepository, IGroupMemberRepository memberRepository, IUploadFileService uploadFileService)
+        public GroupService(IGroupRepository groupRepository, IGroupMemberRepository memberRepository, IUploadFileService uploadFileService, IHubContext<NotificationHub> hubNotificationContext)
         {
             _groupRepository = groupRepository;
             _memberRepository = memberRepository;
             _uploadFileService = uploadFileService;
+            _hubNotificationContext = hubNotificationContext;
         }
 
         public async Task<GroupResponseDTO> GetAllGroup()
@@ -213,6 +217,36 @@ namespace FamilyFarm.BusinessLogic.Services
                     Success = false,
                     Message = "Failed to update group"
                 };
+            }
+
+            //// Lấy danh sách thành viên (List<GroupMemberResponseDTO>)
+            //var members = await _memberRepository.GetUsersInGroupAsync(groupId);
+
+            //// Lấy danh sách accId từ danh sách thành viên và gửi signlR
+            //foreach (var accId in members.Select(m => m.AccId).Distinct())
+            //{
+            //    await _hubNotificationContext.Clients.Group(accId).SendAsync("GroupUpdated", updated);
+            //}
+
+            // Sau khi cập nhật group thành công...
+            var members = await _memberRepository.GetUsersInGroupAsync(groupId);
+            var memberAccIds = members.Select(m => m.AccId).Distinct().ToList();
+
+            // Log danh sách accId và group cập nhật
+            Console.WriteLine($"[SignalR] Gửi GroupUpdated tới các accId: {string.Join(",", memberAccIds)}");
+            Console.WriteLine($"[SignalR] Data gửi lên: {System.Text.Json.JsonSerializer.Serialize(updated)}");
+
+            foreach (var accId in memberAccIds)
+            {
+                try
+                {
+                    Console.WriteLine($"[SignalR] Gửi tới accId: {accId}");
+                    await _hubNotificationContext.Clients.Group(accId).SendAsync("GroupUpdated", updated);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[SignalR] Gửi tới accId {accId} lỗi: {ex.Message}");
+                }
             }
 
             return new GroupResponseDTO
