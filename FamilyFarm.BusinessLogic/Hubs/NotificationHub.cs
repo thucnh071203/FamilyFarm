@@ -42,5 +42,10 @@ namespace FamilyFarm.BusinessLogic.Hubs
         {
             await Clients.Group(accId).SendAsync("ReceiveNotification", notification);
         }
+
+        public async Task NotifyGroupUpdated(string accId, Group group)
+        {
+            await Clients.Group(accId).SendAsync("GroupUpdated", group);
+        }
     }
 }
