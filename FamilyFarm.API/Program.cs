@@ -241,6 +241,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Add("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    await next();
+});
+
 app.UseHttpsRedirection();
 app.UseCors("AllowAll"); 
 app.UseAuthentication();
