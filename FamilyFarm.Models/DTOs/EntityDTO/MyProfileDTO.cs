@@ -24,6 +24,7 @@ namespace FamilyFarm.Models.DTOs.EntityDTO
         public string? WorkAt { get; set; }
         public string? StudyAt { get; set; }
         public int Status { get; set; }
+        public int? Otp { get; set; }
         public bool IsFacebook { get; set; }
     }
 }

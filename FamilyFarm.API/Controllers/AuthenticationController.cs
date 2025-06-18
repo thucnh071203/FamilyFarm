@@ -192,7 +192,7 @@ namespace FamilyFarm.API.Controllers
 
         [Authorize]
         [HttpPut("set-password")]
-        public async Task<IActionResult> SetPassword([FromForm] SetPasswordDTO request)
+        public async Task<IActionResult> SetPassword([FromBody] SetPasswordDTO request)
         {
             var userClaims = _authenService.GetDataFromToken();
             var account = await _accountService.GetAccountById(userClaims.AccId);
