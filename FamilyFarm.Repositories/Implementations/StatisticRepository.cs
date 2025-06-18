@@ -40,5 +40,33 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _statisticDAO.GetUsersByProvinceAsync();
         }
+        public async Task<Dictionary<string, int>> GetCountByStatusAsync(string accId)
+        {
+            return await _statisticDAO.CountByStatusAsync(accId);
+        }
+
+        public async Task<Dictionary<string, int>> GetCountByDateAsync(string accId, string time)
+        {
+            return await _statisticDAO.CountByDateAsync(accId, time);
+        }
+
+        public async Task<Dictionary<string, int>> GetCountByMonthAsync(string accId, int year)
+        {
+            return await _statisticDAO.GetCountByMonthAsync(accId, year);
+        }
+
+        public async Task<Dictionary<string, int>> GetCountByDayAllMonthsAsync(string accId, int year)
+        {
+            return await _statisticDAO.GetCountByDayAllMonthsAsync(accId, year);
+        }
+        public async Task<Dictionary<string, int>> GetPopularServiceCategoriesAsync(string accId)
+        {
+            return await _statisticDAO.GetPopularServiceCategoriesAsync(accId);
+        }
+
+        public async Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId)
+        {
+            return await _statisticDAO.GetMostBookedServicesByExpertAsync(accId);
+        }
     }
 }
