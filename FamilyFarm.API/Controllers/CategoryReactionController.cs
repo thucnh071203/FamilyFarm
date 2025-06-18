@@ -2,6 +2,7 @@
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.Models;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -16,12 +17,14 @@ namespace FamilyFarm.Controllers
     public class CategoryReactionController : ControllerBase
     {
         private readonly ICategoryReactionService _categoryReactionService;
+        private readonly IUploadFileService _uploadFileService;
         private readonly IAuthenticationService _authenService;
 
-        public CategoryReactionController(ICategoryReactionService categoryReactionService, IAuthenticationService authenService)
+        public CategoryReactionController(ICategoryReactionService categoryReactionService, IAuthenticationService authenService, IUploadFileService uploadFileService)
         {
             _categoryReactionService = categoryReactionService;
             _authenService = authenService;
+            _uploadFileService = uploadFileService;
         }
 
         /// <summary>
@@ -70,21 +73,54 @@ namespace FamilyFarm.Controllers
         }
 
 
+        //[HttpPost("create")]
+        //[Authorize]
+        //public async Task<IActionResult> Create([FromBody] CategoryReaction model)
+        //{
+        //    var user = _authenService.GetDataFromToken();
+
+        //    model.AccId = user.AccId;
+
+        //    var existing = await _categoryReactionService.GetByIdAsync(model.CategoryReactionId);
+        //    if (existing != null)
+        //        return BadRequest(new CategoryReactionResponse<CategoryReaction>(false, "ID đã tồn tại", null));
+
+        //    await _categoryReactionService.CreateAsync(model);
+        //    return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Tạo reaction thành công", model));
+        //}
         [HttpPost("create")]
         [Authorize]
-        public async Task<IActionResult> Create([FromBody] CategoryReaction model)
+        public async Task<IActionResult> Create([FromForm] CategoryReactionDTO request)
         {
             var user = _authenService.GetDataFromToken();
 
-            model.AccId = user.AccId;
-
-            var existing = await _categoryReactionService.GetByIdAsync(model.CategoryReactionId);
+            // Kiểm tra trùng ID
+            var existing = await _categoryReactionService.GetByIdAsync(request.CategoryReactionId);
             if (existing != null)
                 return BadRequest(new CategoryReactionResponse<CategoryReaction>(false, "ID đã tồn tại", null));
+
+            // Tạo model để lưu vào DB
+            var model = new CategoryReaction
+            {
+                CategoryReactionId = request.CategoryReactionId,
+                ReactionName = request.ReactionName,
+                AccId = user.AccId,
+                IconUrl = "",
+                IsDeleted = false,
+            };
+
+            // Upload file ảnh nếu có
+            if (request.IconUrl != null)
+            {
+                var uploadResult = await _uploadFileService.UploadImage(request.IconUrl);
+                model.IconUrl = uploadResult?.UrlFile ?? "";
+            }
 
             await _categoryReactionService.CreateAsync(model);
             return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Tạo reaction thành công", model));
         }
+
+
 
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateCategoryReaction(string id, [FromBody] CategoryReaction model)

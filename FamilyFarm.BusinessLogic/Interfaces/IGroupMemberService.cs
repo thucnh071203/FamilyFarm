@@ -15,7 +15,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<GroupMember> GetGroupMemberById(string groupMemberId);
         Task<GroupMember> AddGroupMember(GroupMember groupMember);
         Task<long> DeleteGroupMember(string groupMemberId);
-        Task<List<Account>> GetUsersInGroupAsync(string groupId);
+        Task<List<UserInGroupDTO>> GetUsersInGroupAsync(string groupId);
         Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword);
         Task<List<GroupMemberRequest>> GetJoinRequestsAsync(string groupId);
         Task<GroupMember> RequestToJoinGroupAsync(string accId, string groupId);

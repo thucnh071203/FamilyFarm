@@ -36,7 +36,7 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await _groupMemberRepository.DeleteGroupMember(groupMemberId);
         }
-        public async Task<List<Account>> GetUsersInGroupAsync(string groupId)
+        public async Task<List<UserInGroupDTO>> GetUsersInGroupAsync(string groupId)
         {
             return await _groupMemberRepository.GetUsersInGroupAsync(groupId);
         }

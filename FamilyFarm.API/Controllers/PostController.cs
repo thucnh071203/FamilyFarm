@@ -265,19 +265,19 @@ namespace FamilyFarm.API.Controllers
             return Ok(isDeletedSuccess);
         }
 
-        [HttpGet("search-posts-in-group/{groupId}")]
-        public async Task<IActionResult> SearchPostsInGroup(string groupId, [FromQuery] string keyword)
-        {
-            if (string.IsNullOrWhiteSpace(keyword))
-                return BadRequest("Keyword is required.");
+        //[HttpGet("search-posts-in-group/{groupId}")]
+        //public async Task<IActionResult> SearchPostsInGroup(string groupId, [FromQuery] string keyword)
+        //{
+        //    if (string.IsNullOrWhiteSpace(keyword))
+        //        return BadRequest("Keyword is required.");
 
-            var posts = await _postService.SearchPostsInGroupAsync(groupId, keyword);
+        //    var posts = await _postService.SearchPostsInGroupAsync(groupId, keyword);
 
-            if (posts.Count == 0)
-                return NotFound("No found posts.");
+        //    if (posts.Count == 0)
+        //        return NotFound("No found posts.");
 
-            return Ok(posts);
-        }
+        //    return Ok(posts);
+        //}
 
         [HttpGet("search-posts-in-group-dto/{groupId}")]
         public async Task<IActionResult> SearchPostsInGroupDTO(string groupId, [FromQuery] string keyword)

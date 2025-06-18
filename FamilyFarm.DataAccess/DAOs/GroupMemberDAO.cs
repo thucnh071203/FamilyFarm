@@ -87,12 +87,13 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
-        public async Task<List<Account>> GetUsersInGroupAsync(string groupId)
+        public async Task<List<UserInGroupDTO>> GetUsersInGroupAsync(string groupId)
         {
-            if (!ObjectId.TryParse(groupId, out _)) return new List<Account>();
+            if (!ObjectId.TryParse(groupId, out ObjectId groupObjId))
+                return new List<UserInGroupDTO>();
 
             var members = await _GroupMembers
-                .Find(gm => gm.GroupId == groupId && gm.MemberStatus == "Accept")
+                .Find(gm => gm.GroupId == groupObjId.ToString() && gm.MemberStatus == "Accept")
                 .ToListAsync();
 
             var accIds = members.Select(m => m.AccId).ToList();
@@ -101,8 +102,22 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Find(acc => accIds.Contains(acc.AccId))
                 .ToListAsync();
 
-            return usersInGroup;
+            var result = usersInGroup.Select(user =>
+            {
+                var memberInfo = members.FirstOrDefault(m => m.AccId == user.AccId);
+                return new UserInGroupDTO
+                {
+                    AccId = user.AccId,
+                    FullName = user.FullName,
+                    Avatar = user.Avatar,
+                    City = user.City,
+                    JoinAt = memberInfo?.JointAt
+                };
+            }).ToList();
+
+            return result;
         }
+
         public async Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword)
         {
             if (!ObjectId.TryParse(groupId, out _)) return new List<Account>();
