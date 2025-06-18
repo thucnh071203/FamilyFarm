@@ -109,6 +109,7 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
+
         //public async Task<List<Account>> GetUsersInGroupAsync(string groupId)
         //{
         //    if (!ObjectId.TryParse(groupId, out _)) return new List<Account>();
@@ -133,10 +134,12 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var groupMembers = await _GroupMembers.Find(filter).ToListAsync();
 
+
             var accIds = groupMembers.Select(m => m.AccId).ToList();
 
             var accountFilter = Builders<Account>.Filter.In(a => a.AccId, accIds);
             var accounts = await _Accounts.Find(accountFilter).ToListAsync();
+
 
             var joined = groupMembers.Join(accounts, m => m.AccId, a => a.AccId, (m, a) => new GroupMemberResponseDTO
             {
@@ -152,7 +155,9 @@ namespace FamilyFarm.DataAccess.DAOs
             }).ToList();
 
             return joined;
+
         }
+
         public async Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword)
         {
             if (!ObjectId.TryParse(groupId, out _)) return new List<Account>();
