@@ -7,6 +7,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -79,10 +80,12 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("accept/{friendId}")]
-        public async Task<IActionResult> AcceptFriendRequest(string friendId)
+        [HttpPost("accept/{otherId}")]
+        public async Task<IActionResult> AcceptFriendRequest(string otherId)
         {
-            var result = await _friendService.AcceptFriendRequestAsync(friendId);
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _friendService.AcceptFriendRequestAsync(accId, otherId);
             if (result)
             {
                 return Ok("Friend request accepted.");
@@ -92,10 +95,13 @@ namespace FamilyFarm.API.Controllers
         }
 
         // API Từ chối yêu cầu kết bạn
-        [HttpPost("reject/{friendId}")]
-        public async Task<IActionResult> RejectFriendRequest(string friendId)
+        [HttpPost("reject/{otherId}")]
+        [Authorize]
+        public async Task<IActionResult> RejectFriendRequest(string otherId)
         {
-            var result = await _friendService.RejectFriendRequestAsync(friendId);
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _friendService.RejectFriendRequestAsync(accId, otherId);
             if (result)
             {
                 return Ok("Friend request rejected.");
@@ -112,39 +118,39 @@ namespace FamilyFarm.API.Controllers
         /// <returns>A list of pending friend requests, và người dùng sẽ accept hay reject.</returns>
 
 
-        [HttpPost("respond-request")]
-        public async Task<IActionResult> RespondToFriendRequest([FromBody] FriendRequestDTO request)
-        {
-            if (request.Action != "Accept" && request.Action != "Reject")
-            {
-                return BadRequest(new FriendRequestResponse
-                {
-                    Message = "Action phải là 'accept' hoặc 'reject'.",
-                    IsSuccess = false
-                });
-            }
+        //[HttpPost("respond-request")]
+        //public async Task<IActionResult> RespondToFriendRequest([FromBody] FriendRequestDTO request)
+        //{
+        //    if (request.Action != "Accept" && request.Action != "Reject")
+        //    {
+        //        return BadRequest(new FriendRequestResponse
+        //        {
+        //            Message = "Action phải là 'accept' hoặc 'reject'.",
+        //            IsSuccess = false
+        //        });
+        //    }
 
-            bool result = request.Action == "Accept"
-                ? await _friendService.AcceptFriendRequestAsync(request.FriendId)
-                : await _friendService.RejectFriendRequestAsync(request.FriendId);
+        //    bool result = request.Action == "Accept"
+        //        ? await _friendService.AcceptFriendRequestAsync(request.FriendId)
+        //        : await _friendService.RejectFriendRequestAsync(request.FriendId);
 
-            if (result)
-            {
-                return Ok(new FriendRequestResponse
-                {
-                    Message = "Yêu cầu đã được xử lý thành công.",
-                    IsSuccess = true
-                });
-            }
-            else
-            {
-                return StatusCode(500, new FriendRequestResponse
-                {
-                    Message = "Có lỗi xảy ra khi xử lý yêu cầu.",
-                    IsSuccess = false
-                });
-            }
-        }
+        //    if (result)
+        //    {
+        //        return Ok(new FriendRequestResponse
+        //        {
+        //            Message = "Yêu cầu đã được xử lý thành công.",
+        //            IsSuccess = true
+        //        });
+        //    }
+        //    else
+        //    {
+        //        return StatusCode(500, new FriendRequestResponse
+        //        {
+        //            Message = "Có lỗi xảy ra khi xử lý yêu cầu.",
+        //            IsSuccess = false
+        //        });
+        //    }
+        //}
 
 
 
@@ -179,7 +185,7 @@ namespace FamilyFarm.API.Controllers
 
             if (result)
             {
-     
+
                 return Ok(new FriendRequestResponse
                 {
                     Message = "Yêu cầu kết bạn đã được gửi.",
@@ -225,7 +231,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var username = userClaims?.Username;
-            if(username == null) return Unauthorized();
+            if (username == null) return Unauthorized();
 
             var result = await _serviceOfFriend.GetListFriends(accIdOfOther);
 
@@ -305,6 +311,62 @@ namespace FamilyFarm.API.Controllers
                 return NotFound(result);
 
             return Ok(result);
+        }
+
+        //get list suggestion friend in Friend and profile
+        [HttpGet("suggestion-friend")]
+        [Authorize]
+        public async Task<ActionResult<List<Account>>> GetListSuggestionFriends()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _serviceOfFriend.GetListSuggestionFriends(accId, 8);
+
+            return Ok(result);
+
+
+        }
+
+        //get list suggestion friend in Friend and profile
+        [HttpGet("suggestion-friend-home")]
+        [Authorize]
+        public async Task<ActionResult<List<Account>>> GetListSuggestionFriendsHome()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _serviceOfFriend.GetListSuggestionFriends(accId, 4);
+
+            return Ok(result);
+
+
+        }
+
+        //get list suggestion friend in Friend and profile
+        [HttpGet("suggestion-expert")]
+        [Authorize]
+        public async Task<ActionResult<List<Account>>> GetSuggestedExperts()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _serviceOfFriend.GetSuggestedExperts(accId, 6);
+
+            return Ok(result);
+
+
+        }
+
+        //get list suggestion friend in Friend and profile
+        [HttpGet("list-account-no-relation")]
+        [Authorize]
+        public async Task<ActionResult<List<FriendResponseDTO>>> GetAvailableFarmersAndExperts()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _serviceOfFriend.GetAvailableFarmersAndExpertsAsync(accId);
+
+            return Ok(result);
+
+
         }
 
     }

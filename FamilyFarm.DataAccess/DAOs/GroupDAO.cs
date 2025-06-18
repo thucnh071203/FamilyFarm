@@ -12,17 +12,33 @@ namespace FamilyFarm.DataAccess.DAOs
     public class GroupDAO
     {
         private readonly IMongoCollection<Group> _Groups;
+        private readonly IMongoCollection<GroupMember> _GroupMembers;
 
         public GroupDAO(IMongoDatabase database)
         {
             _Groups = database.GetCollection<Group>("Group");
+            _GroupMembers = database.GetCollection<GroupMember>("GroupMember");
         }
 
         public async Task<List<Group>> GetAllAsync()
         {
             return await _Groups.Find(g => g.IsDeleted != true).ToListAsync();
         }
+        public async Task<List<Group>> GetAllByUserId(string userId)
+        {
+            //get list member by userId
+            var memberFilter = Builders<GroupMember>.Filter.Eq(gm => gm.AccId, userId) &
+                       Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Accept");
 
+            var memberList = await _GroupMembers.Find(memberFilter).ToListAsync();
+            //Lấy tất cả các groupId duy nhất từ danh sách thành viên
+            var groupIds = memberList.Select(m => m.GroupId).Distinct().ToList();
+            //tìm group theo group id
+            var groupFilter = Builders<Group>.Filter.In(a => a.GroupId, groupIds) &
+                Builders<Group>.Filter.Ne(b => b.IsDeleted, true);// IsDeleted != true
+            var groups = await _Groups.Find(groupFilter).ToListAsync();
+            return groups;
+        }
         public async Task<Group> GetByIdAsync(string groupId)
         {
             if (!ObjectId.TryParse(groupId, out _)) return null;

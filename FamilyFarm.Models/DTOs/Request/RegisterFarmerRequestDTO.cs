@@ -21,7 +21,7 @@ namespace FamilyFarm.Models.DTOs.Request
         public required string Identify { get; set; }
         public required string City { get; set; }
         public required string Country { get; set; }
-
+        public string Address { get; set; }
     }
 }
 

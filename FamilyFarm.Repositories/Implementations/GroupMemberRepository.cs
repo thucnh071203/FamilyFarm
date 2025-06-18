@@ -24,9 +24,14 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.GetByIdAsync(groupMemberId);
         }
 
-        public async Task<GroupMember> AddGroupMember(GroupMember item)
+        public async Task<GroupMember> AddGroupMember(string groupId, string accountId, string inviterId)
         {
-            return await _dao.AddAsync(item);
+            return await _dao.AddAsync(groupId, accountId, inviterId);
+        }
+
+        public async Task<GroupMember> AddGroupOwner(string groupId, string accountId)
+        {
+            return await _dao.AddOwnersync(groupId, accountId);
         }
 
         public async Task<long> DeleteGroupMember(string groupMemberId)
@@ -39,7 +44,9 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.DeleteAllAsync(groupId);
         }
 
-        public async Task<List<UserInGroupDTO>> GetUsersInGroupAsync(string groupId)
+
+        public async Task<List<GroupMemberResponseDTO>> GetUsersInGroupAsync(string groupId)
+
         {
             return await _dao.GetUsersInGroupAsync(groupId);
         }
@@ -62,9 +69,9 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.RespondToJoinRequestAsync(groupMemberId, responseStatus);
         }
 
-        public async Task<bool> UpdateMemberRoleAsync(string groupId, string accId, string newGroupRoleId)
+        public async Task<bool> UpdateMemberRoleAsync(string groupMemberId, string newGroupRoleId)
         {
-            return await _dao.UpdateRoleAsync(groupId, accId, newGroupRoleId);
+            return await _dao.UpdateRoleAsync(groupMemberId, newGroupRoleId);
         }
 
 

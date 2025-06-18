@@ -62,27 +62,60 @@ namespace FamilyFarm.DataAccess.DAOs
             return receiver;
         }
 
-    
+
+
+        //// Chấp nhận yêu cầu kết bạn 
+        //public async Task<bool> AcceptFriendRequestAsync(string friendId)
+        //{
+        //    var filter = Builders<Friend>.Filter.Eq(f => f.FriendId, friendId);
+        //    var update = Builders<Friend>.Update
+        //        .Set(f => f.Status, "Friend")
+        //        .Set(f => f.UpdateAt, DateTime.UtcNow);
+
+        //    var result = await _Friends.UpdateOneAsync(filter, update);
+        //    return result.ModifiedCount > 0;
+        //}
 
         // Chấp nhận yêu cầu kết bạn 
-        public async Task<bool> AcceptFriendRequestAsync(string friendId)
+        public async Task<bool> AcceptFriendRequestAsync(string senderId, string reveiverId)
         {
-            var filter = Builders<Friend>.Filter.Eq(f => f.FriendId, friendId);
+            var filter = Builders<Friend>.Filter.And(
+                Builders<Friend>.Filter.Eq(f => f.SenderId, reveiverId),
+                Builders<Friend>.Filter.Eq(f => f.ReceiverId, senderId),
+                Builders<Friend>.Filter.Eq(f => f.Status, "Pending")
+            );
+
+
             var update = Builders<Friend>.Update
-                .Set(f => f.Status, "Accepted")
+                .Set(f => f.Status, "Friend")
                 .Set(f => f.UpdateAt, DateTime.UtcNow);
 
             var result = await _Friends.UpdateOneAsync(filter, update);
             return result.ModifiedCount > 0;
         }
 
+        //// Xóa yêu cầu kết bạn 
+        //public async Task<bool> RejectFriendRequestAsync(string senderId)
+        //{
+        //    var filter = Builders<Friend>.Filter.Eq(f => f.FriendId, friendId);
+
+        //    var result = await _Friends.DeleteOneAsync(filter);
+        //    return result.DeletedCount > 0;
+        //}
+
         // Xóa yêu cầu kết bạn 
-        public async Task<bool> RejectFriendRequestAsync(string friendId)
+        public async Task<bool> RejectFriendRequestAsync(string senderId, string receiverId)
         {
-            var filter = Builders<Friend>.Filter.Eq(f => f.FriendId, friendId);
+            var filter = Builders<Friend>.Filter.And(
+                Builders<Friend>.Filter.Eq(f => f.SenderId, receiverId),
+                Builders<Friend>.Filter.Eq(f => f.ReceiverId, senderId),
+                Builders<Friend>.Filter.Eq(f => f.Status, "Pending")
+            );
+
             var result = await _Friends.DeleteOneAsync(filter);
             return result.DeletedCount > 0;
         }
+
 
         // Lấy yêu cầu kết bạn theo FriendId
         public async Task<Friend> GetFriendRequestAsync(string friendId)
@@ -103,11 +136,12 @@ namespace FamilyFarm.DataAccess.DAOs
         public async Task<bool> CreateFriendRequestAsync(string senderId, string receiverId)
         {
 
-
+            var sender = await _Accounts.Find(a => a.AccId == senderId).FirstOrDefaultAsync();
             var receiver = await _Accounts.Find(a => a.AccId == receiverId).FirstOrDefaultAsync();
+
             if (receiver == null)
             {
-                return false; 
+                return false;
             }
 
             var existingRequest = await GetPendingRequestAsync(senderId, receiverId);
@@ -117,18 +151,39 @@ namespace FamilyFarm.DataAccess.DAOs
                 return false; // Nếu đã có yêu cầu kết bạn "pending"
             }
 
-            // Tạo yêu cầu kết bạn mới
-            var friendRequest = new Friend
+            if (sender.RoleId == receiver.RoleId)
             {
-                FriendId = ObjectId.GenerateNewId().ToString(),
-                SenderId = senderId,
-                ReceiverId = receiverId,
-                UpdateAt = DateTime.UtcNow,
-                Status = "Pending" // Trạng thái yêu cầu đang chờ
-            };
+                // Tạo yêu cầu kết bạn mới
+                var friendRequest = new Friend
+                {
+                    FriendId = ObjectId.GenerateNewId().ToString(),
+                    SenderId = senderId,
+                    ReceiverId = receiverId,
+                    UpdateAt = DateTime.UtcNow,
+                    Status = "Pending" // Trạng thái yêu cầu đang chờ
+                };
+                await _Friends.InsertOneAsync(friendRequest);
+                return true;
+            }
+            else if (sender.RoleId.Equals("68007b0387b41211f0af1d56") && receiver.RoleId.Equals("68007b2a87b41211f0af1d57"))
+            {
+                // following
+                var friendRequest = new Friend
+                {
+                    FriendId = ObjectId.GenerateNewId().ToString(),
+                    SenderId = senderId,
+                    ReceiverId = receiverId,
+                    UpdateAt = DateTime.UtcNow,
+                    Status = "Following" // Trạng thái follow
+                };
+                await _Friends.InsertOneAsync(friendRequest);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
 
-            await _Friends.InsertOneAsync(friendRequest);
-            return true;
         }
 
     }

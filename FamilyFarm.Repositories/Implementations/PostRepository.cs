@@ -73,7 +73,7 @@ namespace FamilyFarm.Repositories.Implementations
 
         public async Task<List<Post>?> GetListPost(int is_deleted)
         {
-            return await _postDAO.GetListPost(is_deleted);
+            return await _postDAO.GetListPost(is_deleted, null);
         }
 
         public async Task<(List<Post> posts, bool hasMore)> GetPaginatedPosts(string? last_post_id, int page_size)
@@ -92,6 +92,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.GetByAccId(accId);
         }
-       
+
+        public async Task<List<Post>?> GetDeletedByAccId(string? accId)
+        {
+            return await _postDAO.GetDeletedByAccId(accId);
+        }
+
+        public async Task<List<Post>?> GetListPostByAccId(string? accId, string? privacy)
+        {
+            return await _postDAO.GetPostsByAccId(accId, privacy);
+        }
     }
 }

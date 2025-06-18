@@ -29,6 +29,9 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ListPostResponseDTO?> GetListAllPost(); //Lấy toàn bộ các bài post
         Task<ListPostResponseDTO?> GetListInfinitePost(string? last_post_id, int page_size);
         Task<ListPostResponseDTO?> GetListPostCheckedAI();
- 
+        Task<bool?> CheckPostByAI(string postId);
+        Task<ListPostResponseDTO?> GetListDeletedPostByAccount(string? accId);
+        Task<ListPostResponseDTO?> GetPostsOwner(string? accId);
+        Task<ListPostResponseDTO?> GetPostsPublicByAccId(string? accId);
     }
 }

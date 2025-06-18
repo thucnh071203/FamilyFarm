@@ -15,5 +15,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<Group> UpdateGroup(string groupId, Group item);
         Task<long> DeleteGroup(string groupId);
         Task<Group> GetLatestGroupByCreator(string creatorId);
+        Task<List<Group>> GetAllByUserId(string userId);
     }
 }

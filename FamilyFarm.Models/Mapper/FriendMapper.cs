@@ -26,6 +26,7 @@ namespace FamilyFarm.Models.Mapper
         public string? WorkAt { get; set; }
         public string? StudyAt { get; set; }
         public int? Status { get; set; }
+        public string? FriendStatus { get; set; }
         public int? MutualFriend { get; set; }
 
     }

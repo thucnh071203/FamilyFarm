@@ -157,5 +157,53 @@ namespace FamilyFarm.BusinessLogic.Services
 
             return filePath;
         }
+
+        //Download image from url
+        public async Task<Stream?> DownloadImageFromUrl(string? url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return null;
+
+            try
+            {
+                using var httpClient = new HttpClient();
+                var response = await httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                return await response.Content.ReadAsStreamAsync();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        //Updoad image downloaded from url to firebase
+        public async Task<FileUploadResponseDTO> UploadImageFromStream(Stream stream, string originalFileName)
+        {
+            var fileName = $"image/{DateTime.UtcNow.Ticks}_{originalFileName}";
+
+            var storage = new FirebaseStorage(
+                "prn221-69738.appspot.com",
+                new FirebaseStorageOptions
+                {
+                    AuthTokenAsyncFactory = () => Task.FromResult(""),
+                    ThrowOnCancel = true
+                });
+
+            var imageUrl = await storage
+                .Child(fileName)
+                .PutAsync(stream);
+
+            return new FileUploadResponseDTO
+            {
+                Message = "Upload image from stream successfully.",
+                UrlFile = imageUrl,
+                TypeFile = "image",
+                CreatedAt = DateTime.UtcNow
+            };
+        }
+
     }
 }

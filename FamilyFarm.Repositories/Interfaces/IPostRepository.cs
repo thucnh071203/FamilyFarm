@@ -19,10 +19,12 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool> ActivePost(string? post_id);
         Task<Post?> GetPostById(string? post_id);
         Task<List<Post>?> GetByAccId(string? accId);
+        Task<List<Post>?> GetDeletedByAccId(string? accId);
         Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword);
         Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
         Task<List<Post>?> GetListPost(int is_deleted);
         Task<(List<Post> posts, bool hasMore)> GetPaginatedPosts(string? last_post_id, int page_size);
         Task<List<Post>?> GetListPostCheckedByAI();
+        Task<List<Post>?> GetListPostByAccId(string? accId, string? privacy);
     }
 }

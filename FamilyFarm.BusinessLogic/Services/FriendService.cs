@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FamilyFarm.BusinessLogic.Services
 {
@@ -29,7 +30,7 @@ namespace FamilyFarm.BusinessLogic.Services
             //get account from username
             var acc = await accountRepository.GetAccountById(accId);
 
-            var listFriend = await friendRepository.GetListFriends(acc.AccId);
+            var listFriend = await friendRepository.GetListFriends(acc.AccId, acc.RoleId);
             if (listFriend.Count == 0)
             {
                 return new FriendResponseDTO
@@ -62,6 +63,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Friend",
                         MutualFriend = listMutualFriend.Count
 
                     };
@@ -116,6 +118,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Following",
                         MutualFriend = listMutualFriend.Count
 
                     };
@@ -134,9 +137,9 @@ namespace FamilyFarm.BusinessLogic.Services
             if (string.IsNullOrEmpty(username)) return null;
             //get account from username
             var acc = await accountRepository.GetAccountByUsername(username);
+            string roleExpert = "68007b2a87b41211f0af1d57";
 
-
-            var listFollowing = await friendRepository.GetListFollowing(acc.AccId);
+            var listFollowing = await friendRepository.GetListFollowing(acc.AccId, roleExpert);
             if (listFollowing.Count == 0)
             {
                 return new FriendResponseDTO
@@ -169,6 +172,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Following",
                         MutualFriend = listMutualFriend.Count
 
                     };
@@ -193,9 +197,10 @@ namespace FamilyFarm.BusinessLogic.Services
         }
         public async Task<FriendResponseDTO?> MutualFriend(string userId, string otherId)
         {
+            var acc = await accountRepository.GetAccountById(userId);
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(otherId)) return null;
-            var friendOfUser = await friendRepository.GetListFriends(userId);
-            var friendOfOther = await friendRepository.GetListFriends(otherId);
+            var friendOfUser = await friendRepository.GetListFriends(userId, acc.RoleId);
+            var friendOfOther = await friendRepository.GetListFriends(otherId, acc.RoleId);
             var commonAccounts = friendOfUser.Where(a1 => friendOfOther.Any(a2 => a2.AccId == a1.AccId)).ToList();
             if (commonAccounts.Count == 0)
             {
@@ -240,6 +245,199 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
         }
+
+        public async Task<FriendResponseDTO?> GetListSuggestionFriends(string userId, int number)
+        {
+            if (string.IsNullOrEmpty(userId)) return null;
+            var list = await friendRepository.GetListSuggestionFriends(userId, number);
+            if (list.Count == 0)
+            {
+                return new FriendResponseDTO
+                {
+                    Message = "You dont have friend suggestion!",
+                    Count = 0,
+                    IsSuccess = false,
+                };
+            }
+            else
+            {
+                List<FriendMapper> listAcc = new List<FriendMapper>();
+                foreach (var friend in list)
+                {
+                    var listMutualFriend = await MutualFriend(userId, friend.AccId);
+                    var friendMapper = new FriendMapper
+                    {
+                        AccId = friend.AccId,
+                        RoleId = friend.RoleId,
+                        Username = friend.Username,
+                        FullName = friend.FullName,
+                        Birthday = friend.Birthday,
+                        Gender = friend.Gender,
+                        City = friend.City,
+                        Country = friend.Country,
+                        Address = friend.Address,
+                        Avatar = friend.Avatar,
+                        Background = friend.Background,
+                        Certificate = friend.Certificate,
+                        WorkAt = friend.WorkAt,
+                        StudyAt = friend.StudyAt,
+                        MutualFriend = listMutualFriend.Count,
+                    };
+                    listAcc.Add(friendMapper);
+                }
+                return new FriendResponseDTO
+                {
+                    IsSuccess = true,
+                    Count = listAcc.Count,
+                    Data = listAcc,
+                };
+            }
+
+        }
+        /// <summary>
+        /// get list suggestion expert for farmer
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="number"></param>
+        /// <returns></returns>
+        public async Task<FriendResponseDTO?> GetSuggestedExperts(string userId, int number)
+        {
+            if (string.IsNullOrEmpty(userId)) return null;
+            var list = await friendRepository.GetSuggestedExperts(userId, number);
+            if (list.Count == 0)
+            {
+                return new FriendResponseDTO
+                {
+                    Message = "You dont have expert suggestion!",
+                    Count = 0,
+                    IsSuccess = false,
+                };
+            }
+            else
+            {
+                List<FriendMapper> listAcc = new List<FriendMapper>();
+                foreach (var friend in list)
+                {
+                    var listMutualFriend = await MutualFriend(userId, friend.AccId);
+                    var friendMapper = new FriendMapper
+                    {
+                        AccId = friend.AccId,
+                        RoleId = friend.RoleId,
+                        Username = friend.Username,
+                        FullName = friend.FullName,
+                        Birthday = friend.Birthday,
+                        Gender = friend.Gender,
+                        City = friend.City,
+                        Country = friend.Country,
+                        Address = friend.Address,
+                        Avatar = friend.Avatar,
+                        Background = friend.Background,
+                        Certificate = friend.Certificate,
+                        WorkAt = friend.WorkAt,
+                        StudyAt = friend.StudyAt,
+                        MutualFriend = listMutualFriend.Count,
+                    };
+                    listAcc.Add(friendMapper);
+                }
+                return new FriendResponseDTO
+                {
+                    IsSuccess = true,
+                    Count = listAcc.Count,
+                    Data = listAcc,
+                };
+            }
+
+        }
+        public async Task<List<FriendResponseDTO>> GetAvailableFarmersAndExpertsAsync(string accId)
+        {
+            if (string.IsNullOrEmpty(accId)) return null;
+            var listResult = new List<FriendResponseDTO>();
+            var list = await friendRepository.GetAvailableFarmersAndExpertsAsync(accId);
+            List<FriendMapper> listFarmer = new List<FriendMapper>();
+            List<FriendMapper> listExpert = new List<FriendMapper>();
+            if (list.Farmers.Count > 0)
+            {
+                foreach (var friend in list.Farmers)
+                {
+                    var friendMapper = new FriendMapper
+                    {
+                        AccId = friend.AccId,
+                        RoleId = friend.RoleId,
+                        Username = friend.Username,
+                        FullName = friend.FullName,
+                        Birthday = friend.Birthday,
+                        Gender = friend.Gender,
+                        City = friend.City,
+                        Country = friend.Country,
+                        Address = friend.Address,
+                        Avatar = friend.Avatar,
+                        Background = friend.Background,
+                        Certificate = friend.Certificate,
+                        WorkAt = friend.WorkAt,
+                        StudyAt = friend.StudyAt,
+
+                    };
+                    listFarmer.Add(friendMapper);
+                }
+                listResult.Add(new FriendResponseDTO
+                {
+                    IsSuccess = true,
+                    Data = listFarmer
+
+                });
+
+            }
+            else
+            {
+                listResult.Add(new FriendResponseDTO
+                {
+                    IsSuccess = false,
+                });
+            }
+
+            if (list.Experts.Count > 0)
+            {
+                foreach (var friend in list.Experts)
+                {
+                    var friendMapper = new FriendMapper
+                    {
+                        AccId = friend.AccId,
+                        RoleId = friend.RoleId,
+                        Username = friend.Username,
+                        FullName = friend.FullName,
+                        Birthday = friend.Birthday,
+                        Gender = friend.Gender,
+                        City = friend.City,
+                        Country = friend.Country,
+                        Address = friend.Address,
+                        Avatar = friend.Avatar,
+                        Background = friend.Background,
+                        Certificate = friend.Certificate,
+                        WorkAt = friend.WorkAt,
+                        StudyAt = friend.StudyAt,
+
+                    };
+                    listExpert.Add(friendMapper);
+                }
+                listResult.Add(new FriendResponseDTO
+                {
+                    IsSuccess = true,
+                    Data = listExpert
+
+                });
+
+            }
+            else
+            {
+                listResult.Add(new FriendResponseDTO
+                {
+                    IsSuccess = false,
+                });
+            }
+
+            return listResult;
+        }
+
 
     }
 }

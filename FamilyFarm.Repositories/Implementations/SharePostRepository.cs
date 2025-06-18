@@ -47,5 +47,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _sharePostDAO.SoftDeleteAsync(sharePostId);
         }
+
+        public async Task<List<SharePost>?> GetByPost(string? postId)
+        {
+            return await _sharePostDAO.GetByPost(postId);
+        }
     }
 }

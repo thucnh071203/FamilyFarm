@@ -17,13 +17,15 @@ namespace FamilyFarm.API.Controllers
         private readonly IAuthenticationService _authenService;
         private readonly ISearchHistoryService _searchHistoryService;
         private readonly ISavedPostService _savedPostService;
+        private readonly ICohereService _cohereService;
 
-        public PostController(IPostService postService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService, ISavedPostService savedPostService)
+        public PostController(IPostService postService, IAuthenticationService authenService, ISearchHistoryService searchHistoryService, ISavedPostService savedPostService, ICohereService cohereService)
         {
             _postService = postService;
             _authenService = authenService;
             _searchHistoryService = searchHistoryService;
             _savedPostService = savedPostService;
+            _cohereService = cohereService;
         }
 
         ///// <summary>
@@ -324,6 +326,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("infinite")]
+        [Authorize]
         public async Task<ActionResult<ListPostResponseDTO>> ListPostInfinite([FromQuery] string? lastPostId, [FromQuery] int pageSize)
         {
             if (pageSize <= 0 || pageSize > 50)
@@ -384,6 +387,82 @@ namespace FamilyFarm.API.Controllers
 
             if (result.Success == false)
                 return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("moderation-post/{postId}")]
+        [Authorize]
+        public async Task<ActionResult<bool?>> ModerationPostByAI(string postId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+
+            if (acc_id == null)
+                return Unauthorized();
+
+            var result = await _postService.CheckPostByAI(postId);
+
+            if (result == null)
+                return BadRequest();
+
+            return Ok(result);
+        }
+
+        [HttpGet("account/deleted-post")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> ListDeletedPostByAccount()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            if (userClaims == null)
+                return BadRequest("Invalid data from request.");
+
+            var result = await _postService.GetListDeletedPostByAccount(userClaims.AccId);
+
+            if(result == null)
+                return NotFound();
+
+            if (result.Success == false)
+                return NotFound();
+
+            return Ok(result);
+        }
+
+        [HttpGet("self-view")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> GetPostSelfView()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            if (userClaims == null)
+                return BadRequest("Invalid data from request.");
+
+            var result = await _postService.GetPostsOwner(userClaims.AccId);
+
+            if (result == null)
+                return NotFound();
+
+            if (result.Success == false)
+                return NotFound();
+
+            return Ok(result);
+        }
+
+        [HttpGet("another-view/{accId}")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> GetPostsPublicAnother([FromRoute] string? accId)
+        {
+            if(accId == null)
+                return BadRequest("Don't have permission!");
+
+            var result = await _postService.GetPostsPublicByAccId(accId);
+
+            if (result == null)
+                return NotFound();
+
+            if (result.Success == false)
+                return NotFound();
 
             return Ok(result);
         }

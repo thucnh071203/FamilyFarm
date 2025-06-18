@@ -61,6 +61,8 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Pending"
+
 
                     };
                     listSent.Add(friendMapper);
@@ -109,6 +111,7 @@ namespace FamilyFarm.BusinessLogic.Services
                         WorkAt = friend.WorkAt,
                         StudyAt = friend.StudyAt,
                         Status = friend.Status,
+                        FriendStatus = "Pending"
 
                     };
                     listReceive.Add(friendMapper);
@@ -124,14 +127,14 @@ namespace FamilyFarm.BusinessLogic.Services
             }
         }
 
-        public async Task<bool> AcceptFriendRequestAsync(string friendId)
+        public async Task<bool> AcceptFriendRequestAsync(string senderId, string receiverId)
         {
-            return await _requestRepository.AcceptFriendRequestAsync(friendId);
+            return await _requestRepository.AcceptFriendRequestAsync(senderId, receiverId);
         }
 
-        public async Task<bool> RejectFriendRequestAsync(string friendId)
+        public async Task<bool> RejectFriendRequestAsync(string senderId, string receiverId)
         {
-            return await _requestRepository.RejectFriendRequestAsync(friendId);
+            return await _requestRepository.RejectFriendRequestAsync(senderId, receiverId);
         }
         public async Task<bool> SendFriendRequestAsync(string senderId, string receiverId)
         {

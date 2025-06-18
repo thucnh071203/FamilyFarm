@@ -1,5 +1,7 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.PasswordHashing;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
@@ -17,11 +19,13 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IAccountRepository _accountRepository;
         private readonly PasswordHasher _hasher;
         private readonly IUploadFileService _uploadFileService;
-        public AccountService(IAccountRepository accountRepository, PasswordHasher hasher, IUploadFileService uploadFileService)
+        private readonly IMapper _mapper;
+        public AccountService(IAccountRepository accountRepository, PasswordHasher hasher, IUploadFileService uploadFileService, IMapper mapper)
         {
             _accountRepository = accountRepository;
             _hasher = hasher;
             _uploadFileService = uploadFileService;
+            _mapper = mapper;
         }
         public async Task<Account?> GetAccountById(string acc_id)
         {
@@ -109,25 +113,14 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<UserProfileResponseDTO?> GetUserProfileAsync(string accId)
+        public async Task<MyProfileDTO?> GetUserProfileAsync(string accId)
         {
             var account = await _accountRepository.GetAccountByIdAsync(accId);
 
             if (account == null) return null;
 
-            return new UserProfileResponseDTO
-            {
-                AccId = account.AccId,
-                Username = account.Username,
-                FullName = account.FullName,
-                Email = account.Email,
-                PhoneNumber = account.PhoneNumber,
-                Avatar = account.Avatar,
-                City = account.City,
-                Country = account.Country,
-                WorkAt = account.WorkAt,
-                StudyAt = account.StudyAt
-            };
+            var result = _mapper.Map<MyProfileDTO>(account);
+            return result;
         }
 
         public async Task<UpdateAvatarResponseDTO?> ChangeOwnAvatar(string? accountId, UpdateAvatarRequesDTO? request)

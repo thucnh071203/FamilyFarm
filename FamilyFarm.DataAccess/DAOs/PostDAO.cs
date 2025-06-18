@@ -215,6 +215,26 @@ namespace FamilyFarm.DataAccess.DAOs
             }
         }
 
+        public async Task<List<Post>?> GetDeletedByAccId(string? accId)
+        {
+            if (string.IsNullOrEmpty(accId))
+                return null;
+
+            // Tạo bộ lọc với hai điều kiện:
+            var builder = Builders<Post>.Filter;
+            var filter = builder.Eq(x => x.AccId, accId) & builder.Eq(x => x.IsDeleted, true);
+
+            try
+            {
+                var posts = await _post.Find(filter).ToListAsync();
+                return posts;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         ///     Delete post with post id
         /// </summary>
@@ -341,24 +361,32 @@ namespace FamilyFarm.DataAccess.DAOs
         ///     -1 or others = all posts
         /// </param>
         /// <returns>return list Post object has sorted based on Created At</returns>
-        public async Task<List<Post>?> GetListPost(int isDeleted)
+        public async Task<List<Post>?> GetListPost(int isDeleted, string? privacy)
         {
-            FilterDefinition<Post> filter;
+            var filterBuilder = Builders<Post>.Filter;
+            var filters = new List<FilterDefinition<Post>>();
 
+            // Xử lý lọc IsDeleted
             if (isDeleted == 0)
             {
-                filter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false);
+                filters.Add(filterBuilder.Eq(p => p.IsDeleted, false));
             }
             else if (isDeleted == 1)
             {
-                filter = Builders<Post>.Filter.Eq(p => p.IsDeleted, true);
+                filters.Add(filterBuilder.Eq(p => p.IsDeleted, true));
             }
-            else
+            // nếu isDeleted khác 0 và 1 thì không thêm filter IsDeleted
+
+            // Xử lý lọc Privacy
+            if (!string.IsNullOrEmpty(privacy))
             {
-                filter = Builders<Post>.Filter.Empty;
+                filters.Add(filterBuilder.Eq(p => p.PostScope, privacy));
             }
 
-            var posts = await _post.Find(filter)
+            // Gộp tất cả các filter
+            var finalFilter = filters.Count > 0 ? filterBuilder.And(filters) : filterBuilder.Empty;
+
+            var posts = await _post.Find(finalFilter)
                 .SortByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
@@ -373,22 +401,25 @@ namespace FamilyFarm.DataAccess.DAOs
         /// <returns>return list Post object has sorted based on Created At and paging</returns>
         public async Task<List<Post>> GetListInfinitePost(string? lastPostId, int pageSize)
         {
-            // Điều kiện lọc theo isDeleted = false
-            var isDeletedFilter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false);
+            var filterBuilder = Builders<Post>.Filter;
 
-            FilterDefinition<Post> finalFilter;
+            // Điều kiện lọc theo isDeleted = false
+            var isDeletedFilter = filterBuilder.Eq(p => p.IsDeleted, false);
+            // Điều kiện PostScope = "Public"
+            var scopeFilter = filterBuilder.Eq(p => p.PostScope, "Public");
+
+            // Kết hợp các filter chung
+            var filters = new List<FilterDefinition<Post>> { isDeletedFilter, scopeFilter };
 
             if (!string.IsNullOrEmpty(lastPostId))
             {
-                // Lọc theo Id < lastPostId và isDeleted
-                var lastIdFilter = Builders<Post>.Filter.Lt(p => p.PostId, lastPostId);
-                finalFilter = Builders<Post>.Filter.And(isDeletedFilter, lastIdFilter);
+                // Thêm điều kiện phân trang: PostId < lastPostId
+                var lastIdFilter = filterBuilder.Lt(p => p.PostId, lastPostId);
+                filters.Add(lastIdFilter);
             }
-            else
-            {
-                // Chỉ lọc theo isDeleted
-                finalFilter = isDeletedFilter;
-            }
+
+            // Kết hợp tất cả các filter
+            var finalFilter = filterBuilder.And(filters);
 
             var posts = await _post.Find(finalFilter)
                 .SortByDescending(p => p.CreatedAt)
@@ -414,8 +445,6 @@ namespace FamilyFarm.DataAccess.DAOs
             return posts;
         }
 
-       
-
         public async Task<List<Post>> GetAllPostsAsync()
         {
             try
@@ -430,5 +459,30 @@ namespace FamilyFarm.DataAccess.DAOs
             }
         }
 
+        public async Task<List<Post>> GetPostsByAccId(string? accId, string? privacy)
+        {
+            var filterBuilder = Builders<Post>.Filter;
+            var filters = new List<FilterDefinition<Post>>();
+
+            // Lọc theo AccountId
+            filters.Add(filterBuilder.Eq(p => p.AccId, accId));
+
+            // Lọc theo Privacy nếu có giá trị
+            if (!string.IsNullOrEmpty(privacy))
+            {
+                filters.Add(filterBuilder.Eq(p => p.PostScope, privacy));
+            }
+
+            // Lọc theo IsDeleted = false
+            filters.Add(filterBuilder.Eq(p => p.IsDeleted, false));
+
+            var finalFilter = filters.Count > 0 ? filterBuilder.And(filters) : filterBuilder.Empty;
+
+            var posts = await _post.Find(finalFilter)
+                .SortByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return posts;
+        }
     }
 }

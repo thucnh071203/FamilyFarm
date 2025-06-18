@@ -187,13 +187,12 @@ namespace FamilyFarm.API.Controllers
             {
                 return StatusCode(423, result);
             }
-
             return result is not null ? result : Unauthorized();
         }
 
         [Authorize]
         [HttpPut("set-password")]
-        public async Task<IActionResult> SetPassword([FromBody] SetPasswordDTO request)
+        public async Task<IActionResult> SetPassword([FromForm] SetPasswordDTO request)
         {
             var userClaims = _authenService.GetDataFromToken();
             var account = await _accountService.GetAccountById(userClaims.AccId);

@@ -12,11 +12,14 @@ namespace FamilyFarm.Repositories.Interfaces
     public interface IGroupMemberRepository
     {
         Task<GroupMember> GetGroupMemberById(string groupMemberId);
-        Task<GroupMember> AddGroupMember(GroupMember groupMember);
+        Task<GroupMember> AddGroupMember(string groupId, string accountId, string inviterId);
+        Task<GroupMember> AddGroupOwner(string groupId, string accountId);
         Task<long> DeleteGroupMember(string groupMemberId);
         Task<long> DeleteAllGroupMember(string groupId);
 
-        Task<List<UserInGroupDTO>> GetUsersInGroupAsync(string groupId);
+
+        Task<List<GroupMemberResponseDTO>> GetUsersInGroupAsync(string groupId);
+
         Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword);
 
         Task<List<GroupMemberRequest>> GetJoinRequestsAsync(string groupId);
@@ -24,7 +27,7 @@ namespace FamilyFarm.Repositories.Interfaces
 
         Task<bool> RespondToJoinRequestAsync(string groupMemberId, string responseStatus);
 
-        Task<bool> UpdateMemberRoleAsync(string groupId, string accId, string newGroupRoleId);
+        Task<bool> UpdateMemberRoleAsync(string groupMemberId, string newGroupRoleId);
 
 
     }

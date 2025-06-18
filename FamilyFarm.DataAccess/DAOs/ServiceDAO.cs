@@ -25,7 +25,7 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         public async Task<List<Service>> GetAllAsync()
         {
-            return await _Services.Find(s => s.IsDeleted != true).ToListAsync();
+            return await _Services.Find(s => s.IsDeleted != true && s.Status == 1).ToListAsync();
         }
 
         /// <summary>
@@ -57,6 +57,9 @@ namespace FamilyFarm.DataAccess.DAOs
             service.ServiceId = ObjectId.GenerateNewId().ToString();
             service.CreateAt = DateTime.UtcNow;
             service.UpdateAt = null;
+            service.Status = 1;
+            service.AverageRate = 0;
+            service.RateCount = 0;
             service.IsDeleted = false;
 
             await _Services.InsertOneAsync(service);
@@ -81,6 +84,9 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Set(s => s.ServiceDescription, item.ServiceDescription)
                 .Set(s => s.Price, item.Price)
                 .Set(s => s.ImageUrl, item.ImageUrl)
+                .Set(s => s.Status, item.Status)
+                .Set(s => s.AverageRate, item.AverageRate)
+                .Set(s => s.RateCount, item.RateCount)
                 .Set(s => s.UpdateAt, DateTime.UtcNow);
 
             var result = await _Services.UpdateOneAsync(filter, update);
@@ -88,6 +94,34 @@ namespace FamilyFarm.DataAccess.DAOs
             var updatedService = await _Services.Find(g => g.ServiceId == serviceId && g.IsDeleted != true).FirstOrDefaultAsync();
 
             return updatedService;
+        }
+
+        public async Task<long> ChangeStatusAsync(string serviceId)
+        {
+            if (!ObjectId.TryParse(serviceId, out _)) return 0;
+
+            var filter = Builders<Service>.Filter.Eq(s => s.ServiceId, serviceId) &
+                         Builders<Service>.Filter.Eq(s => s.IsDeleted, false);
+
+            var checkServiceStatus = await GetByIdAsync(serviceId);
+
+            if (checkServiceStatus == null)
+                return 0;
+
+            UpdateDefinition<Service> update;
+
+            if (checkServiceStatus.Status == 0)
+            {
+                update = Builders<Service>.Update
+                .Set(s => s.Status, 1);
+            } else
+            {
+                update = Builders<Service>.Update
+                .Set(s => s.Status, 0);
+            }
+
+            var result = await _Services.UpdateOneAsync(filter, update);
+            return result.ModifiedCount;
         }
 
         /// <summary>

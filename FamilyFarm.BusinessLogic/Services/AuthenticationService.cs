@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -124,7 +125,20 @@ namespace FamilyFarm.BusinessLogic.Services
                     return await GenerateToken(checkEmailExisted);
                 }
 
-                await _accountRepository.CreateFacebookAccount(request.FacebookId, request.Name, request.Email, request.Avatar);
+                string? avatarUrlFirebase = null;
+                var fileName = $"facebook_avatar_{request.FacebookId}.jpg";
+
+                if (!string.IsNullOrWhiteSpace(request.Avatar))
+                {
+                    var stream = await _uploadFileService.DownloadImageFromUrl(request.Avatar);
+                    if (stream != null)
+                    {
+                        var uploadResult = await _uploadFileService.UploadImageFromStream(stream, fileName);
+                        avatarUrlFirebase = uploadResult.UrlFile;
+                    }
+                }
+
+                await _accountRepository.CreateFacebookAccount(request.FacebookId, request.Name, request.Email, avatarUrlFirebase);
 
                 var acountRegistered = await _accountRepository.GetByFacebookId(request.FacebookId);
 
@@ -197,7 +211,9 @@ namespace FamilyFarm.BusinessLogic.Services
 
             return new LoginResponseDTO
             {
+                AccId = account.AccId,
                 Username = account.Username,
+                RoleId = account.RoleId,
                 AccessToken = accessToken,
                 TokenExpiryIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds,
                 RefreshToken = await GenerateRefreshToken(account)
@@ -549,6 +565,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 Gender = null,
                 City = request.City,
                 Country = request.Country,
+                Address = request.Address,
                 IdentifierNumber = request.Identify,
                 Status = 1,
                 FailedAttempts = 0,

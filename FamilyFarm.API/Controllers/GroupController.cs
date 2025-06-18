@@ -1,6 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
@@ -31,11 +33,37 @@ namespace FamilyFarm.API.Controllers
             return Ok(groups);
         }
 
+        [HttpGet("all-group-user")]//get all group of user
+        [Authorize]
+        public async Task<IActionResult> GetAllByUserid()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var groups = await _groupService.GetAllByUserId(accId);
+            return Ok(groups);
+        }
+
         [HttpGet("get-by-id/{groupId}")]
         public async Task<IActionResult> GetGroupById(string groupId)
         {
             var group = await _groupService.GetGroupById(groupId);
             return Ok(group);
+        }
+
+        [HttpGet("get-lastest")]
+        [Authorize]
+        public async Task<IActionResult> GetLastestGroup()
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            var result = await _groupService.GetLatestGroupByCreator(account.AccId);
+
+            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpPost("create")]
@@ -46,33 +74,19 @@ namespace FamilyFarm.API.Controllers
             if (account == null)
                 return Unauthorized("Invalid token or user not found.");
 
+            if (string.IsNullOrWhiteSpace(addGroup.GroupName) || string.IsNullOrWhiteSpace(addGroup.PrivacyType))
+                return BadRequest("GroupName and PrivacyType must not be empty.");
+
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
-
-            if (account.RoleId != "68007b2a87b41211f0af1d57")
-            {
-                return BadRequest("Account is not expert.");
-            }
 
             if (addGroup == null)
                 return BadRequest("addGroup object is null");
 
-            var addNewGroup = new FamilyFarm.Models.Models.Group
-            {
-                GroupId = null,
-                OwnerId = account.AccId,
-                GroupName = addGroup.GroupName,
-                GroupAvatar = addGroup.GroupAvatar,
-                GroupBackground = addGroup.GroupBackground,
-                PrivacyType = addGroup.PrivacyType,
-                CreatedAt = null,
-                UpdatedAt = null,
-                DeletedAt = null
-            };
+            addGroup.AccountId = account.AccId;
 
-            await _groupService.CreateGroup(addNewGroup);
-
-            return CreatedAtAction(nameof(GetGroupById), new { groupId = addNewGroup.GroupId }, addNewGroup);
+            var result = await _groupService.CreateGroup(addGroup);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpPut("update/{groupId}")]
@@ -86,32 +100,13 @@ namespace FamilyFarm.API.Controllers
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
-            if (account.RoleId != "68007b2a87b41211f0af1d57")
-            {
-                return BadRequest("Account is not expert.");
-            }
+            if (updateGroup == null)
+                return BadRequest("updateGroup object is null");
 
-            var group = await _groupService.GetGroupById(groupId);
-            if (group == null)
-                return BadRequest("Group not found");
+            updateGroup.AccountId = account.AccId;
 
-            if (group.OwnerId != account.AccId)
-            {
-                return BadRequest("Account id does not match");
-            }
-
-            group.GroupName = updateGroup.GroupName;
-            group.GroupAvatar = updateGroup.GroupAvatar;
-            group.GroupBackground = updateGroup.GroupBackground;
-            group.PrivacyType = updateGroup.PrivacyType;
-
-            await _groupService.UpdateGroup(groupId, group);
-
-            return Ok(new
-            {
-                message = "Group updated successfully",
-                data = updateGroup
-            });
+            var result = await _groupService.UpdateGroup(groupId, updateGroup);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpDelete("delete/{groupId}")]
@@ -125,18 +120,12 @@ namespace FamilyFarm.API.Controllers
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
-            if (account.RoleId != "68007b2a87b41211f0af1d57")
-            {
-                return BadRequest("Account is not expert.");
-            }
-
             var group = await _groupService.GetGroupById(groupId);
             if (group == null)
                 return BadRequest("Group not found");
 
-            await _groupService.DeleteGroup(groupId);
-
-            return Ok("Delete successfully!");
+            var result = await _groupService.DeleteGroup(groupId);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
     }
 }

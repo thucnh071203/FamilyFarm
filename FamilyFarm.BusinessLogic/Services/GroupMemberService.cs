@@ -27,16 +27,19 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _groupMemberRepository.GetGroupMemberById(groupMemberId);
         }
 
-        public async Task<GroupMember> AddGroupMember(GroupMember item)
+        public async Task<GroupMember> AddGroupMember(string groupId, string accountId, string inviterId)
         {
-            return await _groupMemberRepository.AddGroupMember(item);
+            return await _groupMemberRepository.AddGroupMember(groupId, accountId, inviterId);
         }
 
         public async Task<long> DeleteGroupMember(string groupMemberId)
         {
             return await _groupMemberRepository.DeleteGroupMember(groupMemberId);
         }
-        public async Task<List<UserInGroupDTO>> GetUsersInGroupAsync(string groupId)
+
+
+        public async Task<List<GroupMemberResponseDTO>> GetUsersInGroupAsync(string groupId)
+
         {
             return await _groupMemberRepository.GetUsersInGroupAsync(groupId);
         }
@@ -59,10 +62,17 @@ namespace FamilyFarm.BusinessLogic.Services
 
             return await _groupMemberRepository.RespondToJoinRequestAsync(groupMemberId, responseStatus);
         }
-        public async Task<bool> UpdateMemberRoleAsync(string groupId, string accId, string newGroupRoleId)
+        public async Task<bool> UpdateMemberRoleAsync(string groupMemberId, string newGroupRoleId)
         {
-            return await _groupMemberRepository.UpdateMemberRoleAsync(groupId, accId, newGroupRoleId);
+            return await _groupMemberRepository.UpdateMemberRoleAsync(groupMemberId, newGroupRoleId);
         }
+        public async Task<GroupMemberResponseDTO> GetOneUserInGroupAsync(string groupId, string accId)
+        {
+            var listMember = await _groupMemberRepository.GetUsersInGroupAsync(groupId);
 
+            var member = listMember.FirstOrDefault(m => m.AccId == accId);
+
+            return member;
+        }
     }
 }

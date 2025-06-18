@@ -1,4 +1,6 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
@@ -10,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace FamilyFarm.BusinessLogic.Services
 {
@@ -24,8 +27,12 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IUploadFileService _uploadFileService;
         private readonly IAccountRepository _accountRepository;
         private readonly ICohereService _cohereService;
+        private readonly IMapper _mapper;
+        private readonly IReactionRepository _reactionRepository;
+        private readonly ICommentRepository _commentRepository;
+        private readonly ISharePostRepository _sharePostRepository;
 
-        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService)
+        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository)
         {
             _postRepository = postRepository;
             _postCategoryRepository = postCategoryRepository;
@@ -36,6 +43,10 @@ namespace FamilyFarm.BusinessLogic.Services
             _uploadFileService = uploadFileService;
             _accountRepository = accountRepository;
             _cohereService = cohereService;
+            _mapper = mapper;
+            _reactionRepository = reactionRepository;
+            _commentRepository = commentRepository;
+            _sharePostRepository = sharePostRepository;
         }
 
         /// <summary>
@@ -43,7 +54,7 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </summary>
         public async Task<PostResponseDTO?> AddPost(string? username, CreatePostRequestDTO? request)
         {
-            
+
             //Kiem tra dau vao, PostId tu dong nen khong can kiem tra
             if (request == null)
                 return null;
@@ -55,21 +66,22 @@ namespace FamilyFarm.BusinessLogic.Services
             var ownAccount = await _accountRepository.GetAccountByUsername(username);
             if (ownAccount == null)
                 return null;
-            bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.PostContent);
-            
+            //bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.PostContent);
+
+            bool AICheck = true;
 
             var postRequest = new Post();
             postRequest.PostContent = request.PostContent;
             postRequest.PostScope = request.Privacy;
             postRequest.AccId = ownAccount.AccId;
             postRequest.CreatedAt = DateTime.UtcNow;
-            if (AICheck)
+            if (AICheck)//if true, status is 0, mean that content is Agriculture
             {
                 postRequest.Status = 0;
             }
             else
             {
-                postRequest.Status = 1;
+                postRequest.Status = 1;//if false, status is 1, mean that content is not Agriculture
             }
 
             var newPost = await _postRepository.CreatePost(postRequest);
@@ -84,7 +96,7 @@ namespace FamilyFarm.BusinessLogic.Services
             //2. Add Post Category
             List<PostCategory> postCategories = new List<PostCategory>();
 
-            if(request.ListCategoryOfPost != null && request.ListCategoryOfPost.Count > 0)
+            if (request.ListCategoryOfPost != null && request.ListCategoryOfPost.Count > 0)
             {
                 foreach (var categoryId in request.ListCategoryOfPost)
                 {
@@ -110,8 +122,8 @@ namespace FamilyFarm.BusinessLogic.Services
 
             //3. Add post images
             List<PostImage> postImages = new List<PostImage>();
-            
-            if(request.ListImage != null &&  request.ListImage.Count > 0)
+
+            if (request.ListImage != null && request.ListImage.Count > 0)
             {
                 //Goi method upload List image tu Upload file service
                 List<FileUploadResponseDTO> listImageUrl = await _uploadFileService.UploadListImage(request.ListImage);
@@ -126,10 +138,10 @@ namespace FamilyFarm.BusinessLogic.Services
 
                         var newPostImage = await _postImageRepository.CreatePostImage(postImage);
 
-                        if(newPostImage != null) 
+                        if (newPostImage != null)
                             postImages.Add(newPostImage);
                     }
-                } 
+                }
             }
 
             //4. Add HashTag
@@ -145,8 +157,8 @@ namespace FamilyFarm.BusinessLogic.Services
                     hashtag.CreateAt = DateTime.UtcNow;
 
                     var newHashTag = await _hashTagRepository.CreateHashTag(hashtag);
-                    
-                    if(newHashTag != null) 
+
+                    if (newHashTag != null)
                         hashTags.Add(newHashTag);
                 }
             }
@@ -154,23 +166,24 @@ namespace FamilyFarm.BusinessLogic.Services
             //5. Add Post tag
             List<PostTag> postTags = new List<PostTag>();
 
-            if(request.ListTagFriend != null && request.ListTagFriend.Count > 0)
+            if (request.ListTagFriend != null && request.ListTagFriend.Count > 0)
             {
                 foreach (var friendId in request.ListTagFriend)
                 {
                     var account = await _accountRepository.GetAccountById(friendId);
-                    if (account == null) 
+                    if (account == null)
                         continue;
 
                     var postTag = new PostTag();
                     postTag.AccId = account.AccId;
+                    postTag.Fullname = account.FullName;
                     postTag.Username = account.Username;
                     postTag.PostId = newPost.PostId;
                     postTag.CreatedAt = DateTime.UtcNow;
 
                     var newPostTag = await _postTagRepository.CreatePostTag(postTag);
                     if (newPostTag != null)
-                        postTags.Add(newPostTag);                    
+                        postTags.Add(newPostTag);
                 }
             }
 
@@ -178,6 +191,7 @@ namespace FamilyFarm.BusinessLogic.Services
             PostMapper data = new PostMapper();
             data.Post = newPost;
             data.PostTags = postTags;
+            data.OwnerPost = _mapper.Map<MyProfileDTO>(ownAccount);
             data.PostCategories = postCategories;
             data.PostImages = postImages;
             data.HashTags = hashTags;
@@ -202,7 +216,7 @@ namespace FamilyFarm.BusinessLogic.Services
         public async Task<PostResponseDTO?> GetPostById(string? postId)
         {
             var post = await _postRepository.GetPostById(postId);
-            
+
             if (post == null)
             {
                 return new PostResponseDTO
@@ -212,8 +226,15 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            var reactions = await _reactionRepository.GetAllByEntityAsync(postId, "Post");
+            var comments = await _commentRepository.GetAllByPost(postId);
+            var shares = await _sharePostRepository.GetByPost(postId);
+
             PostMapper postData = new PostMapper
             {
+                ReactionCount = reactions.Count,
+                CommentCount = comments.Count,
+                ShareCount = shares?.Count,
                 Post = post,
                 PostCategories = await _postCategoryRepository.GetCategoryByPost(postId),
                 PostImages = await _postImageRepository.GetPostImageByPost(postId),
@@ -270,8 +291,14 @@ namespace FamilyFarm.BusinessLogic.Services
 
             foreach (var post in posts)
             {
+                var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                var comments = await _commentRepository.GetAllByPost(post.PostId);
+                var shares = await _sharePostRepository.GetByPost(post.PostId);
                 postDatas.Add(new PostMapper
                 {
+                    ReactionCount = reactions.Count,
+                    CommentCount = comments.Count,
+                    ShareCount = shares?.Count,
                     Post = await _postRepository.GetPostById(post.PostId),
                     PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
                     PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
@@ -295,10 +322,10 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </summary>
         public async Task<DeletePostResponseDTO?> DeletePost(string? acc_id, DeletePostRequestDTO request)
         {
-            if (acc_id == null) 
+            if (acc_id == null)
                 return null;
 
-            if(request.PostId == null) 
+            if (request.PostId == null)
                 return null;
 
             var post = await _postRepository.GetPostById(request.PostId);
@@ -316,7 +343,7 @@ namespace FamilyFarm.BusinessLogic.Services
                     Message = "You are not permission for this action.",
                     Success = false
                 };
-            
+
             var isDeleted = await _postRepository.DeletePost(post.PostId);
 
             if (isDeleted == false)
@@ -352,7 +379,7 @@ namespace FamilyFarm.BusinessLogic.Services
             if (request == null)
                 return null;
 
-            if(request.PostId == null) 
+            if (request.PostId == null)
                 return null;
 
             var post = await _postRepository.GetPostById(request.PostId);
@@ -366,7 +393,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            if(post.AccId != acc_id)
+            if (post.AccId != acc_id)
             {
                 return new DeletePostResponseDTO
                 {
@@ -421,7 +448,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
 
             //Kiểm tra xem có xóa mềm chưa, nếu xóa mềm rồi và thời gian hơn 30 ngày thì không xóa nữa
-            if(post.DeletedAt.HasValue && (DateTime.UtcNow - post.DeletedAt.Value).TotalDays >= 30)
+            if (post.DeletedAt.HasValue && (DateTime.UtcNow - post.DeletedAt.Value).TotalDays >= 30)
             {
                 return new DeletePostResponseDTO
                 {
@@ -525,12 +552,12 @@ namespace FamilyFarm.BusinessLogic.Services
                 return null;
 
             //1. Update post thong tin co ban
-            if(request.PostId == null) 
+            if (request.PostId == null)
                 return null;
 
             var post = await _postRepository.GetPostById(request.PostId);
 
-            if (post == null) 
+            if (post == null)
                 return null;
 
             post.PostContent = request.Content;
@@ -539,7 +566,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
             var newPost = await _postRepository.UpdatePost(post);
 
-            if (newPost == null) 
+            if (newPost == null)
                 return new PostResponseDTO
                 {
                     Message = "Update post is fail.",
@@ -548,12 +575,12 @@ namespace FamilyFarm.BusinessLogic.Services
 
             //2. Update Post Category neu co
             //2.1 Xoa Post Category cu neu co yeu cau
-            if(request.IsDeleteAllCategory == true)
+            if (request.IsDeleteAllCategory == true)
             {
                 await _postCategoryRepository.DeleteAllByPostId(request.PostId);
             }
 
-            if(request.CategoriesToRemove != null && request.CategoriesToRemove.Count() > 0)
+            if (request.CategoriesToRemove != null && request.CategoriesToRemove.Count() > 0)
             {
                 foreach (var categoryDelete in request.CategoriesToRemove)
                 {
@@ -566,10 +593,10 @@ namespace FamilyFarm.BusinessLogic.Services
 
             if (request.CategoriesToAdd != null && request.CategoriesToAdd.Count() > 0)
             {
-                foreach(var categoryAdd in request.CategoriesToAdd)
+                foreach (var categoryAdd in request.CategoriesToAdd)
                 {
                     var categoryById = await _categoryPostRepository.GetCategoryById(categoryAdd);
-                    if (categoryById == null) 
+                    if (categoryById == null)
                         continue;
 
                     var postCategory = new PostCategory();
@@ -578,31 +605,31 @@ namespace FamilyFarm.BusinessLogic.Services
                     postCategory.CategoryId = categoryAdd;
                     postCategory.CategoryName = categoryById.CategoryName.ToString();
 
-                    var newPostCategory =  await _postCategoryRepository.CreatePostCategory(postCategory);
+                    var newPostCategory = await _postCategoryRepository.CreatePostCategory(postCategory);
 
-                    if(newPostCategory != null)
+                    if (newPostCategory != null)
                         postCategories.Add(newPostCategory);
                 }
             }
 
             //3. Post Image
             //3.1 Xóa những image của post trong ds yêu cầu xóa
-            if(request.IsDeleteAllImage == true)
+            if (request.IsDeleteAllImage == true)
             {
                 await _postImageRepository.DeleteAllByPostId(newPost.PostId);
             }
 
-            if(request.ImagesToRemove != null && request.ImagesToRemove.Count() > 0)
+            if (request.ImagesToRemove != null && request.ImagesToRemove.Count() > 0)
             {
-                foreach(var imagesToRemove in request.ImagesToRemove)
+                foreach (var imagesToRemove in request.ImagesToRemove)
                 {
                     var image = await _postImageRepository.GetPostImageById(imagesToRemove);
 
-                    if(image == null) continue;
+                    if (image == null) continue;
 
                     var isDeletedImage = await _postImageRepository.DeleteImageById(image.PostImageId);
 
-                    if(isDeletedImage == true)
+                    if (isDeletedImage == true)
                     {
                         //Xóa image đó trên firebase
                         await _uploadFileService.DeleteFile(image.ImageUrl);
@@ -636,12 +663,12 @@ namespace FamilyFarm.BusinessLogic.Services
 
             //4. Hashtag
             //4.1 Xóa những hashtag trong list cần xóa
-            if(request.IsDeleteAllHashtag == true)
+            if (request.IsDeleteAllHashtag == true)
             {
                 await _hashTagRepository.DeleteAllByPostId(newPost.PostId);
             }
 
-            if(request.HashTagToRemove != null && request.HashTagToRemove.Count > 0)
+            if (request.HashTagToRemove != null && request.HashTagToRemove.Count > 0)
             {
                 foreach (var hashtagToRemove in request.HashTagToRemove)
                 {
@@ -696,6 +723,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
                     var postTag = new PostTag();
                     postTag.AccId = account.AccId;
+                    postTag.Fullname = account.FullName;
                     postTag.Username = account.Username;
                     postTag.PostId = newPost.PostId;
                     postTag.CreatedAt = DateTime.UtcNow;
@@ -737,7 +765,7 @@ namespace FamilyFarm.BusinessLogic.Services
             //1. Lấy list post valid
             var listPostValid = await _postRepository.GetListPost(0);
 
-            if(listPostValid == null) 
+            if (listPostValid == null)
                 return null;
 
             if (listPostValid.Count <= 0)
@@ -748,10 +776,14 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
 
             //2. Lấy các thành phần cho từng post
-            List<PostMapper> data = new List<PostMapper>(); 
+            List<PostMapper> data = new List<PostMapper>();
 
             foreach (var post in listPostValid)
             {
+                var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                var comments = await _commentRepository.GetAllByPost(post.PostId);
+                var shares = await _sharePostRepository.GetByPost(post.PostId);
+
                 var postMapper = new PostMapper();
                 postMapper.Post = post;
 
@@ -783,6 +815,10 @@ namespace FamilyFarm.BusinessLogic.Services
                     postMapper.PostTags = listTagFriend;
                 }
 
+                postMapper.ReactionCount = reactions.Count;
+                postMapper.CommentCount = comments.Count;
+                postMapper.ShareCount = shares?.Count;
+
                 //Add post mappaer vào List post mapper
                 data.Add(postMapper);
             }
@@ -798,7 +834,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<ListPostResponseDTO?> GetListPostDeleted()
         {
-            //1. Lấy list post valid
+            //1. Lấy list post invalid
             var listPostValid = await _postRepository.GetListPost(1);
 
             if (listPostValid == null)
@@ -816,8 +852,16 @@ namespace FamilyFarm.BusinessLogic.Services
 
             foreach (var post in listPostValid)
             {
+                var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                var comments = await _commentRepository.GetAllByPost(post.PostId);
+                var shares = await _sharePostRepository.GetByPost(post.PostId);
+
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+
                 var postMapper = new PostMapper();
                 postMapper.Post = post;
+                postMapper.OwnerPost = ownerPost;
 
                 //2.1 Lấy list images cho từng post
                 var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
@@ -847,6 +891,10 @@ namespace FamilyFarm.BusinessLogic.Services
                     postMapper.PostTags = listTagFriend;
                 }
 
+                postMapper.ReactionCount = reactions.Count;
+                postMapper.CommentCount = comments.Count;
+                postMapper.ShareCount = shares?.Count;
+
                 //Add post mappaer vào List post mapper
                 data.Add(postMapper);
             }
@@ -860,6 +908,82 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        public async Task<ListPostResponseDTO?> GetListDeletedPostByAccount(string? accId)
+        {
+            if (accId == null)
+                return null;
+
+            var deletedPosts = await _postRepository.GetDeletedByAccId(accId);
+            if (deletedPosts == null)
+                return null;
+
+            if (deletedPosts.Count <= 0)
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false
+                };
+
+            //2. Lấy các thành phần cho từng post
+            List<PostMapper> data = new List<PostMapper>();
+
+            foreach (var post in deletedPosts)
+            {
+                var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                var comments = await _commentRepository.GetAllByPost(post.PostId);
+                var shares = await _sharePostRepository.GetByPost(post.PostId);
+
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+
+                var postMapper = new PostMapper();
+                postMapper.Post = post;
+                postMapper.OwnerPost = ownerPost;
+
+                //2.1 Lấy list images cho từng post
+                var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
+                if (listImage != null)
+                {
+                    postMapper.PostImages = listImage;
+                }
+
+                //2.2 Lấy list hashtag
+                var listHashtag = await _hashTagRepository.GetHashTagByPost(post.PostId);
+                if (listHashtag != null)
+                {
+                    postMapper.HashTags = listHashtag;
+                }
+
+                //2.3 Lấy list category
+                var listPostCategory = await _postCategoryRepository.GetCategoryByPost(post.PostId);
+                if (listPostCategory != null)
+                {
+                    postMapper.PostCategories = listPostCategory;
+                }
+
+                //2.4 Lấy list tag friend
+                var listTagFriend = await _postTagRepository.GetPostTagByPost(post.PostId);
+                if (listTagFriend != null)
+                {
+                    postMapper.PostTags = listTagFriend;
+                }
+
+                postMapper.ReactionCount = reactions.Count;
+                postMapper.CommentCount = comments.Count;
+                postMapper.ShareCount = shares?.Count;
+
+                //Add post mappaer vào List post mapper
+                data.Add(postMapper);
+            }
+
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post valid is success.",
+                Success = true,
+                Count = data.Count,
+                Data = data
+            };
+        }
         public async Task<ListPostResponseDTO?> GetListAllPost()
         {
             //1. Lấy list post valid
@@ -880,6 +1004,10 @@ namespace FamilyFarm.BusinessLogic.Services
 
             foreach (var post in listPostValid)
             {
+                var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                var comments = await _commentRepository.GetAllByPost(post.PostId);
+                var shares = await _sharePostRepository.GetByPost(post.PostId);
+
                 var postMapper = new PostMapper();
                 postMapper.Post = post;
 
@@ -910,6 +1038,9 @@ namespace FamilyFarm.BusinessLogic.Services
                 {
                     postMapper.PostTags = listTagFriend;
                 }
+                postMapper.ReactionCount = reactions.Count;
+                postMapper.CommentCount = comments.Count;
+                postMapper.ShareCount = shares?.Count;
 
                 //Add post mappaer vào List post mapper
                 data.Add(postMapper);
@@ -944,9 +1075,20 @@ namespace FamilyFarm.BusinessLogic.Services
             List<PostMapper> data = new List<PostMapper>();
             foreach (var post in posts)
             {
+                var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                var comments = await _commentRepository.GetAllByPost(post.PostId);
+                var shares = await _sharePostRepository.GetByPost(post.PostId);
+
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
                 var postMapper = new PostMapper
                 {
+
+                    ReactionCount = reactions.Count,
+                    CommentCount = comments.Count,
+                    ShareCount = shares?.Count,
                     Post = post,
+                    OwnerPost = ownerPost,
                     PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
                     HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
                     PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
@@ -1030,6 +1172,181 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
- 
+        public async Task<bool?> CheckPostByAI(string postId)
+        {
+            if (string.IsNullOrEmpty(postId)) return null;
+            var post = await _postRepository.GetPostById(postId);
+
+            var check = await _cohereService.IsAgricultureRelatedAsync(post.PostContent);
+            if (check == false)
+            {
+                post.Status = 1;
+                var update = await _postRepository.UpdatePost(post);
+                return false;
+            }
+            else
+            {
+                post.Status = 0;
+                var update = await _postRepository.UpdatePost(post);
+                return true;
+            }
+
+        }
+
+        public async Task<ListPostResponseDTO?> GetPostsOwner(string? accId)
+        {
+            if (accId == null)
+                return null;
+
+            var listPostOwner = await _postRepository.GetListPostByAccId(accId, null);
+
+            if (listPostOwner == null)
+                return null;
+
+            if (listPostOwner.Count <= 0)
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false
+                };
+
+            //2. Lấy các thành phần cho từng post
+            List<PostMapper> data = new List<PostMapper>();
+
+            foreach (var post in listPostOwner)
+            {
+                var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                var comments = await _commentRepository.GetAllByPost(post.PostId);
+                var shares = await _sharePostRepository.GetByPost(post.PostId);
+
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+
+                var postMapper = new PostMapper();
+                postMapper.Post = post;
+                postMapper.OwnerPost = ownerPost;
+
+                //2.1 Lấy list images cho từng post
+                var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
+                if (listImage != null)
+                {
+                    postMapper.PostImages = listImage;
+                }
+
+                //2.2 Lấy list hashtag
+                var listHashtag = await _hashTagRepository.GetHashTagByPost(post.PostId);
+                if (listHashtag != null)
+                {
+                    postMapper.HashTags = listHashtag;
+                }
+
+                //2.3 Lấy list category
+                var listPostCategory = await _postCategoryRepository.GetCategoryByPost(post.PostId);
+                if (listPostCategory != null)
+                {
+                    postMapper.PostCategories = listPostCategory;
+                }
+
+                //2.4 Lấy list tag friend
+                var listTagFriend = await _postTagRepository.GetPostTagByPost(post.PostId);
+                if (listTagFriend != null)
+                {
+                    postMapper.PostTags = listTagFriend;
+                }
+
+                postMapper.ReactionCount = reactions.Count;
+                postMapper.CommentCount = comments.Count;
+                postMapper.ShareCount = shares?.Count;
+
+                //Add post mappaer vào List post mapper
+                data.Add(postMapper);
+            }
+
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post is success.",
+                Success = true,
+                Count = data.Count,
+                Data = data
+            };
+        }
+
+        public async Task<ListPostResponseDTO?> GetPostsPublicByAccId(string? accId)
+        {
+            if (accId == null)
+                return null;
+
+            var listPostOwner = await _postRepository.GetListPostByAccId(accId, "Public");
+
+            if (listPostOwner == null)
+                return null;
+
+            if (listPostOwner.Count <= 0)
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false
+                };
+
+            //2. Lấy các thành phần cho từng post
+            List<PostMapper> data = new List<PostMapper>();
+
+            foreach (var post in listPostOwner)
+            {
+                var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                var comments = await _commentRepository.GetAllByPost(post.PostId);
+                var shares = await _sharePostRepository.GetByPost(post.PostId);
+
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+
+                var postMapper = new PostMapper();
+                postMapper.Post = post;
+                postMapper.OwnerPost = ownerPost;
+
+                //2.1 Lấy list images cho từng post
+                var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
+                if (listImage != null)
+                {
+                    postMapper.PostImages = listImage;
+                }
+
+                //2.2 Lấy list hashtag
+                var listHashtag = await _hashTagRepository.GetHashTagByPost(post.PostId);
+                if (listHashtag != null)
+                {
+                    postMapper.HashTags = listHashtag;
+                }
+
+                //2.3 Lấy list category
+                var listPostCategory = await _postCategoryRepository.GetCategoryByPost(post.PostId);
+                if (listPostCategory != null)
+                {
+                    postMapper.PostCategories = listPostCategory;
+                }
+
+                //2.4 Lấy list tag friend
+                var listTagFriend = await _postTagRepository.GetPostTagByPost(post.PostId);
+                if (listTagFriend != null)
+                {
+                    postMapper.PostTags = listTagFriend;
+                }
+
+                postMapper.ReactionCount = reactions.Count;
+                postMapper.CommentCount = comments.Count;
+                postMapper.ShareCount = shares?.Count;
+
+                //Add post mappaer vào List post mapper
+                data.Add(postMapper);
+            }
+
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post is success.",
+                Success = true,
+                Count = data.Count,
+                Data = data
+            };
+        }
     }
 }

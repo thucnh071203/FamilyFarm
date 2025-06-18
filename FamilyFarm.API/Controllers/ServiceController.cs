@@ -104,6 +104,31 @@ namespace FamilyFarm.API.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
+        [HttpPut("change-status/{serviceId}")]
+        [Authorize]
+        public async Task<IActionResult> ChangeStatusService(string serviceId)
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            if (account.RoleId != "68007b2a87b41211f0af1d57")
+            {
+                return BadRequest(new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Account is not expert",
+                    Data = null
+                });
+            }
+
+            var result = await _servicingService.ChangeStatusService(serviceId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         [HttpDelete("delete/{serviceId}")]
         [Authorize]
         public async Task<IActionResult> DeleteService(string serviceId)
