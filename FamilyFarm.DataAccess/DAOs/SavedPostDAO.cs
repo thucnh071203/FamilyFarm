@@ -59,5 +59,30 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return savedPosts;
         }
+
+        public async Task<bool?> IsSavedPost(string? accId, string? postId)
+        {
+            if (string.IsNullOrEmpty(postId) || string.IsNullOrEmpty(accId))
+                return null;
+
+            var filter = Builders<SavedPost>.Filter.Eq(sp => sp.PostId, postId) &
+                         Builders<SavedPost>.Filter.Eq(sp => sp.AccId, accId);
+
+            var exists = await _savedPostCollection.Find(filter).AnyAsync();
+            return exists;
+        }
+
+        public async Task<bool?> DeleteSavedPost(string? accId, string? postId)
+        {
+            if (string.IsNullOrEmpty(accId) || string.IsNullOrEmpty(postId))
+                return null;
+
+            var filter = Builders<SavedPost>.Filter.Eq(sp => sp.AccId, accId) &
+                         Builders<SavedPost>.Filter.Eq(sp => sp.PostId, postId);
+
+            var result = await _savedPostCollection.DeleteOneAsync(filter);
+
+            return result.DeletedCount > 0;
+        }
     }
 }

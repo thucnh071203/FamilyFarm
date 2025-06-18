@@ -10,7 +10,9 @@ namespace FamilyFarm.BusinessLogic.Interfaces
 {
     public interface ISavedPostService
     {
-        Task<CreatedSavedPostResponseDTO?> SavedPost(string? accId, CreateSavedPostRequestDTO request);
+        Task<CreatedSavedPostResponseDTO?> SavedPost(string? accId, string? postId);
         Task<ListPostResponseDTO?> ListSavedPostOfAccount(string? accId);
+        Task<bool?> CheckIsSavedPost(string? accId, string? postId);
+        Task<bool?> UnsavedPost(string? accId, string? postId);
     }
 }
