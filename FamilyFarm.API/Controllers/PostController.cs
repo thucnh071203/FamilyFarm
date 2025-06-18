@@ -351,22 +351,48 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("saved-post")]
+        [HttpPost("saved-post/{postId}")]
         [Authorize]
-        public async Task<ActionResult<CreateSavedPostRequestDTO>> SavedPost([FromBody] CreateSavedPostRequestDTO request)
+        public async Task<ActionResult<CreateSavedPostRequestDTO>> SavedPost([FromRoute] string? postId)
         {
             var userClaims = _authenService.GetDataFromToken();
             var acc_id = userClaims?.AccId;
             if(acc_id == null)
                 return Unauthorized();
 
-            var result = await _savedPostService.SavedPost(acc_id, request);
+            var result = await _savedPostService.SavedPost(acc_id, postId);
             if (result == null)
                 return BadRequest();
 
             if(result.Success == false)
                 return NotFound(result);
 
+            return Ok(result);
+        }
+
+        [HttpGet("check-saved/{postId}")]
+        [Authorize]
+        public async Task<ActionResult<bool>> CheckSavedPost([FromRoute] string? postId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+            if (acc_id == null)
+                return Unauthorized();
+
+            var result = await _savedPostService.CheckIsSavedPost(acc_id, postId);
+            return Ok(result);
+        }
+
+        [HttpDelete("unsaved/{postId}")]
+        [Authorize]
+        public async Task<ActionResult<bool>> UnsavedPost([FromRoute] string? postId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+            if (acc_id == null)
+                return Unauthorized();
+
+            var result = await _savedPostService.UnsavedPost(acc_id, postId);
             return Ok(result);
         }
 

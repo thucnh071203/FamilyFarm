@@ -38,6 +38,16 @@ namespace FamilyFarm.BusinessLogic.Services
             _postImageRepository = postImageRepository;
         }
 
+        public async Task<bool?> CheckIsSavedPost(string? accId, string? postId)
+        {
+            if (string.IsNullOrEmpty(postId) || string.IsNullOrEmpty(accId))
+            {
+                return null;
+            }
+
+            return await _savedPostRepository.CheckSavedPost(accId, postId);
+        }
+
         public async Task<ListPostResponseDTO?> ListSavedPostOfAccount(string? accId)
         {
             if (string.IsNullOrEmpty(accId))
@@ -128,12 +138,12 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<CreatedSavedPostResponseDTO?> SavedPost(string? accId, CreateSavedPostRequestDTO request)
+        public async Task<CreatedSavedPostResponseDTO?> SavedPost(string? accId, string? postId)
         {
             if(string.IsNullOrEmpty(accId))
                 return null;
 
-            if(request == null || request.PostId == null)
+            if(postId == null || postId == null)
                 return null;
 
             var account = await _accountRepository.GetAccountById(accId);
@@ -148,7 +158,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 SavedPostId = "", //Để rỗng do trong DAO có tự tạo lại ID
                 AccId = accId,
-                PostId = request.PostId
+                PostId = postId
             };
 
             var savedPost = await _savedPostRepository.CreateSavedPost(savedPostRequest);
@@ -171,6 +181,16 @@ namespace FamilyFarm.BusinessLogic.Services
                     SavedAt = savedPost.SavedAt
                 }
             };
+        }
+
+        public async Task<bool?> UnsavedPost(string? accId, string? postId)
+        {
+            if (string.IsNullOrEmpty(postId) || string.IsNullOrEmpty(accId))
+            {
+                return null;
+            }
+            
+            return await _savedPostRepository.DeleteSavedPost(accId, postId);
         }
     }
 }
