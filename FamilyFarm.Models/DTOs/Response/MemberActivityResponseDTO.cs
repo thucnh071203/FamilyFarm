@@ -9,6 +9,7 @@ namespace FamilyFarm.Models.DTOs.Response
     public class MemberActivityResponseDTO
     {
         public string AccId { get; set; }
+        public string RoleName { get; set; }
         public string AccountName { get; set; }
         public string AccountAddress { get; set; }
         public int TotalPosts { get; set; }

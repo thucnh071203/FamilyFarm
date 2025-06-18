@@ -38,5 +38,33 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await _statisticRepository.GetUsersByProvinceAsync();
         }
+
+        public async Task<Dictionary<string, int>> GetCountByStatusAsync(string accId)
+        {
+            return await _statisticRepository.GetCountByStatusAsync(accId);
+        }
+
+        public async Task<Dictionary<string, int>> GetCountByDateAsync(string accId, string time)
+        {
+            return await _statisticRepository.GetCountByDateAsync(accId, time);
+        }
+
+        public async Task<Dictionary<string, int>> GetCountByMonthAsync(string accId, int year)
+        {
+            return await _statisticRepository.GetCountByMonthAsync(accId, year);
+        }
+
+        public async Task<Dictionary<string, int>> GetCountByDayAllMonthsAsync(string accId, int year)
+        {
+            return await _statisticRepository.GetCountByDayAllMonthsAsync(accId, year);
+        }
+        public async Task<Dictionary<string, int>> GetPopularServiceCategoriesAsync(string accId)
+        {
+            return await _statisticRepository.GetPopularServiceCategoriesAsync(accId);
+        }
+        public async Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId)
+        {
+            return await _statisticRepository.GetMostBookedServicesByExpertAsync(accId);
+        }
     }
 }

@@ -3,6 +3,8 @@ using FamilyFarm.Models.Models;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,11 +14,15 @@ namespace FamilyFarm.DataAccess.DAOs
     public class StatisticDAO
     {
         private readonly IMongoCollection<Post> Posts;
+
+        private readonly IMongoCollection<Role> _Role;
         private readonly IMongoCollection<PostCategory> PostCategorys;
         private readonly IMongoCollection<Account> _Account;
         private readonly PostDAO _postDAO;
         private readonly IMongoCollection<BookingService> BookingServices;
         private readonly IMongoCollection<Comment> Comments;
+        private readonly IMongoCollection<Service> Services;
+        private readonly IMongoCollection<CategoryService> CategoryServices;
 
 
 
@@ -28,7 +34,9 @@ namespace FamilyFarm.DataAccess.DAOs
             _postDAO = postDAO;
             BookingServices = database.GetCollection<BookingService>("BookingService");
             Comments = database.GetCollection<Comment>("Comment");
-
+            Services = database.GetCollection<Service>("Service");
+            CategoryServices = database.GetCollection<CategoryService>("CategoryService");
+            _Role = database.GetCollection<Role>("Role");
         }
 
         public async Task<List<EngagedPostResponseDTO>> GetTopEngagedPostsAsync(
@@ -150,6 +158,16 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Find(a => accountIds.Contains(a.AccId))
                 .ToListAsync();
 
+            var roleIds = accounts
+    .Where(a => !string.IsNullOrEmpty(a.RoleId))
+    .Select(a => a.RoleId)
+    .Distinct()
+            .ToList();
+
+            var roles = await _Role
+                .Find(r => roleIds.Contains(r.RoleId))
+                .ToListAsync();
+
 
             foreach (var account in postGroupedByAccount)
             {
@@ -159,11 +177,15 @@ namespace FamilyFarm.DataAccess.DAOs
                 var totalBookings = bookingGroupedByAccount.ContainsKey(accountId) ? bookingGroupedByAccount[accountId] : 0;
                 var totalPayments = paymentGroupedByAccount.ContainsKey(accountId) ? paymentGroupedByAccount[accountId] : 0;
                 var accountInfo = accounts.FirstOrDefault(a => a.AccId == accountId);
+                var roleInfo = roles.FirstOrDefault(r => r.RoleId == accountInfo?.RoleId);
+
+
                 var memberDTO = new MemberActivityResponseDTO
                 {
                     AccId = accountId,
                     AccountName = accountInfo?.FullName,
                     AccountAddress = accountInfo?.Address,
+                    RoleName = roleInfo?.RoleName,
                     TotalPosts = totalPosts,
                     TotalComments = totalComments,
                     TotalBookings = totalBookings,
@@ -196,6 +218,136 @@ namespace FamilyFarm.DataAccess.DAOs
                 Province = x.Province,
                 UserCount = x.UserCount
             }).ToList();
+        }
+
+
+        public async Task<Dictionary<string, int>> CountByStatusAsync(string accId)
+        {
+            var filter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
+
+            var result = await BookingServices
+                .Find(filter)
+                .ToListAsync();
+
+            var grouped = result
+                .GroupBy(x => x.BookingServiceStatus ?? "fail")
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            return grouped;
+        }
+
+        public async Task<Dictionary<string, int>> CountByDateAsync(string accId, string time)
+        {
+            var filter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
+
+            var data = await BookingServices
+                .Find(filter)
+                .ToListAsync();
+
+            var grouped = data
+                .Where(x => x.BookingServiceAt.HasValue)
+                .GroupBy(x =>
+                {
+                    var date = x.BookingServiceAt.Value;
+                    return time.ToLower() switch
+                    {
+                        "day" => date.ToString("yyyy-MM-dd"),
+                        "month" => date.ToString("yyyy-MM"),
+                        "year" => date.ToString("yyyy"),
+                        _ => date.ToString("yyyy-MM-dd")
+                    };
+                })
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            return grouped;
+        }
+
+
+        public async Task<Dictionary<string, int>> GetCountByMonthAsync(string accId, int year)
+        {
+            var filter = Builders<BookingService>.Filter.Where(x =>
+                x.AccId == accId &&
+                x.BookingServiceAt.HasValue &&
+                x.BookingServiceAt.Value.Year == year &&
+                (x.IsDeleted == null || x.IsDeleted == false));
+
+            var bookings = await BookingServices.Find(filter).ToListAsync();
+
+            return bookings
+                .GroupBy(b => b.BookingServiceAt.Value.Month)
+                .OrderBy(g => g.Key)
+                .ToDictionary(g => $"Tháng {g.Key}", g => g.Count());
+        }
+
+        public async Task<Dictionary<string, int>> GetCountByDayAllMonthsAsync(string accId, int year)
+        {
+            var filter = Builders<BookingService>.Filter.Where(x =>
+                x.AccId == accId &&
+                x.BookingServiceAt.HasValue &&
+                x.BookingServiceAt.Value.Year == year &&
+                (x.IsDeleted == null || x.IsDeleted == false));
+
+            var bookings = await BookingServices.Find(filter).ToListAsync();
+
+            return bookings
+                .GroupBy(b => b.BookingServiceAt.Value.Date) 
+                .OrderBy(g => g.Key)
+                .ToDictionary(
+                    g => g.Key.ToString("dd/MM/yyyy"),
+                    g => g.Count());
+        }
+
+        public async Task<Dictionary<string, int>> GetPopularServiceCategoriesAsync(string accId)
+        {
+            // Lọc các category theo accId
+            var categoryFilter = Builders<CategoryService>.Filter.Where(c =>
+                c.AccId == accId &&
+                (c.IsDeleted == null || c.IsDeleted == false));
+            var categories = await CategoryServices.Find(categoryFilter).ToListAsync();
+
+            var categoryDict = categories.ToDictionary(c => c.CategoryServiceId, c => c.CategoryName);
+
+            // Lọc các service còn hoạt động
+            var serviceFilter = Builders<Service>.Filter.Where(s =>
+                categoryDict.Keys.Contains(s.CategoryServiceId) &&
+                (s.IsDeleted == null || s.IsDeleted == false));
+            var services = await Services.Find(serviceFilter).ToListAsync();
+
+            return services
+                .GroupBy(s => s.CategoryServiceId)
+                .ToDictionary(
+                    g => categoryDict.TryGetValue(g.Key, out var name) ? name : "Fail",
+                    g => g.Count());
+        }
+
+
+        public async Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId)
+        {
+            //Lấy tất cả các service của Expert
+            var expertServiceFilter = Builders<Service>.Filter.Eq(s => s.ProviderId, accId);
+            var expertServices = await Services.Find(expertServiceFilter).ToListAsync();
+
+            var serviceIdNameDict = expertServices.ToDictionary(s => s.ServiceId, s => s.ServiceName);
+
+            var expertServiceIds = serviceIdNameDict.Keys.ToList();
+
+            //Lọc BookingService có ServiceId thuộc danh sách trên và Status là Accepted
+            var bookingFilter = Builders<BookingService>.Filter.And(
+                Builders<BookingService>.Filter.In(b => b.ServiceId, expertServiceIds),
+                Builders<BookingService>.Filter.Eq(b => b.BookingServiceStatus, "Accept") // thay đổi tùy trạng thái bạn dùng
+            );
+
+            var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
+
+            //Nhóm theo ServiceId và đếm
+            var result = bookings
+                .GroupBy(b => b.ServiceId)
+                .ToDictionary(
+                    g => serviceIdNameDict.TryGetValue(g.Key, out var name) ? name : "Unknown",
+                    g => g.Count()
+                );
+
+            return result;
         }
 
 

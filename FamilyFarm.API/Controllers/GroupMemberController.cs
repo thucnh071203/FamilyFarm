@@ -176,12 +176,28 @@ namespace FamilyFarm.API.Controllers
         [HttpPut("update-role")]
         public async Task<IActionResult> UpdateMemberRole([FromQuery] string groupMemberId, [FromQuery] string newGroupRoleId)
         {
-            var result = await _groupMemberService.UpdateMemberRoleAsync(groupMemberId,  newGroupRoleId);
+            var result = await _groupMemberService.UpdateMemberRoleAsync(groupMemberId, newGroupRoleId);
             if (result)
                 return Ok("Role updated successfully.");
             return NotFound("Member not found or update failed.");
         }
 
+        [HttpGet("get-a-user-in-group/{groupId}")]
+        [Authorize]
+        public async Task<IActionResult> GetAUserInGroup(string groupId)
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
 
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            var user = await _groupMemberService.GetOneUserInGroupAsync(groupId, account.AccId);
+            if (user == null)
+                return NotFound("No user found in this group.");
+
+            return Ok(user);
+        }
     }
 }

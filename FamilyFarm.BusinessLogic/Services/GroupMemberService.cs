@@ -36,7 +36,10 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await _groupMemberRepository.DeleteGroupMember(groupMemberId);
         }
+
+
         public async Task<List<GroupMemberResponseDTO>> GetUsersInGroupAsync(string groupId)
+
         {
             return await _groupMemberRepository.GetUsersInGroupAsync(groupId);
         }
@@ -63,6 +66,13 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await _groupMemberRepository.UpdateMemberRoleAsync(groupMemberId, newGroupRoleId);
         }
+        public async Task<GroupMemberResponseDTO> GetOneUserInGroupAsync(string groupId, string accId)
+        {
+            var listMember = await _groupMemberRepository.GetUsersInGroupAsync(groupId);
 
+            var member = listMember.FirstOrDefault(m => m.AccId == accId);
+
+            return member;
+        }
     }
 }
