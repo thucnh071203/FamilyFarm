@@ -18,9 +18,19 @@ namespace FamilyFarm.Repositories.Implementations
             _savedPostDAO = savedPostDAO;
         }
 
+        public async Task<bool?> CheckSavedPost(string? accId, string? postId)
+        {
+            return await _savedPostDAO.IsSavedPost(accId, postId);
+        }
+
         public async Task<SavedPost?> CreateSavedPost(SavedPost? request)
         {
             return await _savedPostDAO.CreateAsync(request);
+        }
+
+        public async Task<bool?> DeleteSavedPost(string? accId, string? postId)
+        {
+            return await _savedPostDAO.DeleteSavedPost(accId, postId);
         }
 
         public async Task<List<SavedPost>?> ListSavedPostOfAccount(string? accId)
