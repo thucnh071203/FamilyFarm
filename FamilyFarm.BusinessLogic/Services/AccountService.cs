@@ -59,7 +59,7 @@ namespace FamilyFarm.BusinessLogic.Services
             await _accountRepository.DeleteAsync(id);
         }
 
-        public async Task<UpdateProfileResponseDTO> UpdateProfileAsync(string username, UpdateProfileRequestDTO request)
+        public async Task<UpdateProfileResponseDTO> UpdateProfileAsync(string id, UpdateProfileRequestDTO request)
         {
             if (request == null)
             {
@@ -70,7 +70,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            var account = await _accountRepository.GetAccountByUsername(username);
+            var account = await _accountRepository.GetAccountById(id);
 
             if (account == null) {
                 return new UpdateProfileResponseDTO
@@ -80,9 +80,38 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            var imageBackgroundURL = await _uploadFileService.UploadImage(request.Background);
+            string finalBgUrl = account.Background;
 
-            var imageCertificateURL = await _uploadFileService.UploadImage(request.Certificate);
+            if (request.Background != null)
+            {
+                var imageURL = await _uploadFileService.UploadImage(request.Background);
+                if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                {
+                    finalBgUrl = imageURL.UrlFile;
+                }
+            }
+
+            string finalAvtUrl = account.Avatar;
+
+            if (request.Avatar != null)
+            {
+                var imageURL = await _uploadFileService.UploadImage(request.Avatar);
+                if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                {
+                    finalAvtUrl = imageURL.UrlFile;
+                }
+            }
+
+            string finalCertificateUrl = account.Certificate;
+
+            if (request.Certificate != null)
+            {
+                var imageURL = await _uploadFileService.UploadImage(request.Certificate);
+                if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                {
+                    finalAvtUrl = imageURL.UrlFile;
+                }
+            }
 
             account.FullName = request.FullName;
             account.Birthday = request.Birthday;
@@ -90,8 +119,9 @@ namespace FamilyFarm.BusinessLogic.Services
             account.City = request.City;
             account.Country = request.Country;
             account.Address = request.Address;
-            account.Background = imageBackgroundURL.UrlFile ?? "";
-            account.Certificate = imageCertificateURL.UrlFile ?? "";
+            account.Avatar = finalAvtUrl;
+            account.Background = finalBgUrl;
+            account.Certificate = finalCertificateUrl;
             account.WorkAt = request.WorkAt;
             account.StudyAt = request.StudyAt;
 
@@ -109,7 +139,8 @@ namespace FamilyFarm.BusinessLogic.Services
             return new UpdateProfileResponseDTO
             {
                 IsSuccess = true,
-                MessageError = null
+                MessageError = null,
+                Data = result
             };
         }
 

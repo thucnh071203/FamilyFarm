@@ -61,7 +61,7 @@ namespace FamilyFarm.BusinessLogic.Hubs
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, accId);
-            Console.WriteLine($"[SignalR] Add connection {Context.ConnectionId} to group {accId}");
+            //Console.WriteLine($"[SignalR] Add connection {Context.ConnectionId} to group {accId}");
             // Call the base method to complete the connection process.
             await base.OnConnectedAsync();
         }
