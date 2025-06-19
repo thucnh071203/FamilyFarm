@@ -16,7 +16,7 @@ namespace FamilyFarm.Models.DTOs.Request
         public required string Country { get; set; }
         public string? Address { get; set; }
         public IFormFile? Background { get; set; }
-
+        public IFormFile? Avatar { get; set; }
         // Expert
         public IFormFile? Certificate { get; set; }
         public string? WorkAt { get; set; }

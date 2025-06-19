@@ -8,6 +8,7 @@ using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace FamilyFarm.API.Controllers
 {
@@ -88,13 +89,18 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }*/
-        [HttpPut("update-profile/{username}")]
+        [HttpPut("update-profile")]
         [Authorize]
-        public async Task<IActionResult> UpdateProfile(string username,[FromForm] UpdateProfileRequestDTO updateProfile)
+        public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileRequestDTO updateProfile)
         {
-            var checkAccount = await _accountService.GetAccountByUsername(username);
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
 
-            if (checkAccount == null)
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            if (account == null)
             {
                 return BadRequest("Account not found");
             }
@@ -106,16 +112,19 @@ namespace FamilyFarm.API.Controllers
 
             // Check acc có phải expert không?
 
-            if (checkAccount.RoleId.Equals("68007b2a87b41211f0af1d57"))
+            if (account.RoleId.Equals("68007b2a87b41211f0af1d57"))
             {
-                if (updateProfile.Certificate == null ||
-                    string.IsNullOrEmpty(updateProfile.WorkAt) ||
-                    string.IsNullOrEmpty(updateProfile.StudyAt))
-                {
-                    return BadRequest("Expert information not be blank");
-                }
+                //if (updateProfile.Certificate == null ||
+                //    string.IsNullOrEmpty(updateProfile.WorkAt) ||
+                //    string.IsNullOrEmpty(updateProfile.StudyAt))
+                //{
+                //    return BadRequest("Expert information not be blank");
+                //}
 
-                var result = await _accountService.UpdateProfileAsync(username, updateProfile);
+                var result = await _accountService.UpdateProfileAsync(account.AccId, updateProfile);
+
+                Console.WriteLine("UpdateProfile Result:");
+                Console.WriteLine($"IsSuccess: {result?.IsSuccess}, Message: {result?.MessageError}");
 
                 if (result == null)
                 {
@@ -130,7 +139,7 @@ namespace FamilyFarm.API.Controllers
             }
             else
             {
-                var result = await _accountService.UpdateProfileAsync(username, updateProfile);
+                var result = await _accountService.UpdateProfileAsync(account.AccId, updateProfile);
 
                 if (result == null)
                 {
