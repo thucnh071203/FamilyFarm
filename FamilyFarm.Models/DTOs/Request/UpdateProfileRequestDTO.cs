@@ -12,6 +12,8 @@ namespace FamilyFarm.Models.DTOs.Request
         public required string FullName { get; set; }
         public DateTime? Birthday { get; set; }
         public string? Gender { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
         public required string City { get; set; }
         public required string Country { get; set; }
         public string? Address { get; set; }

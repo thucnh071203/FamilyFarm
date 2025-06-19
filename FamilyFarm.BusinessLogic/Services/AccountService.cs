@@ -109,13 +109,15 @@ namespace FamilyFarm.BusinessLogic.Services
                 var imageURL = await _uploadFileService.UploadImage(request.Certificate);
                 if (!string.IsNullOrEmpty(imageURL?.UrlFile))
                 {
-                    finalAvtUrl = imageURL.UrlFile;
+                    finalCertificateUrl = imageURL.UrlFile;
                 }
             }
 
             account.FullName = request.FullName;
             account.Birthday = request.Birthday;
             account.Gender = request.Gender;
+            account.PhoneNumber = request.PhoneNumber;
+            account.Email = request.Email;
             account.City = request.City;
             account.Country = request.Country;
             account.Address = request.Address;
