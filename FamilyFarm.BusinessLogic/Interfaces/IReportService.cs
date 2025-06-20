@@ -1,4 +1,6 @@
 ﻿using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<List<Report>> GetAll();
         Task<Report?> GetById(string id);
         Task<Report?> GetByPostAndReporter(string postId, string reporterId);
-        Task<Report> Create(Report report);
+        Task<ReportResponseDTO> CreateAsync(CreateReportRequestDTO request, string reporterId);
         Task<Report> Update(string id, Report report);
         Task Delete(string id);
     }

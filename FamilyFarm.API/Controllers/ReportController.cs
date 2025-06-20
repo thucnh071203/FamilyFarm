@@ -1,5 +1,8 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.Services;
+using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +14,12 @@ namespace FamilyFarm.API.Controllers
     public class ReportController : ControllerBase
     {
         private readonly IReportService _reportService;
+        private readonly IAuthenticationService _authenService;
 
-        public ReportController(IReportService reportService)
+        public ReportController(IReportService reportService, IAuthenticationService authenService)
         {
             _reportService = reportService;
+            _authenService = authenService;
         }
 
         /// <summary>
@@ -64,19 +69,45 @@ namespace FamilyFarm.API.Controllers
         /// - Ok with the created report if the operation is successful
         /// </returns>
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] Report report)
+        public async Task<IActionResult> Create([FromBody] CreateReportRequestDTO request)
         {
-            var existing = await _reportService.GetByPostAndReporter(report.PostId, report.ReporterId);
+            // Lấy thông tin tài khoản từ token
+            var account = _authenService.GetDataFromToken();
+
+            // Tạo DTO với ReporterId từ token
+            var reportRequest = new CreateReportRequestDTO
+            {
+                PostId = request.PostId,
+                Reason = request.Reason
+            };
+
+            // Kiểm tra xem báo cáo đã tồn tại chưa
+            var existing = await _reportService.GetByPostAndReporter(request.PostId, account.AccId);
             if (existing != null)
-                return Conflict("You have already reported this post");
+            {
+                return Conflict(new ReportResponseDTO
+                {
+                    Success = false,
+                    Message = "You have already reported this post.",
+                    Report = null
+                });
+            }
 
-            var result = await _reportService.Create(report);
-            if (result == null)
-                return BadRequest("Invalid PostId or ReporterId");
+            // Gọi service để tạo báo cáo
+            var result = await _reportService.CreateAsync(reportRequest, account.AccId);
+            if (!result.Success || result.Report == null)
+            {
+                return BadRequest(new ReportResponseDTO
+                {
+                    Success = false,
+                    Message = result.Message ?? "Invalid PostId.",
+                    Report = null
+                });
+            }
 
+            // Trả về kết quả thành công
             return Ok(result);
         }
-
 
         /// <summary>
         /// Accepts a report and updates its status to "accepted".
