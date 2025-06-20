@@ -208,7 +208,43 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-       
+        [HttpGet("list-censor/{role_id}")]
+        public async Task<IActionResult> GetAllAccountByRoleId(string role_id)
+        {
+            var list = await _accountService.GetAllAccountByRoleId(role_id);
+
+            if (list == null)
+                return NotFound(new
+                {
+                    message = "list not found",
+                    success = false
+                });
+
+            return Ok(list);
+        }
+
+        [HttpPut("update-censor/{accId}/{status}")]
+        public async Task<IActionResult> UpdateAccountStatus(string accId, int status)
+        {
+            var update = await _accountService.UpdateAccountStatus(accId, status);
+            if (update != true)
+            {
+                return BadRequest("have some error when update status of censor!");
+            }
+
+            return Ok(update);
+        }
+        [HttpGet("get-by-accId/{accId}")]
+        public async Task<IActionResult> GetAccountByAccId(string accId)
+        {
+            var update = await _accountService.GetAccountByAccId(accId);
+            if (update == null)
+            {
+                return BadRequest("have some error when get account information!");
+            }
+
+            return Ok(update);
+        }
 
 
     }

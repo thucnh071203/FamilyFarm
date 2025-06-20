@@ -380,7 +380,7 @@ namespace FamilyFarm.BusinessLogic.Services
                     SenderId = senderId,
                     CategoryNotiId = categoryNotification.CategoryNotifiId,
                     TargetId = chat.ChatId,
-                    TargetType = "Chat",
+                    TargetType = "Chat",//post tag friend, edit, delete group, 
                     Content = string.Format(templateNotifi, account?.FullName)
                 };
 

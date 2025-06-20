@@ -71,6 +71,9 @@ namespace FamilyFarm.Repositories
         Task<Dictionary<string, int>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate);
 
  Task<int> CountAccountsByRole(string roleId);
+        Task<List<Account>> GetAllAccountByRoleId(string role_id);
+        Task<bool> UpdateAccountStatus(string accId, int status);
+        Task<Account?> GetAccountByAccId(string accId);
 
     }
 }

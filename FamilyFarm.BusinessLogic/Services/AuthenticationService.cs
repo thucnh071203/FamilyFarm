@@ -361,9 +361,10 @@ namespace FamilyFarm.BusinessLogic.Services
                         TokenExpiry = null,
                         FailedAttempts = 0,
                         LockedUntil = null,
-                        Status = 0,
+                        Status = 2,// chờ admin duyệt
                         Otp = null,
                         CreateOtp = null,
+                        CreatedAt = DateTime.UtcNow,
 
 
                     });
