@@ -9,6 +9,7 @@ namespace FamilyFarm.Models.DTOs.EntityDTO
     public class MyProfileDTO
     {
         public string AccId { get; set; }
+        public string RoleId { get; set; }
         public string Username { get; set; }
         public string FullName { get; set; }
         public string Email { get; set; }
