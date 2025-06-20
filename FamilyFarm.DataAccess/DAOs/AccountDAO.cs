@@ -45,9 +45,9 @@ namespace FamilyFarm.DataAccess.DAOs
             {
                 filters.Add(Builders<Account>.Filter.Eq(a => a.Status, status));
             }
-            
+
             //Condition 2: Filter role_id
-            if(string.IsNullOrEmpty(role_id) && role_map.Contains(role_id))
+            if (string.IsNullOrEmpty(role_id) && role_map.Contains(role_id))
             {
                 filters.Add(Builders<Account>.Filter.Eq(a => a.RoleId, role_id));
             }
@@ -182,12 +182,12 @@ namespace FamilyFarm.DataAccess.DAOs
         /// </summary>
         public async Task<bool> UpdateRefreshToken(string? accId, string? refreshToken, DateTime? expiry)
         {
-                var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
-                var update = Builders<Account>.Update
-                    .Set(a => a.RefreshToken, refreshToken)
-                    .Set(a => a.TokenExpiry, expiry);
-                var result = await _Accounts.UpdateOneAsync(filter, update);
-                return result.IsAcknowledged && result.ModifiedCount > 0;
+            var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
+            var update = Builders<Account>.Update
+                .Set(a => a.RefreshToken, refreshToken)
+                .Set(a => a.TokenExpiry, expiry);
+            var result = await _Accounts.UpdateOneAsync(filter, update);
+            return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace FamilyFarm.DataAccess.DAOs
         public async Task CreateAccount(Account account)
         {
             await _Accounts.InsertOneAsync(account);
-        } 
+        }
 
         /// <summary>
         /// Use to Get account by identifier number
@@ -407,6 +407,44 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
+        public async Task<List<Account>> GetAllAccountByRoleId(string role_id)
+        {
+            string[] role_map = {
+        "67fd41dfba121b52bbc622c3", // ROLE_ADMIN
+        "68007b0387b41211f0af1d56", // ROLE_FARMER
+        "68007b2a87b41211f0af1d57"  // ROLE_EXPERT
+    };
 
+            var filters = new List<FilterDefinition<Account>>();
+
+            if (!string.IsNullOrEmpty(role_id) && role_map.Contains(role_id))
+            {
+                filters.Add(Builders<Account>.Filter.Eq(a => a.RoleId, role_id));
+            }
+
+            FilterDefinition<Account> finalFilter = filters.Any()
+                ? Builders<Account>.Filter.And(filters)
+                : Builders<Account>.Filter.Empty;
+
+            return await _Accounts.Find(finalFilter).ToListAsync();
+        }
+
+
+        public async Task<bool> UpdateAccountStatus(string accId, int status)
+        {
+            var filter = Builders<Account>.Filter.Eq(a => a.AccId, accId);
+            var update = Builders<Account>.Update
+                        .Set(a => a.Status, status);
+
+            var result = await _Accounts.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
+        }
+        //use for admin
+        public async Task<Account?> GetAccountByAccId(string accId)
+        {
+            return await _Accounts
+                .Find(a => a.AccId == accId)
+                .FirstOrDefaultAsync();
+        }
     }
 }

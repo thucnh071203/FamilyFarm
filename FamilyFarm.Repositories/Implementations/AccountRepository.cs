@@ -160,7 +160,18 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.CountAccountsByRole(roleId);
         }
+        public async Task<List<Account>> GetAllAccountByRoleId(string role_id)
+        {
+            return await _dao.GetAllAccountByRoleId(role_id);
+        }
+        public async Task<bool> UpdateAccountStatus(string accId, int status)
+        {
+            return await _dao.UpdateAccountStatus(accId, status);
+        }
 
-
+        public async Task<Account?> GetAccountByAccId(string accId)
+        {
+            return await _dao.GetAccountByAccId(accId);
+        }
     }
 }
