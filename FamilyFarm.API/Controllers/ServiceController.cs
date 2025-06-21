@@ -45,6 +45,15 @@ namespace FamilyFarm.API.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
+        [HttpGet("all-by-account/{accId}")]
+        [Authorize]
+        public async Task<IActionResult> GetAllServicesByAccId(string accId)
+        {
+
+            var result = await _servicingService.GetAllServiceByProvider(accId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         [HttpGet("get-by-id/{serviceId}")]
         public async Task<IActionResult> GetServiceById(string serviceId)
         {

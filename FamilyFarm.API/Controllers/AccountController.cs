@@ -255,6 +255,18 @@ namespace FamilyFarm.API.Controllers
             return Ok(update);
         }
 
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAllAccount()
+        {
+            var update = await _accountService.GetAllAccountExceptAdmin();
+            if (update == null)
+            {
+                return BadRequest("have some error when get account information!");
+            }
+
+            return Ok(update);
+        }
+
 
     }
 }

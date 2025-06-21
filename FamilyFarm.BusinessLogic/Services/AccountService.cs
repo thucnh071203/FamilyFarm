@@ -235,5 +235,9 @@ namespace FamilyFarm.BusinessLogic.Services
             if (accId == null) return null;
             return await _accountRepository.GetAccountByAccId(accId);
         }
+        public async Task<List<Account>> GetAllAccountExceptAdmin()
+        {
+            return await _accountRepository.GetAllAccountExceptAdmin();
+        }
     }
 }
