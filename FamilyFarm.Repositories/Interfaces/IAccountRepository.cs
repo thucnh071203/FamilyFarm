@@ -74,6 +74,7 @@ namespace FamilyFarm.Repositories
         Task<List<Account>> GetAllAccountByRoleId(string role_id);
         Task<bool> UpdateAccountStatus(string accId, int status);
         Task<Account?> GetAccountByAccId(string accId);
+        Task<List<Account>> GetAllAccountExceptAdmin();
 
     }
 }

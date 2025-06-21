@@ -257,11 +257,24 @@ namespace FamilyFarm.API.Controllers
             return Ok(update);
         }
 
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAllAccount()
+        {
+            var update = await _accountService.GetAllAccountExceptAdmin();
+            if (update == null)
+            {
+                return BadRequest("have some error when get account information!");
+            }
+
+            return Ok(update);
+        }
+
         [HttpGet("get-by-email/{email}")]
         public async Task<IActionResult> GetAccountByEmail(string email)
         {
             var result = await _accountService.GetAccountByEmail(email);
             return result.Success ? Ok(result) : NotFound(result);
         }
+
     }
 }

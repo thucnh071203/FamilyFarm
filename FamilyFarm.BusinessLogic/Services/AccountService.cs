@@ -237,6 +237,11 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _accountRepository.GetAccountByAccId(accId);
         }
 
+        public async Task<List<Account>> GetAllAccountExceptAdmin()
+        {
+            return await _accountRepository.GetAllAccountExceptAdmin();
+         }
+
         public async Task<ForgotPasswordResponseDTO> GetAccountByEmail(string email)
         {
             if (email == null)
@@ -272,6 +277,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 Message = "Get account successful",
                 Data = getAccByEmail
             };
+
         }
     }
 }

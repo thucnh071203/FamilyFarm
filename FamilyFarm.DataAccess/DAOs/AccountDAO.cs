@@ -446,5 +446,14 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Find(a => a.AccId == accId)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<Account>> GetAllAccountExceptAdmin()
+        {
+            const string ROLE_ADMIN_ID = "67fd41dfba121b52bbc622c3";
+
+            var filter = Builders<Account>.Filter.Ne(a => a.RoleId, ROLE_ADMIN_ID);
+
+            return await _Accounts.Find(filter).ToListAsync();
+        }
     }
 }

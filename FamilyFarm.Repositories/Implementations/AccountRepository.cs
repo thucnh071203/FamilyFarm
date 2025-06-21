@@ -173,5 +173,9 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.GetAccountByAccId(accId);
         }
+        public async Task<List<Account>> GetAllAccountExceptAdmin()
+        {
+            return await _dao.GetAllAccountExceptAdmin();
+        }
     }
 }
