@@ -27,5 +27,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<bool> UpdateAccountStatus(string accId, int status);
         Task<Account?> GetAccountByAccId(string accId);
         Task<List<Account>> GetAllAccountExceptAdmin();
+        Task<ForgotPasswordResponseDTO> GetAccountByEmail(string email);
+
     }
 }

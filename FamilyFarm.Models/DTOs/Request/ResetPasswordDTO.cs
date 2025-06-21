@@ -13,8 +13,6 @@ namespace FamilyFarm.Models.DTOs.Request
         [Required]
         public string AccId { get; set; }
         [Required]
-        public int Otp { get; set; }
-        [Required]
         public string Password { get; set; }
         [Required]
         [Compare("Password", ErrorMessage = "Password does not match!")]
