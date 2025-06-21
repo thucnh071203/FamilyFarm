@@ -568,7 +568,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 Country = request.Country,
                 Address = request.Address,
                 IdentifierNumber = request.Identify,
-                Status = 1,
+                Status = 0,
                 FailedAttempts = 0,
                 LockedUntil = null,
                 TokenExpiry = null,
