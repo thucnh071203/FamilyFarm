@@ -24,9 +24,9 @@ namespace FamilyFarm.API.Controllers
             _authenService = authenService;
         }
 
-        [HttpGet("all-by-expert")]
+        [HttpGet("all")]
         [Authorize]
-        public async Task<IActionResult> GetAllProcessesByExpert()
+        public async Task<IActionResult> GetAllProcesses()
         {
             var account = _authenService.GetDataFromToken();
             if (account == null)
@@ -35,26 +35,42 @@ namespace FamilyFarm.API.Controllers
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
-            var result = await _processService.GetAllProcessByExpert(account.AccId);
+            var result = await _processService.GetAllProcess();
 
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        [HttpGet("all-by-farmer")]
-        [Authorize]
-        public async Task<IActionResult> GetAllProcessesByFarmer()
-        {
-            var account = _authenService.GetDataFromToken();
-            if (account == null)
-                return Unauthorized("Invalid token or user not found.");
+        //[HttpGet("all-by-expert")]
+        //[Authorize]
+        //public async Task<IActionResult> GetAllProcessesByExpert()
+        //{
+        //    var account = _authenService.GetDataFromToken();
+        //    if (account == null)
+        //        return Unauthorized("Invalid token or user not found.");
 
-            if (!ObjectId.TryParse(account.AccId, out _))
-                return BadRequest("Invalid AccIds.");
+        //    if (!ObjectId.TryParse(account.AccId, out _))
+        //        return BadRequest("Invalid AccIds.");
 
-            var result = await _processService.GetAllProcessByFarmer(account.AccId);
+        //    var result = await _processService.GetAllProcessByExpert(account.AccId);
 
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
+        //    return result.Success ? Ok(result) : BadRequest(result);
+        //}
+
+        //[HttpGet("all-by-farmer")]
+        //[Authorize]
+        //public async Task<IActionResult> GetAllProcessesByFarmer()
+        //{
+        //    var account = _authenService.GetDataFromToken();
+        //    if (account == null)
+        //        return Unauthorized("Invalid token or user not found.");
+
+        //    if (!ObjectId.TryParse(account.AccId, out _))
+        //        return BadRequest("Invalid AccIds.");
+
+        //    var result = await _processService.GetAllProcessByFarmer(account.AccId);
+
+        //    return result.Success ? Ok(result) : BadRequest(result);
+        //}
 
         [HttpGet("get-by-id/{processId}")]
         public async Task<IActionResult> GetProcessById(string processId)
@@ -74,7 +90,7 @@ namespace FamilyFarm.API.Controllers
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
-            process.ExpertId = account.AccId;
+            //process.ExpertId = account.AccId;
 
             var result = await _processService.CreateProcess(process);
             return result.Success ? Ok(result) : BadRequest(result);
@@ -91,7 +107,7 @@ namespace FamilyFarm.API.Controllers
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
-            process.ExpertId = account.AccId;
+            //process.ExpertId = account.AccId;
 
             var result = await _processService.UpdateProcess(processId, process);
             return result.Success ? Ok(result) : BadRequest(result);
@@ -99,7 +115,7 @@ namespace FamilyFarm.API.Controllers
 
         [HttpDelete("delete/{processId}")]
         [Authorize]
-        public async Task<IActionResult> DeleteService(string processId)
+        public async Task<IActionResult> DeleteProcess(string processId)
         {
             var account = _authenService.GetDataFromToken();
             if (account == null)
@@ -133,23 +149,23 @@ namespace FamilyFarm.API.Controllers
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
-            var result = await _processService.GetAllProcessByKeyword(keyword, account.AccId);
+            var result = await _processService.GetAllProcessByKeyword(keyword);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        [HttpGet("filter")]
-        [Authorize]
-        public async Task<IActionResult> FilterProcessByStatus([FromQuery] string? status)
-        {
-            var account = _authenService.GetDataFromToken();
-            if (account == null)
-                return Unauthorized("Invalid token or user not found.");
+        //[HttpGet("filter")]
+        //[Authorize]
+        //public async Task<IActionResult> FilterProcessByStatus([FromQuery] string? status)
+        //{
+        //    var account = _authenService.GetDataFromToken();
+        //    if (account == null)
+        //        return Unauthorized("Invalid token or user not found.");
 
-            if (!ObjectId.TryParse(account.AccId, out _))
-                return BadRequest("Invalid AccIds.");
+        //    if (!ObjectId.TryParse(account.AccId, out _))
+        //        return BadRequest("Invalid AccIds.");
 
-            var result = await _processService.FilterProcessByStatus(status, account.AccId);
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
+        //    var result = await _processService.FilterProcessByStatus(status, account.AccId);
+        //    return result.Success ? Ok(result) : BadRequest(result);
+        //}
     }
 }

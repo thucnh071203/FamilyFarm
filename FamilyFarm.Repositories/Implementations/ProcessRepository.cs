@@ -16,15 +16,19 @@ namespace FamilyFarm.Repositories.Implementations
         {
             _dao = dao;
         }
-        public async Task<List<Process>> GetAllProcessByExpert(string accountId)
+        public async Task<List<Process>> GetAllProcess()
         {
-            return await _dao.GetAllByExpertAsync(accountId);
+            return await _dao.GetAllAsync();
         }
+        //public async Task<List<Process>> GetAllProcessByExpert(string accountId)
+        //{
+        //    return await _dao.GetAllByExpertAsync(accountId);
+        //}
 
-        public async Task<List<Process>> GetAllProcessByFarmer(string accountId)
-        {
-            return await _dao.GetAllByFarmerAsync(accountId);
-        }
+        //public async Task<List<Process>> GetAllProcessByFarmer(string accountId)
+        //{
+        //    return await _dao.GetAllByFarmerAsync(accountId);
+        //}
 
         public async Task<Process> GetProcessById(string processId)
         {
@@ -46,14 +50,14 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.DeleteAsync(processId);
         }
 
-        public async Task<List<Process>> GetAllProcessByKeyword(string? keyword, string accountId, string roleId)
+        public async Task<List<Process>> GetAllProcessByKeyword(string? keyword)
         {
-            return await _dao.SearchProcessKeywordAsync(keyword, accountId, roleId);
+            return await _dao.SearchProcessKeywordAsync(keyword);
         }
 
-        public async Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId)
-        {
-            return await _dao.FitlerStatusAsync(status, accountId, roleId);
-        }
+        //public async Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId)
+        //{
+        //    return await _dao.FitlerStatusAsync(status, accountId, roleId);
+        //}
     }
 }
