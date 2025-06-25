@@ -18,5 +18,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<long> DeleteProcess(string processId);
         Task<List<Process>> GetAllProcessByKeyword(string? keyword);
         //Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId);
+        Task<Process?> GetProcessByServiceId(string? serviceId);
     }
 }

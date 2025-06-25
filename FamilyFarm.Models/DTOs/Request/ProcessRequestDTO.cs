@@ -8,17 +8,13 @@ namespace FamilyFarm.Models.DTOs.Request
 {
     public class ProcessRequestDTO
     {
-        //public required string ExpertId { get; set; }
-        //public string? ExpertId { get; set; }
-        //public required string FarmerId { get; set; }
-        public required string ServiceId { get; set; }
-        //public required string BookingServiceId { get; set; }
-        public required string ProcessTittle { get; set; }
-        public required string Description { get; set; }
-        public required int NumberOfSteps { get; set; }
-        //public required int ContinueStep { get; set; }
-        //public required string ProcessStatus { get; set; }
-        //public bool? IsCompletedByExpert { get; set; }
-        //public bool? IsCompletedByFarmer { get; set; }
+        //PHẦN NÀY LẤY CỦA PROCESS
+        public string? ServiceId { get; set; }
+        public string? ProcessTittle { get; set; }
+        public string? Description { get; set; }
+        public int NumberOfSteps { get; set; }
+
+        //PHẦN NÀY LẤY THÔNG TIN PROCESS STEP
+        public List<ProcessStepRequestDTO>? ProcessSteps { get; set; }
     }
 }

@@ -51,5 +51,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.DeleteAsync(serviceId);
         }
+
+        public async Task UpdateStatusService(string? serviceId, int status)
+        {
+            await _dao.UpdateStatus(serviceId, status);
+        }
     }
 }

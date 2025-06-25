@@ -12,13 +12,12 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string ProcessId { get; set; }
-        [BsonRequired]
+        public string? ProcessId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string ServiceId { get; set; }
+        public string? ServiceId { get; set; }
         public string? ProcessTittle { get; set; }
         public string? Description { get; set; }
-        public required int NumberOfSteps { get; set; }
+        public int NumberOfSteps { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
         public DateTime? DeleteAt { get; set; }

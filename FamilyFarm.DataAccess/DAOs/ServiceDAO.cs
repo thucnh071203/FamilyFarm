@@ -161,5 +161,16 @@ namespace FamilyFarm.DataAccess.DAOs
             var filter = Builders<Service>.Filter.Ne(s => s.IsDeleted, true);
             return await _Services.CountDocumentsAsync(filter);
         }
+
+        public async Task UpdateStatus(string? serviceId, int status)
+        {
+            if (string.IsNullOrEmpty(serviceId))
+                return;
+
+            var filter = Builders<Service>.Filter.Eq(p => p.ServiceId, serviceId);
+            var update = Builders<Service>.Update.Set(p => p.Status, status);
+
+            await _Services.UpdateOneAsync(filter, update);
+        }
     }
 }
