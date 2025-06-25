@@ -336,10 +336,10 @@ namespace FamilyFarm.BusinessLogic.Services
                 BookingServiceStatus = "Pending",
                 CancelServiceAt = null,
                 RejectServiceAt = null,
-                FirstPayment = null,
-                FirstPaymentAt = null,
-                SecondPayment = null,
-                SecondPaymentAt = null,
+                //FirstPayment = null,
+                //FirstPaymentAt = null,
+                //SecondPayment = null,
+                //SecondPaymentAt = null,
                 IsDeleted = false,
 
             };

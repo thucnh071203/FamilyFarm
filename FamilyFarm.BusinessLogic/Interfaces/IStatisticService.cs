@@ -11,7 +11,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
     {
         Task<List<EngagedPostResponseDTO>> GetTopEngagedPostsAsync(int topN);
         Task<Dictionary<string, int>> GetWeeklyBookingGrowthAsync();
-        Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate);
+        //Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate);
         Task<List<UserByProvinceResponseDTO>> GetUsersByProvinceAsync();
         Task<Dictionary<string, int>> GetCountByStatusAsync(string accId);
         Task<Dictionary<string, int>> GetCountByDateAsync(string accId, string time);
