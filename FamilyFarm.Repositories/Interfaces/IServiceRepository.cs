@@ -16,6 +16,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<Service> CreateService(Service service);
         Task<Service> UpdateService(string serviceId, Service service);
         Task<long> ChangeStatusService(string serviceId);
+        Task UpdateStatusService(string? serviceId, int status);
         Task<long> DeleteService(string serviceId);
         //Task<List<Service>> GetAllPagPageAsync(int pageNumber, int pageSize);
         //Task<long> GetTotalAllCountAsync();

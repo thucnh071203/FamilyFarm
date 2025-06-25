@@ -67,6 +67,8 @@ builder.Services.AddScoped<SharePostTagDAO>();
 builder.Services.AddScoped<CategoryNotificationDAO>();
 builder.Services.AddScoped<StatisticDAO>();
 builder.Services.AddScoped<SavedPostDAO>();
+builder.Services.AddScoped<ProcessStepDAO>();
+builder.Services.AddScoped<ProcessStepImageDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -102,6 +104,7 @@ builder.Services.AddScoped<ISharePostTagRepository, SharePostTagRepository>();
 builder.Services.AddScoped<ICategoryNotificationRepository, CategoryNotificationRepository>();
 builder.Services.AddScoped<IStatisticRepository, StatisticRepository>();
 builder.Services.AddScoped<ISavedPostRepository, SavedPostRepository>();
+builder.Services.AddScoped<IProcessStepRepository, ProcessStepRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();

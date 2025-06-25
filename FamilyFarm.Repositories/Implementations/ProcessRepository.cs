@@ -55,6 +55,11 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.SearchProcessKeywordAsync(keyword);
         }
 
+        public async Task<Process?> GetProcessByServiceId(string? serviceId)
+        {
+            return await _dao.GetProcessByServiceId(serviceId);
+        }
+
         //public async Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId)
         //{
         //    return await _dao.FitlerStatusAsync(status, accountId, roleId);

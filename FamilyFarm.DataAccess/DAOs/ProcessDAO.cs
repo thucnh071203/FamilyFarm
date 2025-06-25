@@ -161,5 +161,14 @@ namespace FamilyFarm.DataAccess.DAOs
         //    var matchProcesses = await _Processes.Find(filter).ToListAsync();
         //    return matchProcesses;
         //}
+
+        public async Task<Process?> GetProcessByServiceId(string? serviceId)
+        {
+            if (string.IsNullOrEmpty(serviceId))
+                return null;
+
+            var filter = Builders<Process>.Filter.Eq(p => p.ServiceId, serviceId);
+            return await _Processes.Find(filter).FirstOrDefaultAsync();
+        }
     }
 }

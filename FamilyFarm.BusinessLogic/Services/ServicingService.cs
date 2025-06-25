@@ -19,13 +19,15 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly ICategoryServiceRepository _categoryServiceRepository;
         private readonly IAccountRepository _accountRepository;
         private readonly IUploadFileService _uploadFileService;
+        private readonly IProcessRepository _processRepository;
 
-        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository, IAccountRepository accountRepository, IUploadFileService uploadFileService)
+        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository, IAccountRepository accountRepository, IUploadFileService uploadFileService, IProcessRepository processRepository)
         {
             _serviceRepository = serviceRepository;
             _categoryServiceRepository = categoryServiceRepository;
             _accountRepository = accountRepository;
             _uploadFileService = uploadFileService;
+            _processRepository = processRepository;
         }
 
         public async Task<ServiceResponseDTO> GetAllService()
@@ -84,6 +86,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            //LẤY DANH SÁCH SERVICE CỦA NGƯỜI DÙNG ĐÓ
             var services = await _serviceRepository.GetAllServiceByProvider(providerId);
 
             if (services.Count == 0 || services == null)
@@ -95,7 +98,20 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            var serviceMappers = services.Select(s => new ServiceMapper { service = s }).ToList();
+            //KIỂM TRA LẠI SERVICE NÀO KHÔNG CÓ PROCESS THÌ UPDATE STATUS LẠI
+            foreach(var service in services)
+            {
+                var processOfService = await _processRepository.GetProcessByServiceId(service.ServiceId);
+                if(processOfService != null)
+                {
+                    continue;
+                }
+                await _serviceRepository.UpdateStatusService(service.ServiceId, 0);//NẾU KHÔNG CÓ PROCESS THÌ UPDATE LẠI UNAVAILABLE
+            }
+
+            var servicesAfterUpdate = await _serviceRepository.GetAllServiceByProvider(providerId);
+
+            var serviceMappers = servicesAfterUpdate.Select(s => new ServiceMapper { service = s }).ToList();
 
             return new ServiceResponseDTO
             {

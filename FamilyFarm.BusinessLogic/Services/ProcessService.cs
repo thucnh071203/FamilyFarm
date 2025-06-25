@@ -20,13 +20,17 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IAccountRepository _accountRepository;
         private readonly IServiceRepository _serviceRepository;
         private readonly IBookingServiceRepository _bookingServiceRepository;
+        private readonly IUploadFileService _uploadFileService;
+        private readonly IProcessStepRepository _processStepRepository;
 
-        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository)
+        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository, IUploadFileService uploadFileService, IProcessStepRepository processStepRepository)
         {
             _processRepository = processRepository;
             _accountRepository = accountRepository;
             _serviceRepository = serviceRepository;
             _bookingServiceRepository = bookingServiceRepository;
+            _uploadFileService = uploadFileService;
+            _processStepRepository = processStepRepository;
         }
 
         public async Task<ProcessResponseDTO> GetAllProcess()
@@ -171,11 +175,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            //var checkAccountExpert = await _accountRepository.GetAccountById(item.ExpertId);
-            //var checkAccountFarmer = await _accountRepository.GetAccountById(item.FarmerId);
-
             var checkService = await _serviceRepository.GetServiceById(item.ServiceId);
-            //var checkBooking = await _bookingServiceRepository.GetById(item.BookingServiceId);
 
             if (checkService == null)
             {
@@ -186,42 +186,13 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            //if (checkAccountExpert == null || checkAccountFarmer == null)
-            //{
-            //    return new ProcessResponseDTO
-            //    {
-            //        Success = false,
-            //        Message = "Account is null"
-            //    };
-            //}
-            //else if (checkAccountExpert.RoleId != "68007b2a87b41211f0af1d57")
-            //{
-            //    return new ProcessResponseDTO
-            //    {
-            //        Success = false,
-            //        Message = "Creator is not expert"
-            //    };
-            //}
-            //else if (checkAccountFarmer.RoleId != "68007b0387b41211f0af1d56") {
-            //    return new ProcessResponseDTO
-            //    {
-            //        Success = false,
-            //        Message = "Customer is not farmer"
-            //    };
-            //}
-
             var addNewProcess = new Process
             {
                 ProcessId = null,
-                //ExpertId = item.ExpertId,
-                //FarmerId = item.FarmerId,
                 ServiceId = item.ServiceId,
-                //BookingServiceId = item.BookingServiceId,
                 ProcessTittle = item.ProcessTittle,
                 Description = item.Description,
                 NumberOfSteps = item.NumberOfSteps,
-                //ContinueStep = item.ContinueStep,
-                //ProcessStatus = item.ProcessStatus
             };
 
             var created = await _processRepository.CreateProcess(addNewProcess);
@@ -235,6 +206,42 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            //KHI TẠO PROCESS THÀNH CÔNG THÌ TẠO CÁC PROCESS STEP OGIRINAL
+            if(item.ProcessSteps != null && item.ProcessSteps.Count > 0)
+            {
+                foreach (var step in item.ProcessSteps)
+                {
+                    var newStep = new ProcessStep();
+                    newStep.ProcessId = created.ProcessId;
+                    newStep.StepNumber = step.StepNumber;
+                    newStep.StepTitle = step.StepTitle;
+                    newStep.StepDesciption = step.StepDescription;
+
+                    var responseStep = await _processStepRepository.CreateProcessStep(newStep);
+
+                    //Tạo image cho mỗi step
+                    if(step.Images != null && step.Images.Count > 0)
+                    {
+                        //Goi method upload List image tu Upload file service
+                        List<FileUploadResponseDTO> listImageUrl = await _uploadFileService.UploadListImage(step.Images);
+
+                        if (listImageUrl != null && listImageUrl.Count > 0)
+                        {
+                            foreach (var image in listImageUrl)
+                            {
+                                var stepImage = new ProcessStepImage();
+                                stepImage.ProcessStepId = responseStep.StepId;
+                                stepImage.ImageUrl = image.UrlFile ?? "";
+
+                                await _processStepRepository.CreateStepImage(stepImage);
+                            }
+                        }
+                        
+                    }
+                    
+                }
+            }
+            
             return new ProcessResponseDTO
             {
                 Success = true,

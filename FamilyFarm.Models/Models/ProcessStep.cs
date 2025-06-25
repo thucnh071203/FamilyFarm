@@ -12,7 +12,7 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string StepId { get; set; }
+        public string? StepId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
         public string? ProcessId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
