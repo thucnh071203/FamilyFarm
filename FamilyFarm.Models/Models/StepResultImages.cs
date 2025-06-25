@@ -8,14 +8,13 @@ using MongoDB.Bson;
 
 namespace FamilyFarm.Models.Models
 {
-    public class ProcessStepResults
+    public class StepResultImages
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string StepResultId { get; set; }
+        public required string StepResultImageId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string StepId { get; set; }
-        public required string? StepResultComment { get; set; }
-        public required DateTime? CreatedAt { get; set; }
+        public string? StepResultId { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }
