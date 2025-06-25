@@ -29,10 +29,10 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _statisticRepository.GetWeeklyBookingGrowthAsync();
         }
 
-        public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
-        {
-            return await _statisticRepository.GetMostActiveMembersAsync(startDate, endDate);
-        }
+        //public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
+        //{
+        //    return await _statisticRepository.GetMostActiveMembersAsync(startDate, endDate);
+        //}
 
         public async Task<List<UserByProvinceResponseDTO>> GetUsersByProvinceAsync()
         {

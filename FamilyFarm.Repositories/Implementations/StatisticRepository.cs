@@ -31,10 +31,10 @@ namespace FamilyFarm.Repositories.Implementations
             return await _statisticDAO.GetWeeklyBookingGrowthAsync();
         }
 
-        public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
-        {
-            return await _statisticDAO.GetMostActiveMembersAsync(startDate, endDate);
-        }
+        //public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
+        //{
+        //    return await _statisticDAO.GetMostActiveMembersAsync(startDate, endDate);
+        //}
 
         public async Task<List<UserByProvinceResponseDTO>> GetUsersByProvinceAsync()
         {
