@@ -13,14 +13,13 @@ namespace FamilyFarm.Models.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string StepId { get; set; }
-        [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string ProcessId { get; set; }
-        [BsonRequired]
-        public required int StepNumber { get; set; }
-        [BsonRequired]
-        public required string StepTitle { get; set; }
-        public required string StepDesciption { get; set; }
+        public string? ProcessId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? SubprocessId { get; set; }
+        public int StepNumber { get; set; }
+        public string? StepTitle { get; set; }
+        public string? StepDesciption { get; set; }
         public bool? IsCompleted { get; set; }
         public DateTime? CompletedAt { get; set; }
     }
