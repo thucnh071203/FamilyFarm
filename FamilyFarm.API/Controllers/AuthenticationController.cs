@@ -228,30 +228,35 @@ namespace FamilyFarm.API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPut("generate-OTP")]
+        [HttpPost("generate-OTP")]
         public async Task<IActionResult> GenerateOtp([FromForm] string id)
         {
             var account = await _accountService.GetAccountById(id);
             if (account == null)
             {
-                return NotFound("Account not found");
+                return NotFound(new { Success = false, Message = "Account not found" });
             }
 
             if (account.Status != 0)
             {
-                return BadRequest("Account is inactivate.");
+                return BadRequest(new { Success = false, Message = "Account is inactive." });
             }
 
+            // Generate OTP
             var random = new Random();
             int otpRandom = random.Next(100000, 999999);
 
+            // Save OTP & Time
             account.Otp = otpRandom;
             account.CreateOtp = DateTime.UtcNow;
+
             await _accountService.UpdateOtpAsync(id, account);
+
             return Ok(new
             {
-                message = "OTP updated successfully.",
-                otp = otpRandom
+                Success = true,
+                Message = "OTP generated successfully.",
+                Otp = otpRandom // Nếu không muốn trả về client có thể bỏ dòng này
             });
         }
 
@@ -267,10 +272,6 @@ namespace FamilyFarm.API.Controllers
             {
                 return BadRequest("Account is inactivate.");
             }
-            else if (account.Otp != request.Otp)
-            {
-                return BadRequest("Otp does not match.");
-            }
 
             account.PasswordHash = request.Password;
             account.Otp = null;
@@ -280,16 +281,47 @@ namespace FamilyFarm.API.Controllers
         }
 
         // Test send email 
+        //[HttpPost("send-email")]
+        //public async Task<IActionResult> SendEmail([FromBody] EmailRequestDTO request)
+        //{
+        //    var otp = 123456;
+        //    var content = $"<p>Your OTP is:</p><div class='otp-box'>{otp}</div><p>It is valid for 2 minutes.</p>";
+        //    var html = EmailTemplateHelper.EmailConfirm(request.ToEmail, content);
+
+        //    await _emailSender.SendEmailAsync(request.ToEmail, request.Subject, html);
+
+        //    return Ok("Email sent successfully!");
+        //}
         [HttpPost("send-email")]
         public async Task<IActionResult> SendEmail([FromBody] EmailRequestDTO request)
         {
-            var otp = 123456;
-            var content = $"<p>Your OTP is:</p><div class='otp-box'>{otp}</div><p>It is valid for 2 minutes.</p>";
+            // Get account by email
+            var account = await _accountService.GetAccountByEmail(request.ToEmail);
+            if (account == null)
+            {
+                return NotFound(new { Success = false, Message = "Account not found." });
+            }
+
+            if (account.Data.Otp == null || account.Data.CreateOtp == null)
+            {
+                return BadRequest(new { Success = false, Message = "OTP has not been generated yet." });
+            }
+
+            // Kiểm tra OTP hết hạn (giả sử 1 phút)
+            if ((DateTime.UtcNow - account.Data.CreateOtp.Value).TotalMinutes > 1)
+            {
+                return BadRequest(new { Success = false, Message = "OTP has expired. Please request a new OTP." });
+            }
+
+            var otp = account.Data.Otp.Value;
+
+            var content = $"<p>Your OTP is:</p><div class='otp-box'>{otp}</div><p>It is valid for 1 minutes.</p>";
             var html = EmailTemplateHelper.EmailConfirm(request.ToEmail, content);
 
             await _emailSender.SendEmailAsync(request.ToEmail, request.Subject, html);
 
-            return Ok("Email sent successfully!");
+            return Ok(new { Success = true, Message = "OTP email sent successfully." });
         }
+
     }
 }

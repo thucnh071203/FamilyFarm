@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
@@ -243,6 +244,7 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(update);
         }
+
         [HttpGet("get-by-accId/{accId}")]
         public async Task<IActionResult> GetAccountByAccId(string accId)
         {
@@ -255,6 +257,24 @@ namespace FamilyFarm.API.Controllers
             return Ok(update);
         }
 
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAllAccount()
+        {
+            var update = await _accountService.GetAllAccountExceptAdmin();
+            if (update == null)
+            {
+                return BadRequest("have some error when get account information!");
+            }
+
+            return Ok(update);
+        }
+
+        [HttpGet("get-by-email/{email}")]
+        public async Task<IActionResult> GetAccountByEmail(string email)
+        {
+            var result = await _accountService.GetAccountByEmail(email);
+            return result.Success ? Ok(result) : NotFound(result);
+        }
 
     }
 }

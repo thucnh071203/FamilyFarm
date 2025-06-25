@@ -6,6 +6,7 @@ using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
+using Microsoft.AspNetCore.Http.HttpResults;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -234,6 +235,49 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             if (accId == null) return null;
             return await _accountRepository.GetAccountByAccId(accId);
+        }
+
+        public async Task<List<Account>> GetAllAccountExceptAdmin()
+        {
+            return await _accountRepository.GetAllAccountExceptAdmin();
+         }
+
+        public async Task<ForgotPasswordResponseDTO> GetAccountByEmail(string email)
+        {
+            if (email == null)
+            {
+                return new ForgotPasswordResponseDTO
+                {
+                    Success = false,
+                    Message = "Email is null",
+                };
+            }
+
+            var getAccByEmail = await _accountRepository.GetAccountByEmail(email);
+
+            if (getAccByEmail == null)
+            {
+                return new ForgotPasswordResponseDTO
+                {
+                    Success = false,
+                    Message = "Account is not found",
+                };
+            } else if (getAccByEmail.Status == 1)
+            {
+                return new ForgotPasswordResponseDTO
+                {
+                    Success = false,
+                    Message = "Account is locked",
+                };
+            }
+
+            return new ForgotPasswordResponseDTO
+            {
+                Success = true,
+                Message = "Get account successful",
+                Data = getAccByEmail
+            };
+
         }
     }
 }
