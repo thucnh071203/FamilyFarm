@@ -11,13 +11,14 @@ namespace FamilyFarm.BusinessLogic.Interfaces
 {
     public interface IProcessService
     {
-        Task<ProcessResponseDTO> GetAllProcessByExpert(string accountId);
-        Task<ProcessResponseDTO> GetAllProcessByFarmer(string accountId);
+        Task<ProcessResponseDTO> GetAllProcess();
+        //Task<ProcessResponseDTO> GetAllProcessByExpert(string accountId);
+        //Task<ProcessResponseDTO> GetAllProcessByFarmer(string accountId);
         Task<ProcessResponseDTO> GetProcessById(string processId);
         Task<ProcessResponseDTO> CreateProcess(ProcessRequestDTO item);
         Task<ProcessResponseDTO> UpdateProcess(string processId, ProcessRequestDTO item);
         Task<ProcessResponseDTO> DeleteProcess(string processId);
-        Task<ProcessResponseDTO> GetAllProcessByKeyword(string? keyword, string accountId);
-        Task<ProcessResponseDTO> FilterProcessByStatus(string? status, string accountId);
+        Task<ProcessResponseDTO> GetAllProcessByKeyword(string? keyword);
+        //Task<ProcessResponseDTO> FilterProcessByStatus(string? status, string accountId);
     }
 }

@@ -29,30 +29,11 @@ namespace FamilyFarm.BusinessLogic.Services
             _bookingServiceRepository = bookingServiceRepository;
         }
 
-        public async Task<ProcessResponseDTO> GetAllProcessByExpert(string accountId)
+        public async Task<ProcessResponseDTO> GetAllProcess()
         {
-            var checkAccount = await _accountRepository.GetAccountById(accountId);
+            var listAllProcess = await _processRepository.GetAllProcess();
 
-            if (checkAccount == null)
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Account is null"
-                };
-            }
-            else if (checkAccount.RoleId != "68007b2a87b41211f0af1d57")
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Account is not expert"
-                };
-            }
-
-            var listAllProcessExpert = await _processRepository.GetAllProcessByExpert(accountId);
-
-            if (listAllProcessExpert.Count == 0 || listAllProcessExpert == null)
+            if (listAllProcess.Count == 0 || listAllProcess == null)
             {
                 return new ProcessResponseDTO
                 {
@@ -61,59 +42,102 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            var processMappers = listAllProcessExpert.Select(p => new ProcessMapper { process = p }).ToList();
+            var processMappers = listAllProcess.Select(p => new ProcessMapper { process = p }).ToList();
 
             return new ProcessResponseDTO
             {
                 Success = true,
                 Message = "Get all process successfully",
-                Count = listAllProcessExpert.Count,
+                Count = listAllProcess.Count,
                 Data = processMappers
             };
         }
 
-        public async Task<ProcessResponseDTO> GetAllProcessByFarmer(string accountId)
-        {
-            var checkAccount = await _accountRepository.GetAccountById(accountId);
+        //public async Task<ProcessResponseDTO> GetAllProcessByExpert(string accountId)
+        //{
+        //    var checkAccount = await _accountRepository.GetAccountById(accountId);
 
-            if (checkAccount == null)
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Account is null"
-                };
-            }
-            else if (checkAccount.RoleId != "68007b0387b41211f0af1d56")
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Account is not farmer"
-                };
-            }
+        //    if (checkAccount == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Account is null"
+        //        };
+        //    }
+        //    else if (checkAccount.RoleId != "68007b2a87b41211f0af1d57")
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Account is not expert"
+        //        };
+        //    }
 
-            var listAllProcessFarmer = await _processRepository.GetAllProcessByFarmer(accountId);
+        //    var listAllProcessExpert = await _processRepository.GetAllProcessByExpert(accountId);
 
-            if (listAllProcessFarmer.Count == 0 || listAllProcessFarmer == null)
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Process list is empty"
-                };
-            }
+        //    if (listAllProcessExpert.Count == 0 || listAllProcessExpert == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Process list is empty"
+        //        };
+        //    }
 
-            var processMappers = listAllProcessFarmer.Select(p => new ProcessMapper { process = p }).ToList();
+        //    var processMappers = listAllProcessExpert.Select(p => new ProcessMapper { process = p }).ToList();
 
-            return new ProcessResponseDTO
-            {
-                Success = true,
-                Message = "Get all process successfully",
-                Count= listAllProcessFarmer.Count,
-                Data = processMappers
-            };
-        }
+        //    return new ProcessResponseDTO
+        //    {
+        //        Success = true,
+        //        Message = "Get all process successfully",
+        //        Count = listAllProcessExpert.Count,
+        //        Data = processMappers
+        //    };
+        //}
+
+        //public async Task<ProcessResponseDTO> GetAllProcessByFarmer(string accountId)
+        //{
+        //    var checkAccount = await _accountRepository.GetAccountById(accountId);
+
+        //    if (checkAccount == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Account is null"
+        //        };
+        //    }
+        //    else if (checkAccount.RoleId != "68007b0387b41211f0af1d56")
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Account is not farmer"
+        //        };
+        //    }
+
+        //    var listAllProcessFarmer = await _processRepository.GetAllProcessByFarmer(accountId);
+
+        //    if (listAllProcessFarmer.Count == 0 || listAllProcessFarmer == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Process list is empty"
+        //        };
+        //    }
+
+        //    var processMappers = listAllProcessFarmer.Select(p => new ProcessMapper { process = p }).ToList();
+
+        //    return new ProcessResponseDTO
+        //    {
+        //        Success = true,
+        //        Message = "Get all process successfully",
+        //        Count= listAllProcessFarmer.Count,
+        //        Data = processMappers
+        //    };
+        //}
 
         public async Task<ProcessResponseDTO> GetProcessById(string processId)
         {
@@ -147,57 +171,57 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            var checkAccountExpert = await _accountRepository.GetAccountById(item.ExpertId);
-            var checkAccountFarmer = await _accountRepository.GetAccountById(item.FarmerId);
+            //var checkAccountExpert = await _accountRepository.GetAccountById(item.ExpertId);
+            //var checkAccountFarmer = await _accountRepository.GetAccountById(item.FarmerId);
 
             var checkService = await _serviceRepository.GetServiceById(item.ServiceId);
-            var checkBooking = await _bookingServiceRepository.GetById(item.BookingServiceId);
+            //var checkBooking = await _bookingServiceRepository.GetById(item.BookingServiceId);
 
-            if (checkService == null || checkBooking == null)
+            if (checkService == null)
             {
                 return new ProcessResponseDTO
                 {
                     Success = false,
-                    Message = "Service or booking are null"
+                    Message = "Service are null"
                 };
             }
 
-            if (checkAccountExpert == null || checkAccountFarmer == null)
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Account is null"
-                };
-            }
-            else if (checkAccountExpert.RoleId != "68007b2a87b41211f0af1d57")
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Creator is not expert"
-                };
-            }
-            else if (checkAccountFarmer.RoleId != "68007b0387b41211f0af1d56") {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Customer is not farmer"
-                };
-            }
+            //if (checkAccountExpert == null || checkAccountFarmer == null)
+            //{
+            //    return new ProcessResponseDTO
+            //    {
+            //        Success = false,
+            //        Message = "Account is null"
+            //    };
+            //}
+            //else if (checkAccountExpert.RoleId != "68007b2a87b41211f0af1d57")
+            //{
+            //    return new ProcessResponseDTO
+            //    {
+            //        Success = false,
+            //        Message = "Creator is not expert"
+            //    };
+            //}
+            //else if (checkAccountFarmer.RoleId != "68007b0387b41211f0af1d56") {
+            //    return new ProcessResponseDTO
+            //    {
+            //        Success = false,
+            //        Message = "Customer is not farmer"
+            //    };
+            //}
 
             var addNewProcess = new Process
             {
                 ProcessId = null,
-                ExpertId = item.ExpertId,
-                FarmerId = item.FarmerId,
+                //ExpertId = item.ExpertId,
+                //FarmerId = item.FarmerId,
                 ServiceId = item.ServiceId,
-                BookingServiceId = item.BookingServiceId,
+                //BookingServiceId = item.BookingServiceId,
                 ProcessTittle = item.ProcessTittle,
                 Description = item.Description,
                 NumberOfSteps = item.NumberOfSteps,
-                ContinueStep = item.ContinueStep,
-                ProcessStatus = item.ProcessStatus
+                //ContinueStep = item.ContinueStep,
+                //ProcessStatus = item.ProcessStatus
             };
 
             var created = await _processRepository.CreateProcess(addNewProcess);
@@ -230,69 +254,69 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            var checkAccountExpert = await _accountRepository.GetAccountById(item.ExpertId);
-            var checkAccountFarmer = await _accountRepository.GetAccountById(item.FarmerId);
+            //var checkAccountExpert = await _accountRepository.GetAccountById(item.ExpertId);
+            //var checkAccountFarmer = await _accountRepository.GetAccountById(item.FarmerId);
 
             var checkService = await _serviceRepository.GetServiceById(item.ServiceId);
-            var checkBooking = await _bookingServiceRepository.GetById(item.BookingServiceId);
+            //var checkBooking = await _bookingServiceRepository.GetById(item.BookingServiceId);
 
-            if (checkService == null || checkBooking == null)
+            if (checkService == null)
             {
                 return new ProcessResponseDTO
                 {
                     Success = false,
-                    Message = "Service or booking are null"
+                    Message = "Service are null"
                 };
             }
 
-            if (checkAccountExpert == null || checkAccountFarmer == null)
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Account is null"
-                };
-            }
-            else if (checkAccountExpert.RoleId != "68007b2a87b41211f0af1d57")
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Creator is not expert"
-                };
-            }
-            else if (checkAccountFarmer.RoleId != "68007b0387b41211f0af1d56")
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Customer is not farmer"
-                };
-            }
+            //if (checkAccountExpert == null || checkAccountFarmer == null)
+            //{
+            //    return new ProcessResponseDTO
+            //    {
+            //        Success = false,
+            //        Message = "Account is null"
+            //    };
+            //}
+            //else if (checkAccountExpert.RoleId != "68007b2a87b41211f0af1d57")
+            //{
+            //    return new ProcessResponseDTO
+            //    {
+            //        Success = false,
+            //        Message = "Creator is not expert"
+            //    };
+            //}
+            //else if (checkAccountFarmer.RoleId != "68007b0387b41211f0af1d56")
+            //{
+            //    return new ProcessResponseDTO
+            //    {
+            //        Success = false,
+            //        Message = "Customer is not farmer"
+            //    };
+            //}
 
             var checkOwner = await _processRepository.GetProcessById(processId);
 
-            if (checkOwner.ExpertId != item.ExpertId)
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Expert does not match"
-                };
-            }
+            //if (checkOwner.ExpertId != item.ExpertId)
+            //{
+            //    return new ProcessResponseDTO
+            //    {
+            //        Success = false,
+            //        Message = "Expert does not match"
+            //    };
+            //}
 
             var updateProcess = new Process
             {
                 ProcessId = null,
-                ExpertId = item.ExpertId,
-                FarmerId = item.FarmerId,
+                //ExpertId = item.ExpertId,
+                //FarmerId = item.FarmerId,
                 ServiceId = item.ServiceId,
-                BookingServiceId = item.BookingServiceId,
+                //BookingServiceId = item.BookingServiceId,
                 ProcessTittle = item.ProcessTittle,
                 Description = item.Description,
                 NumberOfSteps = item.NumberOfSteps,
-                ContinueStep = item.ContinueStep,
-                ProcessStatus = "InProgress"
+                //ContinueStep = item.ContinueStep,
+                //ProcessStatus = "InProgress"
             };
 
             var updated = await _processRepository.UpdateProcess(processId, updateProcess);
@@ -335,20 +359,20 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<ProcessResponseDTO> GetAllProcessByKeyword(string? keyword, string accountId)
+        public async Task<ProcessResponseDTO> GetAllProcessByKeyword(string? keyword)
         {
-            var checkAccount = await _accountRepository.GetAccountById(accountId);
+            //var checkAccount = await _accountRepository.GetAccountById(accountId);
 
-            if (checkAccount == null)
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Account is null"
-                };
-            }
+            //if (checkAccount == null)
+            //{
+            //    return new ProcessResponseDTO
+            //    {
+            //        Success = false,
+            //        Message = "Account is null"
+            //    };
+            //}
 
-            var searchAllProcess = await _processRepository.GetAllProcessByKeyword(keyword, accountId, checkAccount.RoleId);
+            var searchAllProcess = await _processRepository.GetAllProcessByKeyword(keyword);
 
             if (searchAllProcess.Count == 0 || searchAllProcess == null)
             {
@@ -370,39 +394,39 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<ProcessResponseDTO> FilterProcessByStatus(string? status, string accountId)
-        {
-            var checkAccount = await _accountRepository.GetAccountById(accountId);
+        //public async Task<ProcessResponseDTO> FilterProcessByStatus(string? status, string accountId)
+        //{
+        //    var checkAccount = await _accountRepository.GetAccountById(accountId);
 
-            if (checkAccount == null)
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Account is null"
-                };
-            }
+        //    if (checkAccount == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Account is null"
+        //        };
+        //    }
 
-            var filterAllProcess = await _processRepository.FilterProcessByStatus(status, accountId, checkAccount.RoleId);
+        //    var filterAllProcess = await _processRepository.FilterProcessByStatus(status, accountId, checkAccount.RoleId);
 
-            if (filterAllProcess.Count == 0 || filterAllProcess == null)
-            {
-                return new ProcessResponseDTO
-                {
-                    Success = false,
-                    Message = "Process list is empty"
-                };
-            }
+        //    if (filterAllProcess.Count == 0 || filterAllProcess == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Process list is empty"
+        //        };
+        //    }
 
-            var processMappers = filterAllProcess.Select(p => new ProcessMapper { process = p }).ToList();
+        //    var processMappers = filterAllProcess.Select(p => new ProcessMapper { process = p }).ToList();
 
-            return new ProcessResponseDTO
-            {
-                Success = true,
-                Message = "Get all process successfully",
-                Count = filterAllProcess.Count,
-                Data = processMappers
-            };
-        }
+        //    return new ProcessResponseDTO
+        //    {
+        //        Success = true,
+        //        Message = "Get all process successfully",
+        //        Count = filterAllProcess.Count,
+        //        Data = processMappers
+        //    };
+        //}
     }
 }

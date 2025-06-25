@@ -13,28 +13,28 @@ namespace FamilyFarm.Models.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string ProcessId { get; set; }
-        [BsonRequired]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public required string ExpertId { get; set; }
-        [BsonRequired]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public required string FarmerId { get; set; }
+        //[BsonRequired]
+        //[BsonRepresentation(BsonType.ObjectId)]
+        //public required string ExpertId { get; set; }
+        //[BsonRequired]
+        //[BsonRepresentation(BsonType.ObjectId)]
+        //public required string FarmerId { get; set; }
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string ServiceId { get; set; }
-        [BsonRequired]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public required string BookingServiceId { get; set; }
+        //[BsonRequired]
+        //[BsonRepresentation(BsonType.ObjectId)]
+        //public required string BookingServiceId { get; set; }
         public required string ProcessTittle { get; set; }
         public required string Description { get; set; }
         public required int NumberOfSteps { get; set; }
-        public required int ContinueStep { get; set; }
-        public required string ProcessStatus { get; set; }
+        //public required int ContinueStep { get; set; }
+        //public required string ProcessStatus { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
         public DateTime? DeleteAt { get; set; }
-        public bool? IsCompletedByExpert { get; set; }
-        public bool? IsCompletedByFarmer { get; set; }
+        //public bool? IsCompletedByExpert { get; set; }
+        //public bool? IsCompletedByFarmer { get; set; }
         public bool? IsDelete { get; set; }
 
     }

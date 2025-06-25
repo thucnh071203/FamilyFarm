@@ -9,13 +9,14 @@ namespace FamilyFarm.Repositories.Interfaces
 {
     public interface IProcessRepository
     {
-        Task<List<Process>> GetAllProcessByExpert(string accountId);
-        Task<List<Process>> GetAllProcessByFarmer(string accountId);
+        Task<List<Process>> GetAllProcess();
+        //Task<List<Process>> GetAllProcessByExpert(string accountId);
+        //Task<List<Process>> GetAllProcessByFarmer(string accountId);
         Task<Process> GetProcessById(string processId);
         Task<Process> CreateProcess(Process item);
         Task<Process> UpdateProcess(string processId, Process item);
         Task<long> DeleteProcess(string processId);
-        Task<List<Process>> GetAllProcessByKeyword(string? keyword, string accountId, string roleId);
-        Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId);
+        Task<List<Process>> GetAllProcessByKeyword(string? keyword);
+        //Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId);
     }
 }

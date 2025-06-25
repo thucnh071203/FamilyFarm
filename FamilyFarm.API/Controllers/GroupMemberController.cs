@@ -78,7 +78,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpDelete("delete/{groupMemberId}")]
-        public async Task<IActionResult> DeleteGroup(string groupMemberId)
+        public async Task<IActionResult> DeleteGroupMember(string groupMemberId)
         {
             var group = await _groupMemberService.GetGroupMemberById(groupMemberId);
             if (group == null)
