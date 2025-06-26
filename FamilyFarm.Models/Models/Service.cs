@@ -29,5 +29,6 @@ namespace FamilyFarm.Models.Models
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
         public bool? IsDeleted { get; set; }
+        public bool? HaveProcess { get; set; }
     }
 }

@@ -148,6 +148,8 @@ namespace FamilyFarm.BusinessLogic.Services
 
                 }
             }
+
+            await _serviceRepository.UpdateProcessStatusService(item.ServiceId);
             
             return new ProcessResponseDTO
             {
