@@ -19,8 +19,8 @@ namespace FamilyFarm.Models.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? SenderId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string TargetId { get; set; }
-        public required string TargetType { get; set; } // đối tượng mà hành động đó tác động lên (ví dụ: "Post", "Service", "Group", "Process")
+        public string? TargetId { get; set; }
+        public string? TargetType { get; set; } // đối tượng mà hành động đó tác động lên (ví dụ: "Post", "Service", "Group", "Process")
         public required string Content { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

@@ -320,10 +320,10 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <summary>
         ///     Hard Delete a post - delete out of DB
         /// </summary>
-        public async Task<DeletePostResponseDTO?> DeletePost(string? acc_id, DeletePostRequestDTO request)
+        public async Task<DeletePostResponseDTO?> DeletePost(DeletePostRequestDTO request)
         {
-            if (acc_id == null)
-                return null;
+            //if (acc_id == null)
+            //    return null;
 
             if (request.PostId == null)
                 return null;
@@ -337,12 +337,12 @@ namespace FamilyFarm.BusinessLogic.Services
                     Success = false
                 };
 
-            if (post.AccId != acc_id)
-                return new DeletePostResponseDTO
-                {
-                    Message = "You are not permission for this action.",
-                    Success = false
-                };
+            //if (post.AccId != acc_id)
+            //    return new DeletePostResponseDTO
+            //    {
+            //        Message = "You are not permission for this action.",
+            //        Success = false
+            //    };
 
             var isDeleted = await _postRepository.DeletePost(post.PostId);
 
