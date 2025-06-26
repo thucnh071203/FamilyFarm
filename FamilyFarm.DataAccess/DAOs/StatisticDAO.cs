@@ -223,44 +223,44 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
-        public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> CountByStatusAsync(string accId)
-        {
-            var bookingFilter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
-            var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
+        //public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> CountByStatusAsync(string accId)
+        //{
+        //    var bookingFilter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
+        //    var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
 
-            var serviceIds = bookings.Select(b => b.ServiceId).Distinct().ToList();
-            var serviceFilter = Builders<Service>.Filter.In(s => s.ServiceId, serviceIds);
-            var services = await Services.Find(serviceFilter).ToListAsync();
+        //    var serviceIds = bookings.Select(b => b.ServiceId).Distinct().ToList();
+        //    var serviceFilter = Builders<Service>.Filter.In(s => s.ServiceId, serviceIds);
+        //    var services = await Services.Find(serviceFilter).ToListAsync();
 
-            var result = bookings.Select(b =>
-            {
-                var service = services.FirstOrDefault(s => s.ServiceId == b.ServiceId);
+        //    var result = bookings.Select(b =>
+        //    {
+        //        var service = services.FirstOrDefault(s => s.ServiceId == b.ServiceId);
 
-                return new BookingServiceByStatusDTO
-                {
-                    BookingServiceId = b.BookingServiceId,
-                    AccId = b.AccId,
-                    ServiceId = b.ServiceId,
-                    Price = b.Price,
-                    BookingServiceAt = b.BookingServiceAt,
-                    BookingServiceStatus = b.BookingServiceStatus,
-                    CancelServiceAt = b.CancelServiceAt,
-                    RejectServiceAt = b.RejectServiceAt,
-                    FirstPayment = b.FirstPayment,
-                    FirstPaymentAt = b.FirstPaymentAt,
-                    SecondPayment = b.SecondPayment,
-                    SecondPaymentAt = b.SecondPaymentAt,
-                    IsDeleted = b.IsDeleted,
+        //        return new BookingServiceByStatusDTO
+        //        {
+        //            BookingServiceId = b.BookingServiceId,
+        //            AccId = b.AccId,
+        //            ServiceId = b.ServiceId,
+        //            Price = b.Price,
+        //            BookingServiceAt = b.BookingServiceAt,
+        //            BookingServiceStatus = b.BookingServiceStatus,
+        //            CancelServiceAt = b.CancelServiceAt,
+        //            RejectServiceAt = b.RejectServiceAt,
+        //            FirstPayment = b.FirstPayment,
+        //            FirstPaymentAt = b.FirstPaymentAt,
+        //            SecondPayment = b.SecondPayment,
+        //            SecondPaymentAt = b.SecondPaymentAt,
+        //            IsDeleted = b.IsDeleted,
 
-                    ServiceName = service?.ServiceName,
-                    ServiceDescription = service?.ServiceDescription
-                };
-            }).ToList();
+        //            ServiceName = service?.ServiceName,
+        //            ServiceDescription = service?.ServiceDescription
+        //        };
+        //    }).ToList();
 
-            return result
-                .GroupBy(x => x.BookingServiceStatus ?? "UNKNOWN")
-                .ToDictionary(g => g.Key, g => g.ToList());
-        }
+        //    return result
+        //        .GroupBy(x => x.BookingServiceStatus ?? "UNKNOWN")
+        //        .ToDictionary(g => g.Key, g => g.ToList());
+        //}
 
         //public async Task<Dictionary<string, List<BookingService>>> CountByStatusAsync(string accId)
         //{
