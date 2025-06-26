@@ -1,4 +1,6 @@
-﻿using FamilyFarm.Models.DTOs.Response;
+﻿using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +15,8 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<Dictionary<string, int>> GetWeeklyBookingGrowthAsync();
         Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate);
         Task<List<UserByProvinceResponseDTO>> GetUsersByProvinceAsync();
-        Task<Dictionary<string, int>> GetCountByStatusAsync(string accId);
+        //Task<Dictionary<string, int>> GetCountByStatusAsync(string accId);
+        Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId);
         Task<Dictionary<string, int>> GetCountByDateAsync(string accId, string time);
         Task<Dictionary<string, int>> GetCountByDayAllMonthsAsync(string accId, int year);
              Task<Dictionary<string, int>> GetCountByMonthAsync(string accId, int year);
