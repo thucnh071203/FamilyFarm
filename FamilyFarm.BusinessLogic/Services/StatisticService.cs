@@ -42,11 +42,11 @@ namespace FamilyFarm.BusinessLogic.Services
         }
 
         //public async Task<Dictionary<string, int>> GetCountByStatusAsync(string accId)
-            public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
+        //    public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
 
-        {
-            return await _statisticRepository.GetCountByStatusAsync(accId);
-        }
+        //{
+        //    return await _statisticRepository.GetCountByStatusAsync(accId);
+        //}
 
         public async Task<Dictionary<string, int>> GetCountByDateAsync(string accId, string time)
         {
