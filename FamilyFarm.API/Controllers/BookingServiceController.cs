@@ -18,6 +18,7 @@ namespace FamilyFarm.API.Controllers
             _bookingService = bookingService;
             _authenService = authenService;
         }
+<<<<<<< HEAD
 
         [HttpPost("request-booking/{serviceId}")]
         [Authorize]
@@ -33,6 +34,8 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+=======
+>>>>>>> main
 
         //[HttpPut("cancel-booking/{bookingId}")]
         //[Authorize]
@@ -148,6 +151,26 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest(result.Message);
 
             return Ok(result);
+        }
+
+        [HttpPost("request/{serviceId}")]
+        [Authorize]
+        public async Task<ActionResult> CreateBookingService([FromBody] string? description, [FromRoute] string? serviceId)
+        {
+            if(serviceId == null || description == null)
+            {
+                return BadRequest("Data unvalid!");
+            }
+
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+
+            var result = await _bookingService.RequestToBookingService(accId, serviceId, description);
+
+            if (result == null || result == false)
+                return BadRequest("Cannot booking!");
+
+            return Ok("Booking service successfully!");
         }
     }
 }

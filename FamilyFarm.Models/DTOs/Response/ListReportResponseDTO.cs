@@ -11,6 +11,6 @@ namespace FamilyFarm.Models.DTOs.Response
     {
         public string? Message { get; set; }
         public bool? Success { get; set; }
-        public List<ReportDTO> Reports { get; set; }
+        public List<ReportDTO> Data { get; set; }
     }
 }

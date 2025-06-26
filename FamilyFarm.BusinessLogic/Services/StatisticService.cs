@@ -1,6 +1,8 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -39,7 +41,9 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _statisticRepository.GetUsersByProvinceAsync();
         }
 
-        public async Task<Dictionary<string, int>> GetCountByStatusAsync(string accId)
+        //public async Task<Dictionary<string, int>> GetCountByStatusAsync(string accId)
+            public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
+
         {
             return await _statisticRepository.GetCountByStatusAsync(accId);
         }

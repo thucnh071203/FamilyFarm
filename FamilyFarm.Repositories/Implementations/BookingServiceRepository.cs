@@ -36,9 +36,9 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetListRequestBookingByServiceId(id);
         }
-        public async Task Create(BookingService bookingService)
+        public async Task<bool?> Create(BookingService bookingService)
         {
-            await _dao.Create(bookingService);
+            return await _dao.Create(bookingService);
         }
         public async Task UpdateStatus(BookingService bookingService)
         {

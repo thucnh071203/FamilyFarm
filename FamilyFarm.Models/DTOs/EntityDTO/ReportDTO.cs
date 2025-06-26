@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
@@ -12,5 +13,6 @@ namespace FamilyFarm.Models.DTOs.EntityDTO
     {
         public Report Report { get; set; }
         public MiniAccountDTO Reporter { get; set; }
+        public PostMapper? Post { get; set; }
     }
 }

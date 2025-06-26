@@ -15,11 +15,17 @@ namespace FamilyFarm.API.Controllers
     {
         private readonly IReportService _reportService;
         private readonly IAuthenticationService _authenService;
+        private readonly IPostService _postService;
+        private readonly INotificationService _notificationService;
+        private readonly IAuthenticationService _authenticationService;
 
-        public ReportController(IReportService reportService, IAuthenticationService authenService)
+        public ReportController(IReportService reportService, IAuthenticationService authenService, IPostService postService, INotificationService notificationService, IAuthenticationService authenticationService)
         {
             _reportService = reportService;
             _authenService = authenService;
+            _postService = postService;
+            _notificationService = notificationService;
+            _authenticationService = authenticationService;
         }
 
         /// <summary>
@@ -31,7 +37,7 @@ namespace FamilyFarm.API.Controllers
         /// If reports exist, it returns them with a 200 OK status.
         /// If no reports exist, it returns an empty list with a 200 OK status.
         /// </returns>
-        [HttpPost("all")]
+        [HttpGet("all")]
         public async Task<IActionResult> GetAllReport()
         {
             var reports = await _reportService.GetAll();
@@ -47,12 +53,33 @@ namespace FamilyFarm.API.Controllers
         /// If pending reports exist, it returns them with a 200 OK status.
         /// If no pending reports exist, it returns an empty list with a 200 OK status.
         /// </returns>
-        [HttpPost("all-pending")]
+        [HttpGet("all-pending")]
         public async Task<IActionResult> GetAllPending()
         {
-            var reports = await _reportService.GetAll();
-            var pendingReports = reports.Where(r => r.Status == "pending").ToList();
-            return Ok(pendingReports);
+            var response = await _reportService.GetAll();
+
+            if (response == null || response.Data == null)
+            {
+                return NotFound(new { message = "No reports found." });
+            }
+
+            var pendingReports = response.Data
+                .Where(r => r.Report.Status == "pending")
+                .ToList();
+
+            return Ok(new
+            {
+                Success = true,
+                Message = $"Found {pendingReports.Count} pending reports.",
+                Data = pendingReports
+            });
+        }
+
+        [HttpGet("get-by-id/{id}")]
+        public async Task<IActionResult> GeById(string id)
+        {
+            var report = await _reportService.GetById(id);
+            return Ok(report);
         }
 
         /// <summary>
@@ -89,19 +116,19 @@ namespace FamilyFarm.API.Controllers
                 {
                     Success = false,
                     Message = "You have already reported this post.",
-                    Report = null
+                    Data = null
                 });
             }
 
             // Gọi service để tạo báo cáo
             var result = await _reportService.CreateAsync(reportRequest, account.AccId);
-            if (!result.Success || result.Report == null)
+            if (!result.Success || result.Data == null)
             {
                 return BadRequest(new ReportResponseDTO
                 {
                     Success = false,
                     Message = result.Message ?? "Invalid PostId.",
-                    Report = null
+                    Data = null
                 });
             }
 
@@ -120,17 +147,38 @@ namespace FamilyFarm.API.Controllers
         /// - If the report does not exist, returns a 404 Not Found with a message "Report Not Found".
         /// - If the update fails, returns a 400 Bad Request with a message "Invalid".
         /// </returns>
-        [HttpPost("accept/{id}")]
+        [HttpPut("accept/{id}")]
         public async Task<IActionResult> Accept(string id)
         {
+            var account = _authenticationService.GetDataFromToken();
             var existing = await _reportService.GetById(id);
             if (existing == null)
                 return NotFound("Report Not Found");
 
-            existing.Status = "accepted";
-            var result = await _reportService.Update(id, existing);
+            existing.Data.Report.Status = "accepted";
+            existing.Data.Report.HandledById = account.AccId;
+            var result = await _reportService.Update(id, existing.Data.Report);
             if (result == null)
                 return BadRequest("Invalid");
+
+            var postRequest = new DeletePostRequestDTO
+            {
+                PostId = existing.Data.Report.PostId
+            };
+
+            SendNotificationRequestDTO notiRequest = new SendNotificationRequestDTO
+            {
+                ReceiverIds = new List<string> { existing.Data.Post.Post.AccId },
+                SenderId = account.AccId,
+                CategoryNotiId = "685d3f6d1d2b7e9f45ae1c3b",
+                TargetId = null,
+                TargetType = null,
+                Content = "Your post was deleted because it was reported with reason \"" + existing.Data.Report.Reason + "\"."
+            };
+
+            await _notificationService.SendNotificationAsync(notiRequest);
+
+            await _postService.DeletePost(postRequest);
 
             return Ok(result);
         }
@@ -146,15 +194,15 @@ namespace FamilyFarm.API.Controllers
         /// - If the report does not exist, returns a 404 Not Found with a message "Report Not Found".
         /// - If the update fails, returns a 400 Bad Request with a message "Invalid".
         /// </returns>
-        [HttpPost("reject/{id}")]
+        [HttpPut("reject/{id}")]
         public async Task<IActionResult> Reject(string id)
         {
             var existing = await _reportService.GetById(id);
             if (existing == null)
                 return NotFound("Report Not Found");
 
-            existing.Status = "rejected";
-            var result = await _reportService.Update(id, existing);
+            existing.Data.Report.Status = "rejected";
+            var result = await _reportService.Update(id, existing.Data.Report);
             if (result == null)
                 return BadRequest("Invalid");
 

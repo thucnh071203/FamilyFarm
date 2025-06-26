@@ -363,11 +363,11 @@ namespace FamilyFarm.BusinessLogic.Services
             bool shouldNotify = lastMessage == null ||
                                 (chatDetail.SendAt - lastMessage.SendAt).TotalMilliseconds >= TIME_THRESHOLD_MS;
 
-            var categoryNotification = await _categoryNotificationRepository.GetByNameAsync("Chat");
-            if (categoryNotification == null)
-            {
-                throw new InvalidOperationException("Chat notification category not found.");
-            }
+            //var categoryNotification = await _categoryNotificationRepository.GetByNameAsync("Chat");
+            //if (categoryNotification == null)
+            //{
+            //    throw new InvalidOperationException("Chat notification category not found.");
+            //}
 
             var templateNotifi = _notificationTemplate.GetNotificationTemplate("Chat");
             var account = await _accountRepository.GetAccountByIdAsync(senderId);
@@ -377,7 +377,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 {
                     ReceiverIds = new List<string> { request.ReceiverId },
                     SenderId = senderId,
-                    CategoryNotiId = categoryNotification.CategoryNotifiId,
+                    CategoryNotiId = "681370cd5908b0f4fb0cd0f8",
                     TargetId = chat.ChatId,
                     TargetType = "Chat",//post tag friend, edit, delete group, 
                     Content = string.Format(templateNotifi, account?.FullName)
