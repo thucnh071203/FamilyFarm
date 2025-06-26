@@ -17,7 +17,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<UserByProvinceResponseDTO>> GetUsersByProvinceAsync();
 
         //Task<Dictionary<string, int>> GetCountByStatusAsync(string accId);
-        Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId);
+        //Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId);
 
         Task<Dictionary<string, int>> GetCountByDateAsync(string accId, string time);
         Task<Dictionary<string, int>> GetCountByMonthAsync(string accId, int year);
