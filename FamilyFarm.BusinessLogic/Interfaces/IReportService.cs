@@ -12,8 +12,8 @@ namespace FamilyFarm.BusinessLogic.Interfaces
 {
     public interface IReportService
     {
-        Task<List<Report>> GetAll();
-        Task<Report?> GetById(string id);
+        Task<ListReportResponseDTO> GetAll();
+        Task<ReportResponseDTO?> GetById(string id);
         Task<Report?> GetByPostAndReporter(string postId, string reporterId);
         Task<ReportResponseDTO> CreateAsync(CreateReportRequestDTO request, string reporterId);
         Task<Report> Update(string id, Report report);

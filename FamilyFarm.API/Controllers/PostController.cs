@@ -201,10 +201,10 @@ namespace FamilyFarm.API.Controllers
                 PostId = post_id
             };
 
-            var userClaims = _authenService.GetDataFromToken();
-            var acc_id = userClaims?.AccId;
+            //var userClaims = _authenService.GetDataFromToken();
+            //var acc_id = userClaims?.AccId;
 
-            var isDeletedSuccess = await _postService.DeletePost(acc_id, request);
+            var isDeletedSuccess = await _postService.DeletePost(request);
 
             if (isDeletedSuccess == null)
                 return BadRequest("Invalid data from request");

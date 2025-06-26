@@ -20,23 +20,87 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IReportRepository _reportRepository;
         private readonly IAccountRepository _accountRepository;
         private readonly IMapper _mapper;
+        private readonly IPostService _postService;
 
-        public ReportService(IReportRepository reportRepository, IAccountRepository accountRepository, IMapper mapper)
+        public ReportService(IReportRepository reportRepository, IAccountRepository accountRepository, IMapper mapper, IPostService postService)
         {
             _reportRepository = reportRepository;
             _accountRepository = accountRepository;
             _mapper = mapper;
+            _postService = postService;
         }
 
-        public async Task<List<Report>> GetAll()
+        public async Task<ListReportResponseDTO> GetAll()
         {
-            return await _reportRepository.GetAll();
+            var reports = await _reportRepository.GetAll();
+
+            var reportDTOs = new List<ReportDTO>();
+
+            foreach (var report in reports)
+            {
+                var reporter = await _accountRepository.GetAccountById(report.ReporterId);
+                if (reporter == null) continue;
+
+                var post = await _postService.GetPostById(report.PostId);
+
+                var reportDTO = new ReportDTO
+                {
+                    Report = report,
+                    Reporter = _mapper.Map<MiniAccountDTO>(reporter),
+                    Post = post?.Data
+                };
+
+                reportDTOs.Add(reportDTO);
+            }
+
+            return new ListReportResponseDTO
+            {
+                Success = true,
+                Message = "Get all reports successfully!",
+                Data = reportDTOs
+            };
         }
 
-        public async Task<Report?> GetById(string id)
+        public async Task<ReportResponseDTO?> GetById(string id)
         {
-            return await _reportRepository.GetById(id);
+            var report = await _reportRepository.GetById(id);
+            if (report == null)
+            {
+                return new ReportResponseDTO
+                {
+                    Success = false,
+                    Message = "Cannot found the report!"
+                };
+            }
+
+            var reporter = await _accountRepository.GetAccountById(report.ReporterId);
+            if (reporter == null)
+            {
+                return new ReportResponseDTO
+                {
+                    Success = false,
+                    Message = "Reporter information not found.",
+                    Data = null
+                };
+            }
+
+            var post = await _postService.GetPostById(report.PostId);
+
+            var reportDTO = new ReportDTO
+            {
+                Reporter = _mapper.Map<MiniAccountDTO>(reporter),
+                Report = report,
+                Post = post?.Data
+            };
+
+            return new ReportResponseDTO
+            {
+                Success = true,
+                Message = "Get report successfully!",
+                Data = reportDTO
+            };
         }
+
 
         public async Task<Report?> GetByPostAndReporter(string postId, string reporterId)
         {
@@ -54,7 +118,7 @@ namespace FamilyFarm.BusinessLogic.Services
                     {
                         Success = false,
                         Message = "Invalid input data.",
-                        Report = null
+                        Data = null
                     };
                 }
 
@@ -78,7 +142,7 @@ namespace FamilyFarm.BusinessLogic.Services
                     {
                         Success = false,
                         Message = "Can not report.",
-                        Report = null
+                        Data = null
                     };
                 }
 
@@ -90,9 +154,11 @@ namespace FamilyFarm.BusinessLogic.Services
                     {
                         Success = false,
                         Message = "Reporter information not found.",
-                        Report = null
+                        Data = null
                     };
                 }
+
+                //var post = await _postService.GetPostById(request.PostId);
 
                 // Ánh xạ Account sang MiniAccountDTO
                 var miniAccountDTO = _mapper.Map<MiniAccountDTO>(reporter);
@@ -102,6 +168,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 {
                     Report = createdReport,
                     Reporter = miniAccountDTO
+                    //Post = post?.Data
                 };
 
                 // Trả về phản hồi
@@ -109,7 +176,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 {
                     Success = true,
                     Message = "The report was created successfully.",
-                    Report = reportDTO
+                    Data = reportDTO
                 };
             }
             catch (Exception ex)
@@ -118,7 +185,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 {
                     Success = false,
                     Message = $"Error generating report: {ex.Message}",
-                    Report = null
+                    Data = null
                 };
             }
         }
@@ -132,6 +199,5 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             await _reportRepository.Delete(id);
         }
-
     }
 }

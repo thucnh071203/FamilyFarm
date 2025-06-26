@@ -12,9 +12,9 @@ namespace FamilyFarm.Models.DTOs.Request
     {
         public List<string> ReceiverIds { get; set; }
         public string? SenderId { get; set; }
-        public string CategoryNotiId { get; set; }
-        public string TargetId { get; set; }
-        public string TargetType { get; set; }
-        public string Content { get; set; }
+        public string? CategoryNotiId { get; set; }
+        public string? TargetId { get; set; }
+        public string? TargetType { get; set; }
+        public string? Content { get; set; }
     }
 }
