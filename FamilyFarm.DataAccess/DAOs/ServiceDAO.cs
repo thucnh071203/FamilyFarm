@@ -61,6 +61,7 @@ namespace FamilyFarm.DataAccess.DAOs
             service.AverageRate = 0;
             service.RateCount = 0;
             service.IsDeleted = false;
+            service.HaveProcess = false;
 
             await _Services.InsertOneAsync(service);
             return service;
@@ -192,6 +193,17 @@ namespace FamilyFarm.DataAccess.DAOs
                 .FirstOrDefaultAsync();
 
             return latestService;
+        }
+
+        public async Task UpdateProcessStatus(string? serviceId)
+        {
+            if (string.IsNullOrEmpty(serviceId))
+                return;
+
+            var filter = Builders<Service>.Filter.Eq(p => p.ServiceId, serviceId);
+            var update = Builders<Service>.Update.Set(p => p.HaveProcess, true);
+
+            await _Services.UpdateOneAsync(filter, update);
         }
     }
 }

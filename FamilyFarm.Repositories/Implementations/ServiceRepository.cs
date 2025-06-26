@@ -61,5 +61,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetLastestServiceByProviderAsync(serviceId, accId);
         }
+
+        public async Task UpdateProcessStatusService(string? serviceId)
+        {
+            await _dao.UpdateProcessStatus(serviceId);
+        }
     }
 }
