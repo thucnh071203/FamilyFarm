@@ -172,5 +172,26 @@ namespace FamilyFarm.DataAccess.DAOs
 
             await _Services.UpdateOneAsync(filter, update);
         }
+
+        public async Task<Service> GetLastestServiceByProviderAsync(string serviceId, string accId)
+        {
+            if (!ObjectId.TryParse(serviceId, out _)) return null;
+
+            if (!ObjectId.TryParse(accId, out _)) return null;
+
+            var filter = Builders<Service>.Filter.Eq(p => p.ServiceId, serviceId) &
+                         Builders<Service>.Filter.Eq(p => p.ProviderId, accId) &
+                         Builders<Service>.Filter.Ne(p => p.IsDeleted, true);
+
+            var sort = Builders<Service>.Sort.Descending(s => s.CreateAt);
+
+            var latestService = await _Services
+                .Find(filter)
+                .Sort(sort)
+                .Limit(1)
+                .FirstOrDefaultAsync();
+
+            return latestService;
+        }
     }
 }

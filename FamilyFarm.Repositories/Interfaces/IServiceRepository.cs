@@ -20,5 +20,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<long> DeleteService(string serviceId);
         //Task<List<Service>> GetAllPagPageAsync(int pageNumber, int pageSize);
         //Task<long> GetTotalAllCountAsync();
+        Task<Service> GetLastestService(string serviceId, string accId);
     }
 }

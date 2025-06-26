@@ -57,92 +57,6 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        //public async Task<ProcessResponseDTO> GetAllProcessByExpert(string accountId)
-        //{
-        //    var checkAccount = await _accountRepository.GetAccountById(accountId);
-
-        //    if (checkAccount == null)
-        //    {
-        //        return new ProcessResponseDTO
-        //        {
-        //            Success = false,
-        //            Message = "Account is null"
-        //        };
-        //    }
-        //    else if (checkAccount.RoleId != "68007b2a87b41211f0af1d57")
-        //    {
-        //        return new ProcessResponseDTO
-        //        {
-        //            Success = false,
-        //            Message = "Account is not expert"
-        //        };
-        //    }
-
-        //    var listAllProcessExpert = await _processRepository.GetAllProcessByExpert(accountId);
-
-        //    if (listAllProcessExpert.Count == 0 || listAllProcessExpert == null)
-        //    {
-        //        return new ProcessResponseDTO
-        //        {
-        //            Success = false,
-        //            Message = "Process list is empty"
-        //        };
-        //    }
-
-        //    var processMappers = listAllProcessExpert.Select(p => new ProcessMapper { process = p }).ToList();
-
-        //    return new ProcessResponseDTO
-        //    {
-        //        Success = true,
-        //        Message = "Get all process successfully",
-        //        Count = listAllProcessExpert.Count,
-        //        Data = processMappers
-        //    };
-        //}
-
-        //public async Task<ProcessResponseDTO> GetAllProcessByFarmer(string accountId)
-        //{
-        //    var checkAccount = await _accountRepository.GetAccountById(accountId);
-
-        //    if (checkAccount == null)
-        //    {
-        //        return new ProcessResponseDTO
-        //        {
-        //            Success = false,
-        //            Message = "Account is null"
-        //        };
-        //    }
-        //    else if (checkAccount.RoleId != "68007b0387b41211f0af1d56")
-        //    {
-        //        return new ProcessResponseDTO
-        //        {
-        //            Success = false,
-        //            Message = "Account is not farmer"
-        //        };
-        //    }
-
-        //    var listAllProcessFarmer = await _processRepository.GetAllProcessByFarmer(accountId);
-
-        //    if (listAllProcessFarmer.Count == 0 || listAllProcessFarmer == null)
-        //    {
-        //        return new ProcessResponseDTO
-        //        {
-        //            Success = false,
-        //            Message = "Process list is empty"
-        //        };
-        //    }
-
-        //    var processMappers = listAllProcessFarmer.Select(p => new ProcessMapper { process = p }).ToList();
-
-        //    return new ProcessResponseDTO
-        //    {
-        //        Success = true,
-        //        Message = "Get all process successfully",
-        //        Count= listAllProcessFarmer.Count,
-        //        Data = processMappers
-        //    };
-        //}
-
         public async Task<ProcessResponseDTO> GetProcessById(string processId)
         {
             var process = await _processRepository.GetProcessById(processId);
@@ -220,25 +134,18 @@ namespace FamilyFarm.BusinessLogic.Services
                     var responseStep = await _processStepRepository.CreateProcessStep(newStep);
 
                     //Tạo image cho mỗi step
-                    if(step.Images != null && step.Images.Count > 0)
+                    if (step.Images != null && step.Images.Count > 0)
                     {
-                        //Goi method upload List image tu Upload file service
-                        List<FileUploadResponseDTO> listImageUrl = await _uploadFileService.UploadListImage(step.Images);
-
-                        if (listImageUrl != null && listImageUrl.Count > 0)
+                        foreach (var imageUrl in step.Images)
                         {
-                            foreach (var image in listImageUrl)
-                            {
-                                var stepImage = new ProcessStepImage();
-                                stepImage.ProcessStepId = responseStep.StepId;
-                                stepImage.ImageUrl = image.UrlFile ?? "";
+                            var stepImage = new ProcessStepImage();
+                            stepImage.ProcessStepId = responseStep.StepId;
+                            stepImage.ImageUrl = imageUrl ?? "";
 
-                                await _processStepRepository.CreateStepImage(stepImage);
-                            }
+                            await _processStepRepository.CreateStepImage(stepImage);
                         }
-                        
                     }
-                    
+
                 }
             }
             
@@ -261,11 +168,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            //var checkAccountExpert = await _accountRepository.GetAccountById(item.ExpertId);
-            //var checkAccountFarmer = await _accountRepository.GetAccountById(item.FarmerId);
-
             var checkService = await _serviceRepository.GetServiceById(item.ServiceId);
-            //var checkBooking = await _bookingServiceRepository.GetById(item.BookingServiceId);
 
             if (checkService == null)
             {
@@ -276,54 +179,15 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            //if (checkAccountExpert == null || checkAccountFarmer == null)
-            //{
-            //    return new ProcessResponseDTO
-            //    {
-            //        Success = false,
-            //        Message = "Account is null"
-            //    };
-            //}
-            //else if (checkAccountExpert.RoleId != "68007b2a87b41211f0af1d57")
-            //{
-            //    return new ProcessResponseDTO
-            //    {
-            //        Success = false,
-            //        Message = "Creator is not expert"
-            //    };
-            //}
-            //else if (checkAccountFarmer.RoleId != "68007b0387b41211f0af1d56")
-            //{
-            //    return new ProcessResponseDTO
-            //    {
-            //        Success = false,
-            //        Message = "Customer is not farmer"
-            //    };
-            //}
-
             var checkOwner = await _processRepository.GetProcessById(processId);
-
-            //if (checkOwner.ExpertId != item.ExpertId)
-            //{
-            //    return new ProcessResponseDTO
-            //    {
-            //        Success = false,
-            //        Message = "Expert does not match"
-            //    };
-            //}
 
             var updateProcess = new Process
             {
                 ProcessId = null,
-                //ExpertId = item.ExpertId,
-                //FarmerId = item.FarmerId,
                 ServiceId = item.ServiceId,
-                //BookingServiceId = item.BookingServiceId,
                 ProcessTittle = item.ProcessTittle,
                 Description = item.Description,
                 NumberOfSteps = item.NumberOfSteps,
-                //ContinueStep = item.ContinueStep,
-                //ProcessStatus = "InProgress"
             };
 
             var updated = await _processRepository.UpdateProcess(processId, updateProcess);

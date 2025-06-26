@@ -14,6 +14,9 @@ namespace FamilyFarm.Models.DTOs.Request
         public string? StepDescription { get; set; }
 
         // Danh sách file ảnh gửi từ UI (nếu dùng upload ảnh)
-        public List<IFormFile>? Images { get; set; }
+        //public List<IFormFile>? Images { get; set; }
+
+        // Bỏ IFormFile → dùng List<string> cho URL
+        public List<string>? Images { get; set; }
     }
 }
