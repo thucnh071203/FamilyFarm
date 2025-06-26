@@ -45,8 +45,8 @@ namespace FamilyFarm.BusinessLogic.Services
             //KIỂM TRA LẠI SERVICE NÀO KHÔNG CÓ PROCESS THÌ UPDATE STATUS LẠI
             foreach (var service in listAllService)
             {
-                var processOfService = await _processRepository.GetProcessByServiceId(service.ServiceId);
-                if (processOfService != null)
+                //var processOfService = await _processRepository.GetProcessByServiceId(service.ServiceId);
+                if (service.HaveProcess != false)
                 {
                     continue;
                 }
@@ -114,8 +114,8 @@ namespace FamilyFarm.BusinessLogic.Services
             //KIỂM TRA LẠI SERVICE NÀO KHÔNG CÓ PROCESS THÌ UPDATE STATUS LẠI
             foreach(var service in services)
             {
-                var processOfService = await _processRepository.GetProcessByServiceId(service.ServiceId);
-                if(processOfService != null)
+                //var processOfService = await _processRepository.GetProcessByServiceId(service.ServiceId);
+                if(service.HaveProcess != false)
                 {
                     continue;
                 }
