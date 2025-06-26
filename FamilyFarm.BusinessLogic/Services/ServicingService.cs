@@ -42,6 +42,19 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            //KIỂM TRA LẠI SERVICE NÀO KHÔNG CÓ PROCESS THÌ UPDATE STATUS LẠI
+            foreach (var service in listAllService)
+            {
+                //var processOfService = await _processRepository.GetProcessByServiceId(service.ServiceId);
+                if (service.HaveProcess != false)
+                {
+                    continue;
+                }
+                await _serviceRepository.UpdateStatusService(service.ServiceId, 0);//NẾU KHÔNG CÓ PROCESS THÌ UPDATE LẠI UNAVAILABLE
+            }
+
+            var servicesAfterUpdate = await _serviceRepository.GetAllService();
+
             /* var serviceMappers = new List<ServiceMapper>();
 
              foreach (var service in listAllService)
@@ -54,7 +67,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
             // Viết tắt
 
-            var serviceMappers = listAllService.Select(s => new ServiceMapper { service = s }).ToList();
+            var serviceMappers = servicesAfterUpdate.Select(s => new ServiceMapper { service = s }).ToList();
 
             return new ServiceResponseDTO
             {
@@ -101,8 +114,8 @@ namespace FamilyFarm.BusinessLogic.Services
             //KIỂM TRA LẠI SERVICE NÀO KHÔNG CÓ PROCESS THÌ UPDATE STATUS LẠI
             foreach(var service in services)
             {
-                var processOfService = await _processRepository.GetProcessByServiceId(service.ServiceId);
-                if(processOfService != null)
+                //var processOfService = await _processRepository.GetProcessByServiceId(service.ServiceId);
+                if(service.HaveProcess != false)
                 {
                     continue;
                 }

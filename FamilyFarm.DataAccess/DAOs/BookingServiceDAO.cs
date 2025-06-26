@@ -93,9 +93,19 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return await _bookingService.Find(filter).ToListAsync();
         }
-        public async Task Create(BookingService bookingService)
+
+        public async Task<bool> Create(BookingService bookingService)
         {
-            await _bookingService.InsertOneAsync(bookingService);
+            try
+            {
+                await _bookingService.InsertOneAsync(bookingService);
+                return true;
+            }
+            catch (Exception)
+            {
+                // Có thể log lỗi ra tại đây nếu cần
+                return false;
+            }
         }
 
         public async Task UpdateStatus(BookingService bookingService)

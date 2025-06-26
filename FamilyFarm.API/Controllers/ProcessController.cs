@@ -17,11 +17,13 @@ namespace FamilyFarm.API.Controllers
     {
         private readonly IProcessService _processService;
         private readonly IAuthenticationService _authenService;
+        private readonly IUploadFileService _uploadFileService;
 
-        public ProcessController(IProcessService processService, IAuthenticationService authenService)
+        public ProcessController(IProcessService processService, IAuthenticationService authenService, IUploadFileService uploadFileService)
         {
             _processService = processService;
             _authenService = authenService;
+            _uploadFileService = uploadFileService;
         }
 
         [HttpGet("all")]
@@ -40,38 +42,6 @@ namespace FamilyFarm.API.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        //[HttpGet("all-by-expert")]
-        //[Authorize]
-        //public async Task<IActionResult> GetAllProcessesByExpert()
-        //{
-        //    var account = _authenService.GetDataFromToken();
-        //    if (account == null)
-        //        return Unauthorized("Invalid token or user not found.");
-
-        //    if (!ObjectId.TryParse(account.AccId, out _))
-        //        return BadRequest("Invalid AccIds.");
-
-        //    var result = await _processService.GetAllProcessByExpert(account.AccId);
-
-        //    return result.Success ? Ok(result) : BadRequest(result);
-        //}
-
-        //[HttpGet("all-by-farmer")]
-        //[Authorize]
-        //public async Task<IActionResult> GetAllProcessesByFarmer()
-        //{
-        //    var account = _authenService.GetDataFromToken();
-        //    if (account == null)
-        //        return Unauthorized("Invalid token or user not found.");
-
-        //    if (!ObjectId.TryParse(account.AccId, out _))
-        //        return BadRequest("Invalid AccIds.");
-
-        //    var result = await _processService.GetAllProcessByFarmer(account.AccId);
-
-        //    return result.Success ? Ok(result) : BadRequest(result);
-        //}
-
         [HttpGet("get-by-id/{processId}")]
         public async Task<IActionResult> GetProcessById(string processId)
         {
@@ -81,7 +51,7 @@ namespace FamilyFarm.API.Controllers
 
         [HttpPost("create")]
         [Authorize]
-        public async Task<IActionResult> CreateProcess([FromForm] ProcessRequestDTO process)
+        public async Task<IActionResult> CreateProcess([FromBody] ProcessRequestDTO process)
         {
             var account = _authenService.GetDataFromToken();
             if (account == null)
@@ -167,5 +137,17 @@ namespace FamilyFarm.API.Controllers
         //    var result = await _processService.FilterProcessByStatus(status, account.AccId);
         //    return result.Success ? Ok(result) : BadRequest(result);
         //}
+
+        [HttpPost("upload-images")]
+        [Authorize]
+        public async Task<IActionResult> UploadImages([FromForm] List<IFormFile> files)
+        {
+            if (files == null || files.Count == 0)
+                return BadRequest("No files uploaded.");
+
+            var result = await _uploadFileService.UploadListImage(files);
+            return Ok(result);
+        }
+
     }
 }

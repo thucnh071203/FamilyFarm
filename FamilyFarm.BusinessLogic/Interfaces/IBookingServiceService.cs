@@ -18,6 +18,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<bool?> ExpertAcceptBookingService (string bookingServiceId);
         Task<bool?> ExpertRejectBookingService(string bookingServiceId);
         Task<bool?> CancelBookingService(string bookingServiceId);
-        Task<bool?> SendRequestBooking(string username, string serviceId);
+        Task<bool?> RequestToBookingService(string? accId, string? serviceId, string? description);
     }
 }

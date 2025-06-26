@@ -319,32 +319,28 @@ namespace FamilyFarm.BusinessLogic.Services
 
         }
 
-        public async Task<bool?> SendRequestBooking(string username, string serviceId)
+        public async Task<bool?> RequestToBookingService(string? accId, string? serviceId, string? description)
         {
-            if (string.IsNullOrEmpty(serviceId) || string.IsNullOrEmpty(username)) return null;
+            if (accId == null || serviceId == null || description == null)
+                return null;
+
             var service = await _serviceRepository.GetServiceById(serviceId);
-            var farmer = await _accountRepository.GetAccountByUsername(username);
+            if(service == null) return null;
 
-            if (farmer == null || service == null) return null;
-            var bookingService = new BookingService
-            {
-                BookingServiceId = "",
-                AccId = farmer.AccId,
-                ServiceId = service.ServiceId,
-                Price = service.Price,
-                BookingServiceAt = DateTime.Now,
-                BookingServiceStatus = "Pending",
-                CancelServiceAt = null,
-                RejectServiceAt = null,
-                //FirstPayment = null,
-                //FirstPaymentAt = null,
-                //SecondPayment = null,
-                //SecondPaymentAt = null,
-                IsDeleted = false,
+            var bookingService = new BookingService();
+            bookingService.AccId = accId;
+            bookingService.ServiceId = serviceId;
+            bookingService.Price = service.Price;
+            bookingService.Description = description;
+            bookingService.CommissionRate = service.Price * 0.10m; //Tính phần trăm hoa hồng 10%
+            bookingService.BookingServiceAt = DateTime.Now;
+            bookingService.BookingServiceStatus = "Pending";
+            bookingService.IsDeleted = false;
+            bookingService.IsPaidByFarmer = false;
+            bookingService.IsPaidToExpert = false;
 
-            };
-            await _repository.Create(bookingService);
-            return true;
+            var isRequestSuccess = await _repository.Create(bookingService);
+            return isRequestSuccess;
         }
     }
 }

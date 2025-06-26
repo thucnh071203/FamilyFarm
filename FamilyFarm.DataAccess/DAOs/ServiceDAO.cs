@@ -61,6 +61,7 @@ namespace FamilyFarm.DataAccess.DAOs
             service.AverageRate = 0;
             service.RateCount = 0;
             service.IsDeleted = false;
+            service.HaveProcess = false;
 
             await _Services.InsertOneAsync(service);
             return service;
@@ -169,6 +170,38 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var filter = Builders<Service>.Filter.Eq(p => p.ServiceId, serviceId);
             var update = Builders<Service>.Update.Set(p => p.Status, status);
+
+            await _Services.UpdateOneAsync(filter, update);
+        }
+
+        public async Task<Service> GetLastestServiceByProviderAsync(string serviceId, string accId)
+        {
+            if (!ObjectId.TryParse(serviceId, out _)) return null;
+
+            if (!ObjectId.TryParse(accId, out _)) return null;
+
+            var filter = Builders<Service>.Filter.Eq(p => p.ServiceId, serviceId) &
+                         Builders<Service>.Filter.Eq(p => p.ProviderId, accId) &
+                         Builders<Service>.Filter.Ne(p => p.IsDeleted, true);
+
+            var sort = Builders<Service>.Sort.Descending(s => s.CreateAt);
+
+            var latestService = await _Services
+                .Find(filter)
+                .Sort(sort)
+                .Limit(1)
+                .FirstOrDefaultAsync();
+
+            return latestService;
+        }
+
+        public async Task UpdateProcessStatus(string? serviceId)
+        {
+            if (string.IsNullOrEmpty(serviceId))
+                return;
+
+            var filter = Builders<Service>.Filter.Eq(p => p.ServiceId, serviceId);
+            var update = Builders<Service>.Update.Set(p => p.HaveProcess, true);
 
             await _Services.UpdateOneAsync(filter, update);
         }
