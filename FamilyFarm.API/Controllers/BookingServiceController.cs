@@ -19,6 +19,21 @@ namespace FamilyFarm.API.Controllers
             _authenService = authenService;
         }
 
+        //[HttpPost("request-booking/{serviceId}")]
+        //[Authorize]
+        //public async Task<ActionResult> SendRequestBookingService(string serviceId)
+        //{
+        //    var userClaims = _authenService.GetDataFromToken();
+        //    var username = userClaims?.Username;
+
+        //    var result = await _bookingService.SendRequestBooking(username, serviceId);
+
+        //    if (result == false)
+        //        return BadRequest();
+
+        //    return Ok(result);
+        //}
+
         //[HttpPut("cancel-booking/{bookingId}")]
         //[Authorize]
         //public async Task<ActionResult> CancelBookingService(string bookingId)
