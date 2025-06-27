@@ -4,6 +4,7 @@ using FamilyFarm.Models.DTOs.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace FamilyFarm.API.Controllers
 {
@@ -18,6 +19,21 @@ namespace FamilyFarm.API.Controllers
             _bookingService = bookingService;
             _authenService = authenService;
         }
+
+        //[HttpPost("request-booking/{serviceId}")]
+        //[Authorize]
+        //public async Task<ActionResult> SendRequestBookingService(string serviceId)
+        //{
+        //    var userClaims = _authenService.GetDataFromToken();
+        //    var username = userClaims?.Username;
+
+        //    var result = await _bookingService.SendRequestBooking(username, serviceId);
+
+        //    if (result == false)
+        //        return BadRequest();
+
+        //    return Ok(result);
+        //}
 
         //[HttpPut("cancel-booking/{bookingId}")]
         //[Authorize]
@@ -153,6 +169,20 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("Cannot booking!");
 
             return Ok("Booking service successfully!");
+        }
+
+        [HttpPut("cancel-booking/{bookingId}")]
+        [Authorize]
+        public async Task<ActionResult> CancelBookingService([FromRoute] string? bookingId)
+        {
+            if (string.IsNullOrEmpty(bookingId))
+                return BadRequest("Data invalid");
+
+            var result = await _bookingService.CancelBookingService(bookingId);
+            if (result == null || result == false)
+                return BadRequest("Cannot cancel");
+
+            return Ok(result);
         }
     }
 }

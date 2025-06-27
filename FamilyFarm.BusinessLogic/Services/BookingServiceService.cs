@@ -1,9 +1,11 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic.Hubs;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,11 +19,13 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IBookingServiceRepository _repository;
         private readonly IAccountRepository _accountRepository;
         private readonly IServiceRepository _serviceRepository;
-        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository)
+        private readonly IHubContext<BookingHub> _bookingHub;
+        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<BookingHub> bookingHub)
         {
             _repository = repository;
             _accountRepository = accountRepository;
             _serviceRepository = serviceRepository;
+            _bookingHub = bookingHub;
         }
 
         public async Task<bool?> CancelBookingService(string bookingServiceId)
@@ -34,6 +38,7 @@ namespace FamilyFarm.BusinessLogic.Services
             try
             {
                 await _repository.UpdateStatus(bookingservice);
+                await _bookingHub.Clients.All.SendAsync("ReceiveBookingStatusChanged", bookingServiceId, "Cancel");
                 return true;
             }
             catch (Exception ex)
@@ -341,6 +346,11 @@ namespace FamilyFarm.BusinessLogic.Services
 
             var isRequestSuccess = await _repository.Create(bookingService);
             return isRequestSuccess;
+        }
+
+        public async Task<bool?> UpdateStatusBooking(string? bookingId, string? status)
+        {
+            return await _repository.UpdateStatus(bookingId, status);
         }
     }
 }

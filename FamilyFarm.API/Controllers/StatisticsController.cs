@@ -26,30 +26,50 @@ namespace FamilyFarm.API.Controllers
         }
 
 
+        //[HttpGet("count-by-role")]
+        //public async Task<IActionResult> CountByRole()
+        //{
+        //    var roleIds = new List<string>
+        //    {
+        //        "68007b0387b41211f0af1d56", // Farmer
+        //        "68007b2a87b41211f0af1d57"  // Expert
+        //    };
+
+        //    try
+        //    {
+        //        var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
+        //        return Ok(result); // 200 OK
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //        return StatusCode(500, new { error = "Fail to load" });
+        //    }
+
+
+        //    //var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
+        //    //return Ok(result);
+        //}
         [HttpGet("count-by-role")]
         public async Task<IActionResult> CountByRole()
         {
             var roleIds = new List<string>
-            {
-                "68007b0387b41211f0af1d56", // Farmer
-                "68007b2a87b41211f0af1d57"  // Expert
-            };
+    {
+        "68007b0387b41211f0af1d56", // Farmer
+        "68007b2a87b41211f0af1d57"  // Expert
+    };
 
             try
             {
                 var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
-                return Ok(result); // 200 OK
+                return Ok(result); // Trả về: { "Farmer": 1234, "Expert": 567 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-            
                 return StatusCode(500, new { error = "Fail to load" });
             }
-
-
-            //var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
-            //return Ok(result);
         }
+
 
         //[HttpGet("growth")]
         //public async Task<IActionResult> GetUserGrowthOverTime([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
@@ -244,32 +264,85 @@ namespace FamilyFarm.API.Controllers
         //    var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
         //    return Ok(result);
         //}
-        [Authorize]
-        [HttpGet("bookingService/status")]
-        public async Task<IActionResult> GetStatisticByStatus()
-        {
-            var userClaims = _authenService.GetDataFromToken();
-            var accId = userClaims?.AccId;
+        //[Authorize]
+        //[HttpGet("bookingService/status")]
+        //public async Task<IActionResult> GetStatisticByStatus()
+        //{
+        //    var userClaims = _authenService.GetDataFromToken();
+        //    var accId = userClaims?.AccId;
 
-            if (string.IsNullOrEmpty(accId))
-            {
-                return BadRequest(new
-                {
-                    isSuccess = false,
-                    message = "Missing account ID (accId).",
-                    data = (object)null
-                });
-            }
+        //    if (string.IsNullOrEmpty(accId))
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            isSuccess = false,
+        //            message = "Missing account ID (accId).",
+        //            data = (object)null
+        //        });
+        //    }
 
-            var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
+        //    var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
 
-            return Ok(new
-            {
-                isSuccess = true,
-                message = "Status counts retrieved successfully.",
-                data = result
-            });
-        }
+        //    return Ok(new
+        //    {
+        //        isSuccess = true,
+        //        message = "Status counts retrieved successfully.",
+        //        data = result
+        //    });
+        //}
+
+        //[Authorize]
+        //[HttpGet("bookingService/status")]
+        //public async Task<IActionResult> GetBookingDetailsByStatus()
+        //{
+        //    var userClaims = _authenService.GetDataFromToken();
+        //    var accId = userClaims?.AccId;
+
+        //    if (string.IsNullOrEmpty(accId))
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            isSuccess = false,
+        //            message = "Missing account ID (accId).",
+        //            data = (object)null
+        //        });
+        //    }
+
+        //    var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
+
+        //    return Ok(new
+        //    {
+        //        isSuccess = true,
+        //        message = "Chi tiết booking theo trạng thái.",
+        //        data = result
+        //    });
+        //}
+        //[Authorize]
+        //[HttpGet("bookingService/status")]
+        //public async Task<IActionResult> GetBookingDetailsByStatus()
+        //{
+        //    var userClaims = _authenService.GetDataFromToken();
+        //    var accId = userClaims?.AccId;
+
+        //    if (string.IsNullOrEmpty(accId))
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            isSuccess = false,
+        //            message = "Missing account ID (accId).",
+        //            data = (object)null
+        //        });
+        //    }
+
+        //    var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
+
+        //    return Ok(new
+        //    {
+        //        isSuccess = true,
+        //        message = "Booking with service name/description",
+        //        data = result
+        //    });
+        //}
 
 
         //[Authorize]

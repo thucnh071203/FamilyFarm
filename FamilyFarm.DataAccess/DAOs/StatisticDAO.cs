@@ -1,5 +1,7 @@
-﻿using FamilyFarm.Models.DTOs.Response;
+﻿using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -221,20 +223,56 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
-        public async Task<Dictionary<string, int>> CountByStatusAsync(string accId)
-        {
-            var filter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
+        //public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> CountByStatusAsync(string accId)
+        //{
+        //    var bookingFilter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
+        //    var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
 
-            var result = await BookingServices
-                .Find(filter)
-                .ToListAsync();
+        //    var serviceIds = bookings.Select(b => b.ServiceId).Distinct().ToList();
+        //    var serviceFilter = Builders<Service>.Filter.In(s => s.ServiceId, serviceIds);
+        //    var services = await Services.Find(serviceFilter).ToListAsync();
 
-            var grouped = result
-                .GroupBy(x => x.BookingServiceStatus ?? "fail")
-                .ToDictionary(g => g.Key, g => g.Count());
+        //    var result = bookings.Select(b =>
+        //    {
+        //        var service = services.FirstOrDefault(s => s.ServiceId == b.ServiceId);
 
-            return grouped;
-        }
+        //        return new BookingServiceByStatusDTO
+        //        {
+        //            BookingServiceId = b.BookingServiceId,
+        //            AccId = b.AccId,
+        //            ServiceId = b.ServiceId,
+        //            Price = b.Price,
+        //            BookingServiceAt = b.BookingServiceAt,
+        //            BookingServiceStatus = b.BookingServiceStatus,
+        //            CancelServiceAt = b.CancelServiceAt,
+        //            RejectServiceAt = b.RejectServiceAt,
+        //            FirstPayment = b.FirstPayment,
+        //            FirstPaymentAt = b.FirstPaymentAt,
+        //            SecondPayment = b.SecondPayment,
+        //            SecondPaymentAt = b.SecondPaymentAt,
+        //            IsDeleted = b.IsDeleted,
+
+        //            ServiceName = service?.ServiceName,
+        //            ServiceDescription = service?.ServiceDescription
+        //        };
+        //    }).ToList();
+
+        //    return result
+        //        .GroupBy(x => x.BookingServiceStatus ?? "UNKNOWN")
+        //        .ToDictionary(g => g.Key, g => g.ToList());
+        //}
+
+        //public async Task<Dictionary<string, List<BookingService>>> CountByStatusAsync(string accId)
+        //{
+        //    var filter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
+        //    var bookings = await BookingServices.Find(filter).ToListAsync();
+
+        //    var grouped = bookings
+        //        .GroupBy(x => x.BookingServiceStatus ?? "UNKNOWN")
+        //        .ToDictionary(g => g.Key, g => g.ToList());
+
+        //    return grouped;
+        //}
 
         public async Task<Dictionary<string, int>> CountByDateAsync(string accId, string time)
         {
@@ -321,25 +359,57 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
+        //public async Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId)
+        //{
+        //    //Lấy tất cả các service của Expert
+        //    var expertServiceFilter = Builders<Service>.Filter.Eq(s => s.ProviderId, accId);
+        //    var expertServices = await Services.Find(expertServiceFilter).ToListAsync();
+
+        //    var expertServiceObjectIds = expertServices.Select(s => new ObjectId(s.ServiceId)).ToList();
+
+
+        //    var serviceIdNameDict = expertServices.ToDictionary(s => s.ServiceId, s => s.ServiceName);
+
+
+        //    var expertServiceIds = serviceIdNameDict.Keys.ToList();
+
+        //    //Lọc BookingService có ServiceId thuộc danh sách trên và Status là Accepted
+        //    var bookingFilter = Builders<BookingService>.Filter.And(
+        //        Builders<BookingService>.Filter.In(b => b.ServiceId, expertServiceIds),
+        //        Builders<BookingService>.Filter.Eq(b => b.BookingServiceStatus, "Accept") 
+        //    );
+
+        //    var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
+
+        //    //Nhóm theo ServiceId và đếm
+        //    var result = bookings
+        //        .GroupBy(b => b.ServiceId)
+        //        .ToDictionary(
+        //            g => serviceIdNameDict.TryGetValue(g.Key, out var name) ? name : "Unknown",
+        //            g => g.Count()
+        //        );
+
+        //    return result;
+        //}
         public async Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId)
         {
-            //Lấy tất cả các service của Expert
-            var expertServiceFilter = Builders<Service>.Filter.Eq(s => s.ProviderId, accId);
-            var expertServices = await Services.Find(expertServiceFilter).ToListAsync();
+            // 1. Lấy danh sách service của expert
+            var expertServices = await Services
+                .Find(s => s.ProviderId == accId)
+                .ToListAsync();
 
             var serviceIdNameDict = expertServices.ToDictionary(s => s.ServiceId, s => s.ServiceName);
+            var expertServiceIds = serviceIdNameDict.Keys.ToList(); // List<string>
 
-            var expertServiceIds = serviceIdNameDict.Keys.ToList();
-
-            //Lọc BookingService có ServiceId thuộc danh sách trên và Status là Accepted
+            // 2. Lọc booking theo ServiceId dạng string
             var bookingFilter = Builders<BookingService>.Filter.And(
                 Builders<BookingService>.Filter.In(b => b.ServiceId, expertServiceIds),
-                Builders<BookingService>.Filter.Eq(b => b.BookingServiceStatus, "Accept") // thay đổi tùy trạng thái bạn dùng
+                Builders<BookingService>.Filter.Eq(b => b.BookingServiceStatus, "Accept")
             );
 
             var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
 
-            //Nhóm theo ServiceId và đếm
+            // 3. Nhóm theo ServiceId và đếm
             var result = bookings
                 .GroupBy(b => b.ServiceId)
                 .ToDictionary(
