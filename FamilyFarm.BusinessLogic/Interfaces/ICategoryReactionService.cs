@@ -15,5 +15,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task CreateAsync(CategoryReaction reaction);
         Task<bool> UpdateAsync(string id, CategoryReaction reaction);
         Task<bool> DeleteAsync(string id);
+        Task<bool> RestoreAsync(string id);
     }
 }

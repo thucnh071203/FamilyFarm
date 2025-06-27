@@ -28,10 +28,11 @@ namespace FamilyFarm.Repositories.Implementations
             return await _categoryReactionDAO.GetByIdAsync(id);
         }
 
-        public Task CreateAsync(CategoryReaction reaction) => _categoryReactionDAO.CreateAsync(reaction);
+        public async Task CreateAsync(CategoryReaction reaction) => await _categoryReactionDAO.CreateAsync(reaction);
 
-        public Task<bool> UpdateAsync(string id, CategoryReaction reaction) => _categoryReactionDAO.UpdateAsync(id, reaction);
+        public async Task<bool> UpdateAsync(string id, CategoryReaction reaction) => await _categoryReactionDAO.UpdateAsync(id, reaction);
 
-        public Task<bool> DeleteAsync(string id) => _categoryReactionDAO.SoftDeleteAsync(id);
+        public async Task<bool> DeleteAsync(string id) => await _categoryReactionDAO.SoftDeleteAsync(id);
+        public async Task<bool> RestoreAsync(string id) => await _categoryReactionDAO.RestoreAsync(id);
     }
 }
