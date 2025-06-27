@@ -45,5 +45,9 @@ namespace FamilyFarm.Repositories.Implementations
             await _dao.UpdateStatus(bookingService);
         }
 
+        public async Task<bool?> UpdateStatus(string? bookingId, string? status)
+        {
+            return await _dao.UpdateStatus(bookingId, status);
+        }
     }
 }
