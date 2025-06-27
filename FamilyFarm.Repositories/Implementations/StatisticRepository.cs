@@ -43,7 +43,11 @@ namespace FamilyFarm.Repositories.Implementations
             return await _statisticDAO.GetUsersByProvinceAsync();
         }
         //public async Task<Dictionary<string, int>> GetCountByStatusAsync(string accId)
+
         //    public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
+
+        //public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
+
 
         //{
         //    return await _statisticDAO.CountByStatusAsync(accId);

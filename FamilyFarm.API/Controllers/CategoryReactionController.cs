@@ -7,6 +7,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -94,15 +95,10 @@ namespace FamilyFarm.Controllers
         {
             var user = _authenService.GetDataFromToken();
 
-            // Kiểm tra trùng ID
-            var existing = await _categoryReactionService.GetByIdAsync(request.CategoryReactionId);
-            if (existing != null)
-                return BadRequest(new CategoryReactionResponse<CategoryReaction>(false, "ID đã tồn tại", null));
-
             // Tạo model để lưu vào DB
             var model = new CategoryReaction
             {
-                CategoryReactionId = request.CategoryReactionId,
+                CategoryReactionId = ObjectId.GenerateNewId().ToString(),
                 ReactionName = request.ReactionName,
                 AccId = user.AccId,
                 IconUrl = "",
@@ -117,23 +113,31 @@ namespace FamilyFarm.Controllers
             }
 
             await _categoryReactionService.CreateAsync(model);
-            return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Tạo reaction thành công", model));
+            return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Create reaction successfully!", model));
         }
 
 
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateCategoryReaction(string id, [FromBody] CategoryReaction model)
+        public async Task<IActionResult> UpdateCategoryReaction(string id, [FromForm] CategoryReactionDTO request)
         {
             var user = _authenService.GetDataFromToken();
-            model.AccId = user.AccId;
-            model.IsDeleted = false;
 
-            var result = await _categoryReactionService.UpdateAsync(id, model);
+            var exsiting = await _categoryReactionService.GetByIdAsync(id);
+
+            exsiting.ReactionName = request.ReactionName;
+            
+            if (request.IconUrl != null)
+            {
+                var uploadResult = await _uploadFileService.UploadImage(request.IconUrl);
+                exsiting.IconUrl = uploadResult?.UrlFile ?? "";
+            }
+
+            var result = await _categoryReactionService.UpdateAsync(id, exsiting);
             if (!result)
-                return NotFound(new CategoryReactionResponse<CategoryReaction>(false, "Không tìm thấy reaction để cập nhật", null));
+                return NotFound(new CategoryReactionResponse<CategoryReaction>(false, "No reaction found to update", null));
 
-            return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Cập nhật thành công", model));
+            return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Update reaction successfully!", exsiting));
         }
 
         [HttpDelete("delete/{id}")]
@@ -141,9 +145,19 @@ namespace FamilyFarm.Controllers
         {
             var result = await _categoryReactionService.DeleteAsync(id);
             if (!result)
-                return NotFound(new CategoryReactionResponse<CategoryReaction>(false, "Không tìm thấy reaction để xoá", null));
+                return NotFound(new CategoryReactionResponse<CategoryReaction>(false, "No reaction found to delete", null));
 
-            return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Xoá thành công"));
+            return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Delete reaction successfully!"));
+        }
+
+        [HttpPut("restore/{id}")]
+        public async Task<IActionResult> RestoreCategoryReaction(string id)
+        {
+            var result = await _categoryReactionService.RestoreAsync(id);
+            if (!result)
+                return NotFound(new CategoryReactionResponse<CategoryReaction>(false, "No reaction found to restore", null));
+
+            return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Restore reaction successfully!"));
         }
     }
 }

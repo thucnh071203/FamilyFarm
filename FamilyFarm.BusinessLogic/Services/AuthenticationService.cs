@@ -651,6 +651,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 account = new Account
                 {
                     AccId = ObjectId.GenerateNewId().ToString(),
+                    Avatar = "https://firebasestorage.googleapis.com/v0/b/prn221-69738.appspot.com/o/image%2F638841265588564215_default-avatar.jpg?alt=media&token=93401440-f4b8-436c-987f-ba43259e3517",
                     Username = request.Email,
                     PasswordHash = "",
                     FullName = request.FullName,

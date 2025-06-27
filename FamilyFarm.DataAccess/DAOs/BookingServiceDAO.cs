@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.Models.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -133,6 +134,19 @@ namespace FamilyFarm.DataAccess.DAOs
             
         }
 
+        public async Task<bool?> UpdateStatus(string? bookingId, string? status)
+        {
+            if (string.IsNullOrEmpty(bookingId) || string.IsNullOrEmpty(status))
+                return null;
+
+            var filter = Builders<BookingService>.Filter.Eq(a => a.BookingServiceId, bookingId);
+
+            var update = Builders<BookingService>.Update.Set(a => a.BookingServiceStatus, status);
+
+            var result = await _bookingService.UpdateOneAsync(filter, update);
+
+            return result.ModifiedCount > 0;
+        }
 
 
     }
