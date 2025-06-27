@@ -22,6 +22,7 @@ namespace FamilyFarm.DataAccess.DAOs
         private readonly IMongoCollection<Account> _Account;
         private readonly PostDAO _postDAO;
         private readonly IMongoCollection<BookingService> BookingServices;
+            private readonly IMongoCollection<PaymentTransaction> PaymentTransaction;
         private readonly IMongoCollection<Comment> Comments;
         private readonly IMongoCollection<Service> Services;
         private readonly IMongoCollection<CategoryService> CategoryServices;
@@ -35,6 +36,7 @@ namespace FamilyFarm.DataAccess.DAOs
             _Account = database.GetCollection<Account>("Account");
             _postDAO = postDAO;
             BookingServices = database.GetCollection<BookingService>("BookingService");
+            PaymentTransaction = database.GetCollection<PaymentTransaction>("PaymentTransaction");
             Comments = database.GetCollection<Comment>("Comment");
             Services = database.GetCollection<Service>("Service");
             CategoryServices = database.GetCollection<CategoryService>("CategoryService");
@@ -109,98 +111,194 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
-    //    public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
-    //    {
+        //    public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
+        //    {
 
-    //        var posts = await Posts
-    //  .Find(p => p.CreatedAt >= startDate && p.CreatedAt <= endDate && !p.IsDeleted)
-    //  .ToListAsync();
+        //        var posts = await Posts
+        //  .Find(p => p.CreatedAt >= startDate && p.CreatedAt <= endDate && !p.IsDeleted)
+        //  .ToListAsync();
 
-    //        var comments = await Comments
-    //            .Find(c => c.CreateAt >= startDate && c.CreateAt <= endDate && (c.IsDeleted == null || c.IsDeleted == false))
-    //            .ToListAsync();
+        //        var comments = await Comments
+        //            .Find(c => c.CreateAt >= startDate && c.CreateAt <= endDate && (c.IsDeleted == null || c.IsDeleted == false))
+        //            .ToListAsync();
 
-    //        var bookings = await BookingServices
-    //            .Find(b => b.BookingServiceAt >= startDate && b.BookingServiceAt <= endDate && b.IsDeleted != true)
-    //            .ToListAsync();
-
-
-    //        // tạo danh sách các thành viên với thông tin hoạt động
-    //        var memberActivity = new List<MemberActivityResponseDTO>();
-
-    //        // lấy các bài viết của từng thành viên
-    //        var postGroupedByAccount = posts
-    //            .GroupBy(p => p.AccId)
-    //            .ToDictionary(g => g.Key, g => g.Count());
-
-    //        // lấy các bình luận của từng thành viên
-    //        var commentGroupedByAccount = comments
-    //            .GroupBy(c => c.AccId)
-    //            .ToDictionary(g => g.Key, g => g.Count());
-
-    //        // lấy các dịch vụ đã đặt của từng thành viên
-    //        var bookingGroupedByAccount = bookings
-    //            .GroupBy(b => b.AccId)
-    //            .ToDictionary(g => g.Key, g => g.Count());
-
-    //        // tính số lần thanh toán của mỗi thành viên
-    //        var paymentGroupedByAccount = bookings
-    //            .Where(b => b.FirstPaymentAt != null || b.SecondPaymentAt != null)
-    //            .GroupBy(b => b.AccId)
-    //            .ToDictionary(g => g.Key, g => g.Count());
+        //        var bookings = await BookingServices
+        //            .Find(b => b.BookingServiceAt >= startDate && b.BookingServiceAt <= endDate && b.IsDeleted != true)
+        //            .ToListAsync();
 
 
-    //        var accountIds = postGroupedByAccount.Keys
-    // .Concat(commentGroupedByAccount.Keys)
-    // .Concat(bookingGroupedByAccount.Keys)
-    // .Distinct()
-    // .ToList();
+        //        // tạo danh sách các thành viên với thông tin hoạt động
+        //        var memberActivity = new List<MemberActivityResponseDTO>();
 
-    //        var accounts = await _Account
-    //            .Find(a => accountIds.Contains(a.AccId))
-    //            .ToListAsync();
+        //        // lấy các bài viết của từng thành viên
+        //        var postGroupedByAccount = posts
+        //            .GroupBy(p => p.AccId)
+        //            .ToDictionary(g => g.Key, g => g.Count());
 
-    //        var roleIds = accounts
-    //.Where(a => !string.IsNullOrEmpty(a.RoleId))
-    //.Select(a => a.RoleId)
-    //.Distinct()
-    //        .ToList();
+        //        // lấy các bình luận của từng thành viên
+        //        var commentGroupedByAccount = comments
+        //            .GroupBy(c => c.AccId)
+        //            .ToDictionary(g => g.Key, g => g.Count());
 
-    //        var roles = await _Role
-    //            .Find(r => roleIds.Contains(r.RoleId))
-    //            .ToListAsync();
+        //        // lấy các dịch vụ đã đặt của từng thành viên
+        //        var bookingGroupedByAccount = bookings
+        //            .GroupBy(b => b.AccId)
+        //            .ToDictionary(g => g.Key, g => g.Count());
 
-
-    //        foreach (var account in postGroupedByAccount)
-    //        {
-    //            var accountId = account.Key;
-    //            var totalPosts = account.Value;
-    //            var totalComments = commentGroupedByAccount.ContainsKey(accountId) ? commentGroupedByAccount[accountId] : 0;
-    //            var totalBookings = bookingGroupedByAccount.ContainsKey(accountId) ? bookingGroupedByAccount[accountId] : 0;
-    //            var totalPayments = paymentGroupedByAccount.ContainsKey(accountId) ? paymentGroupedByAccount[accountId] : 0;
-    //            var accountInfo = accounts.FirstOrDefault(a => a.AccId == accountId);
-    //            var roleInfo = roles.FirstOrDefault(r => r.RoleId == accountInfo?.RoleId);
+        //        // tính số lần thanh toán của mỗi thành viên
+        //        var paymentGroupedByAccount = bookings
+        //            .Where(b => b.FirstPaymentAt != null || b.SecondPaymentAt != null)
+        //            .GroupBy(b => b.AccId)
+        //            .ToDictionary(g => g.Key, g => g.Count());
 
 
-    //            var memberDTO = new MemberActivityResponseDTO
-    //            {
-    //                AccId = accountId,
-    //                AccountName = accountInfo?.FullName,
-    //                AccountAddress = accountInfo?.Address,
-    //                RoleName = roleInfo?.RoleName,
-    //                TotalPosts = totalPosts,
-    //                TotalComments = totalComments,
-    //                TotalBookings = totalBookings,
-    //                TotalPayments = totalPayments,
-    //                TotalActivity = totalPosts + totalComments + totalBookings + totalPayments // Tổng hoạt động
-    //            };
+        //        var accountIds = postGroupedByAccount.Keys
+        // .Concat(commentGroupedByAccount.Keys)
+        // .Concat(bookingGroupedByAccount.Keys)
+        // .Distinct()
+        // .ToList();
 
-    //            memberActivity.Add(memberDTO);
-    //        }
+        //        var accounts = await _Account
+        //            .Find(a => accountIds.Contains(a.AccId))
+        //            .ToListAsync();
 
-    //        return memberActivity.OrderByDescending(m => m.TotalActivity).Take(10).ToList();
+        //        var roleIds = accounts
+        //.Where(a => !string.IsNullOrEmpty(a.RoleId))
+        //.Select(a => a.RoleId)
+        //.Distinct()
+        //        .ToList();
 
-    //    }
+        //        var roles = await _Role
+        //            .Find(r => roleIds.Contains(r.RoleId))
+        //            .ToListAsync();
+
+
+        //        foreach (var account in postGroupedByAccount)
+        //        {
+        //            var accountId = account.Key;
+        //            var totalPosts = account.Value;
+        //            var totalComments = commentGroupedByAccount.ContainsKey(accountId) ? commentGroupedByAccount[accountId] : 0;
+        //            var totalBookings = bookingGroupedByAccount.ContainsKey(accountId) ? bookingGroupedByAccount[accountId] : 0;
+        //            var totalPayments = paymentGroupedByAccount.ContainsKey(accountId) ? paymentGroupedByAccount[accountId] : 0;
+        //            var accountInfo = accounts.FirstOrDefault(a => a.AccId == accountId);
+        //            var roleInfo = roles.FirstOrDefault(r => r.RoleId == accountInfo?.RoleId);
+
+
+        //            var memberDTO = new MemberActivityResponseDTO
+        //            {
+        //                AccId = accountId,
+        //                AccountName = accountInfo?.FullName,
+        //                AccountAddress = accountInfo?.Address,
+        //                RoleName = roleInfo?.RoleName,
+        //                TotalPosts = totalPosts,
+        //                TotalComments = totalComments,
+        //                TotalBookings = totalBookings,
+        //                TotalPayments = totalPayments,
+        //                TotalActivity = totalPosts + totalComments + totalBookings + totalPayments // Tổng hoạt động
+        //            };
+
+        //            memberActivity.Add(memberDTO);
+        //        }
+
+        //        return memberActivity.OrderByDescending(m => m.TotalActivity).Take(10).ToList();
+
+        //    }
+
+
+        public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
+        {
+            // Truy vấn bài viết
+            var posts = await Posts
+                .Find(p => p.CreatedAt >= startDate && p.CreatedAt <= endDate && !p.IsDeleted)
+                .ToListAsync();
+
+            // Truy vấn bình luận
+            var comments = await Comments
+                .Find(c => c.CreateAt >= startDate && c.CreateAt <= endDate && (c.IsDeleted == null || c.IsDeleted == false))
+                .ToListAsync();
+
+            // Truy vấn dịch vụ đã đặt
+            var bookings = await BookingServices
+                .Find(b => b.BookingServiceAt >= startDate && b.BookingServiceAt <= endDate && b.IsDeleted != true)
+                .ToListAsync();
+
+            // Truy vấn thanh toán mới
+            var payments = await PaymentTransaction
+                .Find(p => p.PayAt >= startDate && p.PayAt <= endDate)
+                .ToListAsync();
+
+            var memberActivity = new List<MemberActivityResponseDTO>();
+
+            // Nhóm bài viết theo tài khoản
+            var postGroupedByAccount = posts
+                .GroupBy(p => p.AccId)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            // Nhóm bình luận theo tài khoản
+            var commentGroupedByAccount = comments
+                .GroupBy(c => c.AccId)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            // Nhóm dịch vụ theo tài khoản
+            var bookingGroupedByAccount = bookings
+                .GroupBy(b => b.AccId)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            // Nhóm thanh toán theo tài khoản (tài khoản thanh toán)
+            var paymentGroupedByAccount = payments
+                .GroupBy(p => p.FromAccId)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var accountIds = postGroupedByAccount.Keys
+                .Concat(commentGroupedByAccount.Keys)
+                .Concat(bookingGroupedByAccount.Keys)
+                .Concat(paymentGroupedByAccount.Keys)
+                .Distinct()
+                .ToList();
+
+            var accounts = await _Account
+                .Find(a => accountIds.Contains(a.AccId))
+                .ToListAsync();
+
+            var roleIds = accounts
+                .Where(a => !string.IsNullOrEmpty(a.RoleId))
+                .Select(a => a.RoleId)
+                .Distinct()
+                .ToList();
+
+            var roles = await _Role
+                .Find(r => roleIds.Contains(r.RoleId))
+                .ToListAsync();
+
+            foreach (var accountId in accountIds)
+            {
+                var totalPosts = postGroupedByAccount.ContainsKey(accountId) ? postGroupedByAccount[accountId] : 0;
+                var totalComments = commentGroupedByAccount.ContainsKey(accountId) ? commentGroupedByAccount[accountId] : 0;
+                var totalBookings = bookingGroupedByAccount.ContainsKey(accountId) ? bookingGroupedByAccount[accountId] : 0;
+                var totalPayments = paymentGroupedByAccount.ContainsKey(accountId) ? paymentGroupedByAccount[accountId] : 0;
+
+                var accountInfo = accounts.FirstOrDefault(a => a.AccId == accountId);
+                var roleInfo = roles.FirstOrDefault(r => r.RoleId == accountInfo?.RoleId);
+
+                var memberDTO = new MemberActivityResponseDTO
+                {
+                    AccId = accountId,
+                    AccountName = accountInfo?.FullName,
+                    AccountAddress = accountInfo?.Address,
+                    RoleName = roleInfo?.RoleName,
+                    TotalPosts = totalPosts,
+                    TotalComments = totalComments,
+                    TotalBookings = totalBookings,
+                    TotalPayments = totalPayments,
+                    TotalActivity = totalPosts + totalComments + totalBookings + totalPayments
+                };
+
+                memberActivity.Add(memberDTO);
+            }
+
+            return memberActivity.OrderByDescending(m => m.TotalActivity).Take(10).ToList();
+        }
+
 
 
         public async Task<List<UserByProvinceResponseDTO>> GetUsersByProvinceAsync()
@@ -223,44 +321,44 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
-        public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> CountByStatusAsync(string accId)
-        {
-            var bookingFilter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
-            var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
+        //public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> CountByStatusAsync(string accId)
+        //{
+        //    var bookingFilter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
+        //    var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
 
-            var serviceIds = bookings.Select(b => b.ServiceId).Distinct().ToList();
-            var serviceFilter = Builders<Service>.Filter.In(s => s.ServiceId, serviceIds);
-            var services = await Services.Find(serviceFilter).ToListAsync();
+        //    var serviceIds = bookings.Select(b => b.ServiceId).Distinct().ToList();
+        //    var serviceFilter = Builders<Service>.Filter.In(s => s.ServiceId, serviceIds);
+        //    var services = await Services.Find(serviceFilter).ToListAsync();
 
-            var result = bookings.Select(b =>
-            {
-                var service = services.FirstOrDefault(s => s.ServiceId == b.ServiceId);
+        //    var result = bookings.Select(b =>
+        //    {
+        //        var service = services.FirstOrDefault(s => s.ServiceId == b.ServiceId);
 
-                return new BookingServiceByStatusDTO
-                {
-                    BookingServiceId = b.BookingServiceId,
-                    AccId = b.AccId,
-                    ServiceId = b.ServiceId,
-                    Price = b.Price,
-                    BookingServiceAt = b.BookingServiceAt,
-                    BookingServiceStatus = b.BookingServiceStatus,
-                    CancelServiceAt = b.CancelServiceAt,
-                    RejectServiceAt = b.RejectServiceAt,
-                    FirstPayment = b.FirstPayment,
-                    FirstPaymentAt = b.FirstPaymentAt,
-                    SecondPayment = b.SecondPayment,
-                    SecondPaymentAt = b.SecondPaymentAt,
-                    IsDeleted = b.IsDeleted,
+        //        return new BookingServiceByStatusDTO
+        //        {
+        //            BookingServiceId = b.BookingServiceId,
+        //            AccId = b.AccId,
+        //            ServiceId = b.ServiceId,
+        //            Price = b.Price,
+        //            BookingServiceAt = b.BookingServiceAt,
+        //            BookingServiceStatus = b.BookingServiceStatus,
+        //            CancelServiceAt = b.CancelServiceAt,
+        //            RejectServiceAt = b.RejectServiceAt,
+        //            FirstPayment = b.FirstPayment,
+        //            FirstPaymentAt = b.FirstPaymentAt,
+        //            SecondPayment = b.SecondPayment,
+        //            SecondPaymentAt = b.SecondPaymentAt,
+        //            IsDeleted = b.IsDeleted,
 
-                    ServiceName = service?.ServiceName,
-                    ServiceDescription = service?.ServiceDescription
-                };
-            }).ToList();
+        //            ServiceName = service?.ServiceName,
+        //            ServiceDescription = service?.ServiceDescription
+        //        };
+        //    }).ToList();
 
-            return result
-                .GroupBy(x => x.BookingServiceStatus ?? "UNKNOWN")
-                .ToDictionary(g => g.Key, g => g.ToList());
-        }
+        //    return result
+        //        .GroupBy(x => x.BookingServiceStatus ?? "UNKNOWN")
+        //        .ToDictionary(g => g.Key, g => g.ToList());
+        //}
 
         //public async Task<Dictionary<string, List<BookingService>>> CountByStatusAsync(string accId)
         //{

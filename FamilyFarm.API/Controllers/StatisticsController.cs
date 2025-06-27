@@ -203,18 +203,18 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
-    
-        //[HttpGet("most-active-members")]
-        //public async Task<IActionResult> GetMostActiveMembers(DateTime startDate, DateTime endDate)
-        //{
-        //    if (startDate == null || endDate == null || startDate > endDate)
-        //    {
-        //        return BadRequest("Invalid date range.");
-        //    }
 
-        //    var mostActiveMembers = await _statisticService.GetMostActiveMembersAsync(startDate, endDate);
-        //    return Ok(mostActiveMembers);
-        //}
+        [HttpGet("most-active-members")]
+        public async Task<IActionResult> GetMostActiveMembers(DateTime startDate, DateTime endDate)
+        {
+            if (startDate == null || endDate == null || startDate > endDate)
+            {
+                return BadRequest("Invalid date range.");
+            }
+
+            var mostActiveMembers = await _statisticService.GetMostActiveMembersAsync(startDate, endDate);
+            return Ok(mostActiveMembers);
+        }
 
         //[HttpGet("users-by-province")]
 
@@ -317,32 +317,32 @@ namespace FamilyFarm.API.Controllers
         //        data = result
         //    });
         //}
-        [Authorize]
-        [HttpGet("bookingService/status")]
-        public async Task<IActionResult> GetBookingDetailsByStatus()
-        {
-            var userClaims = _authenService.GetDataFromToken();
-            var accId = userClaims?.AccId;
+        //[Authorize]
+        //[HttpGet("bookingService/status")]
+        //public async Task<IActionResult> GetBookingDetailsByStatus()
+        //{
+        //    var userClaims = _authenService.GetDataFromToken();
+        //    var accId = userClaims?.AccId;
 
-            if (string.IsNullOrEmpty(accId))
-            {
-                return BadRequest(new
-                {
-                    isSuccess = false,
-                    message = "Missing account ID (accId).",
-                    data = (object)null
-                });
-            }
+        //    if (string.IsNullOrEmpty(accId))
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            isSuccess = false,
+        //            message = "Missing account ID (accId).",
+        //            data = (object)null
+        //        });
+        //    }
 
-            var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
+        //    var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
 
-            return Ok(new
-            {
-                isSuccess = true,
-                message = "Booking with service name/description",
-                data = result
-            });
-        }
+        //    return Ok(new
+        //    {
+        //        isSuccess = true,
+        //        message = "Booking with service name/description",
+        //        data = result
+        //    });
+        //}
 
 
         //[Authorize]

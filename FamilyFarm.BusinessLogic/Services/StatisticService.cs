@@ -31,10 +31,10 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _statisticRepository.GetWeeklyBookingGrowthAsync();
         }
 
-        //public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
-        //{
-        //    return await _statisticRepository.GetMostActiveMembersAsync(startDate, endDate);
-        //}
+        public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _statisticRepository.GetMostActiveMembersAsync(startDate, endDate);
+        }
 
         public async Task<List<UserByProvinceResponseDTO>> GetUsersByProvinceAsync()
         {
@@ -42,11 +42,11 @@ namespace FamilyFarm.BusinessLogic.Services
         }
 
         //public async Task<Dictionary<string, int>> GetCountByStatusAsync(string accId)
-            public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
+        //    public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
 
-        {
-            return await _statisticRepository.GetCountByStatusAsync(accId);
-        }
+        //{
+        //    return await _statisticRepository.GetCountByStatusAsync(accId);
+        //}
 
         public async Task<Dictionary<string, int>> GetCountByDateAsync(string accId, string time)
         {
