@@ -11,12 +11,8 @@ namespace FamilyFarm.Models.DTOs.Request
 {
     public class CategoryReactionDTO
     {
- 
-            public string CategoryReactionId { get; set; }
-            public string AccId { get; set; }
             public string ReactionName { get; set; }
             public IFormFile? IconUrl { get; set; }
-            public bool? IsDeleted { get; set; }
         }
     }
 

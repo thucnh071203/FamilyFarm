@@ -64,6 +64,16 @@ namespace FamilyFarm.DataAccess.DAOs
             );
             return result.ModifiedCount > 0;
         }
+        public async Task<bool> RestoreAsync(string id)
+        {
+            var update = Builders<CategoryReaction>.Update.Set(r => r.IsDeleted, false);
+            var result = await _categoryReactions.UpdateOneAsync(
+                r => r.CategoryReactionId == id && r.IsDeleted != false,
+                update
+            );
+            return result.ModifiedCount > 0;
+        }
+
 
     }
 }
