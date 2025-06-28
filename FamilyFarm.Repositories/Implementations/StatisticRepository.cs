@@ -33,17 +33,21 @@ namespace FamilyFarm.Repositories.Implementations
             return await _statisticDAO.GetWeeklyBookingGrowthAsync();
         }
 
-        //public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
-        //{
-        //    return await _statisticDAO.GetMostActiveMembersAsync(startDate, endDate);
-        //}
+        public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _statisticDAO.GetMostActiveMembersAsync(startDate, endDate);
+        }
 
         public async Task<List<UserByProvinceResponseDTO>> GetUsersByProvinceAsync()
         {
             return await _statisticDAO.GetUsersByProvinceAsync();
         }
         //public async Task<Dictionary<string, int>> GetCountByStatusAsync(string accId)
+
+        //    public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
+
         //public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
+
 
         //{
         //    return await _statisticDAO.CountByStatusAsync(accId);

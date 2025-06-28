@@ -203,18 +203,18 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
-    
-        //[HttpGet("most-active-members")]
-        //public async Task<IActionResult> GetMostActiveMembers(DateTime startDate, DateTime endDate)
-        //{
-        //    if (startDate == null || endDate == null || startDate > endDate)
-        //    {
-        //        return BadRequest("Invalid date range.");
-        //    }
 
-        //    var mostActiveMembers = await _statisticService.GetMostActiveMembersAsync(startDate, endDate);
-        //    return Ok(mostActiveMembers);
-        //}
+        [HttpGet("most-active-members")]
+        public async Task<IActionResult> GetMostActiveMembers(DateTime startDate, DateTime endDate)
+        {
+            if (startDate == null || endDate == null || startDate > endDate)
+            {
+                return BadRequest("Invalid date range.");
+            }
+
+            var mostActiveMembers = await _statisticService.GetMostActiveMembersAsync(startDate, endDate);
+            return Ok(mostActiveMembers);
+        }
 
         //[HttpGet("users-by-province")]
 
