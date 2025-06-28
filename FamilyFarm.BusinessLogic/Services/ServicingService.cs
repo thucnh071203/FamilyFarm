@@ -335,5 +335,67 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = null
             };
         }
+
+        public async Task<ServiceDetailResponseDTO> GetServiceDetail(string serviceId)
+        {
+            var service = await _serviceRepository.GetServiceById(serviceId);
+
+            if (service == null)
+            {
+                return new ServiceDetailResponseDTO
+                {
+                    Success = false,
+                    Message = "Service not found"
+                };
+            }
+
+            var expert = await _accountRepository.GetAccountByAccId(service.ProviderId);
+
+            if (expert == null)
+            {
+                return new ServiceDetailResponseDTO
+                {
+                    Success = false,
+                    Message = "Expert not found"
+                };
+            }
+
+            var category = await _categoryServiceRepository.GetCategoryServiceById(service.CategoryServiceId);
+            if (category == null)
+            {
+                return new ServiceDetailResponseDTO
+                {
+                    Success = false,
+                    Message = "Category not found"
+                };
+            }
+
+            var serviceDetail = new ServiceDetailMapper
+            {
+                ServiceId = service.ServiceId,
+                ServiceName = service.ServiceName,
+                ServiceDescription = service.ServiceDescription,
+                Price = service.Price,
+                ImageUrl = service.ImageUrl,
+                Status = service.Status,
+                AverageRate = service.AverageRate,
+                RateCount = service.RateCount,
+                CreateAt = service.CreateAt,
+                UpdateAt = service.UpdateAt,
+                IsDeleted = service.IsDeleted,
+                HaveProcess = service.HaveProcess,
+                RoleId = expert?.RoleId,
+                FullName = expert?.FullName,
+                Avatar = expert?.Avatar,
+                CategoryName = category?.CategoryName
+            };
+
+            return new ServiceDetailResponseDTO
+            {
+                Success = true,
+                Message = "Get service successfully",
+                Data = serviceDetail
+            };
+        }
     }
 }

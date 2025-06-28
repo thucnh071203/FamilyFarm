@@ -19,5 +19,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ServiceResponseDTO> ChangeStatusService(string serviceId);
         Task<ServiceResponseDTO> DeleteService(string serviceId);
         //Task<ServiceResponseDTO> GetLastestService(string serviceId, string accId);
+        Task<ServiceDetailResponseDTO> GetServiceDetail(string serviceId);
     }
 }

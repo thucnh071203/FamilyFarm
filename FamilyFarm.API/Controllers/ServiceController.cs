@@ -162,5 +162,12 @@ namespace FamilyFarm.API.Controllers
             var result = await _servicingService.DeleteService(serviceId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
+
+        [HttpGet("get-detail-by-id/{serviceId}")]
+        public async Task<IActionResult> GetDetailServiceById(string serviceId)
+        {
+            var result = await _servicingService.GetServiceDetail(serviceId);
+            return result.Success ? Ok(result) : NotFound(result);
+        }
     }
 }
