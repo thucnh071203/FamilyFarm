@@ -19,13 +19,16 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IBookingServiceRepository _repository;
         private readonly IAccountRepository _accountRepository;
         private readonly IServiceRepository _serviceRepository;
-        private readonly IHubContext<BookingHub> _bookingHub;
-        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<BookingHub> bookingHub)
+        //private readonly IHubContext<BookingHub> _bookingHub;
+        private readonly IHubContext<NotificationHub> _notificationHub;
+
+        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<NotificationHub> notificationHub)
         {
             _repository = repository;
             _accountRepository = accountRepository;
             _serviceRepository = serviceRepository;
-            _bookingHub = bookingHub;
+            //_bookingHub = bookingHub;
+            _notificationHub = notificationHub;
         }
 
         public async Task<bool?> CancelBookingService(string bookingServiceId)
@@ -35,10 +38,31 @@ namespace FamilyFarm.BusinessLogic.Services
             if (bookingservice == null) return null;
             bookingservice.BookingServiceStatus = "Cancel";
             bookingservice.CancelServiceAt = DateTime.Now;
+            //try
+            //{
+            //    await _repository.UpdateStatus(bookingservice);
+            //    await _bookingHub.Clients.All.SendAsync("ReceiveBookingStatusChanged", bookingServiceId, "Cancel");
+            //    return true;
+            //}
+            //catch (Exception ex)
+            //{
+            //    return false;
+            //}
             try
             {
                 await _repository.UpdateStatus(bookingservice);
-                await _bookingHub.Clients.All.SendAsync("ReceiveBookingStatusChanged", bookingServiceId, "Cancel");
+
+                // 🔽 THÊM ĐOẠN NÀY SAU KHI UPDATE THÀNH CÔNG:
+                var accId = bookingservice.AccId; // Hoặc bookingservice.Booking.AccId nếu dữ liệu dạng liên kết
+
+                await _notificationHub.Clients.Group(accId).SendAsync(
+                    "ReceiveBookingStatusChanged",
+                    bookingServiceId,
+                    "Cancel"
+                );
+
+                Console.WriteLine($"Sending to group {accId}: Booking {bookingServiceId} cancelled.");
+
                 return true;
             }
             catch (Exception ex)
