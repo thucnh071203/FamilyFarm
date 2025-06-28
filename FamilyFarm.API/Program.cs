@@ -260,6 +260,6 @@ app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<NotificationHub>("/notificationHub");
 app.MapHub<TopEngagedPostHub>("/topEngagedPostHub");
-app.MapHub<BookingHub>("/chatHub");
+//app.MapHub<BookingHub>("/chatHub");
 
 app.Run();  
