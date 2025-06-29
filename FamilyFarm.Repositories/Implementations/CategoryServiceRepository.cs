@@ -21,6 +21,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetAllAsync();
         }
+        public async Task<List<CategoryService>> GetAllForAdmin()
+        {
+            return await _dao.GetAllForAdmin();
+        }
 
         public async Task<CategoryService> GetCategoryServiceById(string categoryServiceId)
         {
@@ -40,6 +44,10 @@ namespace FamilyFarm.Repositories.Implementations
         public async Task<long> DeleteCategoryService(string categoryServiceId)
         {
             return await _dao.DeleteAsync(categoryServiceId);
+        }
+        public async Task<long> Restore(string categoryServiceId)
+        {
+            return await _dao.Restore(categoryServiceId);
         }
     }
 }

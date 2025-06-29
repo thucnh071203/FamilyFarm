@@ -9,16 +9,20 @@ using FamilyFarm.DataAccess.DAOs;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
 using FamilyFarm.Models.Mapper;
+using Microsoft.AspNetCore.SignalR;
+using FamilyFarm.BusinessLogic.Hubs;
 
 namespace FamilyFarm.BusinessLogic.Services
 {
     public class CategoryServicingService : ICategoryServicingService
     {
         private readonly ICategoryServiceRepository _categoryServiceRepository;
+        private readonly IHubContext<CategoryServiceHub> _hubContext;
 
-        public CategoryServicingService(ICategoryServiceRepository categoryServiceRepository)
+        public CategoryServicingService(ICategoryServiceRepository categoryServiceRepository, IHubContext<CategoryServiceHub> hub)
         {
             _categoryServiceRepository = categoryServiceRepository;
+            _hubContext = hub;
         }
 
         public async Task<CategoryServiceResponseDTO> GetAllCategoryService()
@@ -46,7 +50,31 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = mappedList
             };
         }
+        public async Task<CategoryServiceResponseDTO> GetAllForAdmin()
+        {
+            var listCategoryService = await _categoryServiceRepository.GetAllForAdmin();
 
+            if (listCategoryService.Count == 0 || listCategoryService == null)
+            {
+                return new CategoryServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Category list is empty!"
+                };
+            }
+
+            var mappedList = listCategoryService.Select(c => new ServiceMapper
+            {
+                categoryService = c
+            }).ToList();
+
+            return new CategoryServiceResponseDTO
+            {
+                Success = true,
+                Message = null,
+                Data = mappedList
+            };
+        }
         public async Task<CategoryServiceResponseDTO> GetCategoryServiceById(string categoryServiceId)
         {
             var categoryService = await _categoryServiceRepository.GetCategoryServiceById(categoryServiceId);
@@ -85,7 +113,8 @@ namespace FamilyFarm.BusinessLogic.Services
                     Message = "Failed to create category"
                 };
             }
-
+            // Gửi thông báo SignalR
+            await _hubContext.Clients.All.SendAsync("CategoryUpdated");
             return new CategoryServiceResponseDTO
             {
                 Success = true,
@@ -108,7 +137,8 @@ namespace FamilyFarm.BusinessLogic.Services
                     Message = "Failed to update category"
                 };
             }
-
+            // Gửi thông báo SignalR
+            await _hubContext.Clients.All.SendAsync("CategoryUpdated");
             return new CategoryServiceResponseDTO
             {
                 Success = true,
@@ -132,7 +162,29 @@ namespace FamilyFarm.BusinessLogic.Services
                     Message = "Failed to delete category"
                 };
             }
+            // Gửi thông báo SignalR
+            await _hubContext.Clients.All.SendAsync("CategoryUpdated");
+            return new CategoryServiceResponseDTO
+            {
+                Success = true,
+                Message = null,
+                Data = null
+            };
+        }
+        public async Task<CategoryServiceResponseDTO> Restore(string categoryServiceId)
+        {
+            var deletedCount = await _categoryServiceRepository.Restore(categoryServiceId);
 
+            if (deletedCount == 0)
+            {
+                return new CategoryServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Failed to restore category"
+                };
+            }
+            // Gửi thông báo SignalR
+            await _hubContext.Clients.All.SendAsync("CategoryUpdated");
             return new CategoryServiceResponseDTO
             {
                 Success = true,

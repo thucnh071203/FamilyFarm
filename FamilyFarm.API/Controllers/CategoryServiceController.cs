@@ -24,6 +24,12 @@ namespace FamilyFarm.API.Controllers
             return result.Success ? Ok(result) : NotFound(result);
         }
 
+        [HttpGet("all-for-admin")]
+        public async Task<IActionResult> GetAllForAdmin()
+        {
+            var result = await _categoryServicingService.GetAllForAdmin();
+            return result.Success ? Ok(result) : NotFound(result);
+        }
         [HttpGet("get-by-id/{categoryServiceId}")]
         public async Task<IActionResult> GetCategoryServiceById(string categoryServiceId)
         {
@@ -52,6 +58,13 @@ namespace FamilyFarm.API.Controllers
         public async Task<IActionResult> DeleteCategoryService(string categoryServiceId)
         {
             var result = await _categoryServicingService.DeleteCategoryService(categoryServiceId);
+            return result.Success ? Ok(result) : NotFound(result);
+        }
+        [HttpPut("restore/{categoryServiceId}")]
+        [Authorize]
+        public async Task<IActionResult> Restore(string categoryServiceId)
+        {
+            var result = await _categoryServicingService.Restore(categoryServiceId);
             return result.Success ? Ok(result) : NotFound(result);
         }
     }
