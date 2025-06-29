@@ -34,6 +34,7 @@ namespace FamilyFarm.DataAccess.DAOs
         public async Task<CategoryService> CreateAsync(CategoryService categoryService)
         {
             categoryService.CategoryServiceId = ObjectId.GenerateNewId().ToString();
+            categoryService.AccId = "685660321fc7aebe254c4be1";
             categoryService.CreateAt = DateTime.UtcNow;
             categoryService.UpdateAt = null;
             categoryService.IsDeleted = false;
