@@ -1,9 +1,11 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic.Hubs;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,10 +20,12 @@ namespace FamilyFarm.BusinessLogic.Services
     {
         private readonly IFriendRepository friendRepository;
         private readonly IAccountRepository accountRepository;
-        public FriendService(IFriendRepository friendRepository, IAccountRepository accountRepository)
+        private readonly IHubContext<FriendHub> _hub;
+        public FriendService(IFriendRepository friendRepository, IAccountRepository accountRepository, IHubContext<FriendHub> hub)
         {
             this.friendRepository = friendRepository;
             this.accountRepository = accountRepository;
+            _hub = hub;
         }
 
         public async Task<FriendResponseDTO?> GetListFriends(string accId)
@@ -192,8 +196,14 @@ namespace FamilyFarm.BusinessLogic.Services
             //get account from ID
             var acc = await accountRepository.GetAccountById(senderId);
             var acc1 = await accountRepository.GetAccountById(receiverId);
-
-            return await friendRepository.Unfriend(acc.AccId, acc1.AccId);
+            //// Gửi thông báo SignalR
+            //await _hub.Clients.All.SendAsync("FriendUpdate");
+            var result = await friendRepository.Unfriend(acc.AccId, acc1.AccId);
+            if (result)
+            {
+                await _hub.Clients.All.SendAsync("FriendUpdate"); // đặt sau khi xử lý DB thành công
+            }
+            return result;
         }
         public async Task<FriendResponseDTO?> MutualFriend(string userId, string otherId)
         {

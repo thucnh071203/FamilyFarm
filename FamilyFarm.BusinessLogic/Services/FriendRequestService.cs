@@ -1,10 +1,12 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic.Hubs;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using MongoDB.Driver.Core.Servers;
 using System;
 using System.Collections.Generic;
@@ -18,11 +20,12 @@ namespace FamilyFarm.BusinessLogic.Services
     {
         private readonly IFriendRequestRepository _requestRepository;
         private readonly IAccountRepository _accountRepository;
-
-        public FriendRequestService(IFriendRequestRepository requestRepository, IAccountRepository accountRepository)
+        private readonly IHubContext<FriendHub> _hub;
+        public FriendRequestService(IFriendRequestRepository requestRepository, IAccountRepository accountRepository, IHubContext<FriendHub> hub)
         {
             _requestRepository = requestRepository;
             _accountRepository = accountRepository;
+            _hub = hub;
         }
         public async Task<FriendResponseDTO?> GetAllSendFriendRequests(string username)
         {
@@ -129,16 +132,36 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<bool> AcceptFriendRequestAsync(string senderId, string receiverId)
         {
-            return await _requestRepository.AcceptFriendRequestAsync(senderId, receiverId);
+            
+            var result= await _requestRepository.AcceptFriendRequestAsync(senderId, receiverId);
+            if (result)
+            {
+                await _hub.Clients.All.SendAsync("FriendUpdate"); //  đặt sau khi xử lý DB thành công
+            }
+            return result;
         }
 
         public async Task<bool> RejectFriendRequestAsync(string senderId, string receiverId)
         {
-            return await _requestRepository.RejectFriendRequestAsync(senderId, receiverId);
+            // Gửi thông báo SignalR
+            await _hub.Clients.All.SendAsync("FriendUpdate");
+            var result = await _requestRepository.RejectFriendRequestAsync(senderId, receiverId);
+            if (result)
+            {
+                await _hub.Clients.All.SendAsync("FriendUpdate"); //  đặt sau khi xử lý DB thành công
+            }
+            return result;
         }
         public async Task<bool> SendFriendRequestAsync(string senderId, string receiverId)
         {
-            return await _requestRepository.SendFriendRequestAsync(senderId, receiverId);
+            // Gửi thông báo SignalR
+            await _hub.Clients.All.SendAsync("FriendUpdate");
+            var result = await _requestRepository.SendFriendRequestAsync(senderId, receiverId);
+            if (result)
+            {
+                await _hub.Clients.All.SendAsync("FriendUpdate"); // đặt sau khi xử lý DB thành công
+            }
+            return result;
         }
     }
 }

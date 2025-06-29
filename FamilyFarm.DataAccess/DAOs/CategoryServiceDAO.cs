@@ -23,6 +23,10 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             return await _CategoryServices.Find(g => g.IsDeleted != true).ToListAsync();
         }
+        public async Task<List<CategoryService>> GetAllForAdmin()
+        {
+            return await _CategoryServices.Find(_ => true).ToListAsync();
+        }
 
         public async Task<CategoryService> GetByIdAsync(string categoryServiceId)
         {
@@ -71,6 +75,22 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var update = Builders<CategoryService>.Update
                         .Set(g => g.IsDeleted, true);
+
+            var result = await _CategoryServices.UpdateOneAsync(filter, update);
+
+            return result.ModifiedCount;
+        }
+        public async Task<long> Restore(string categoryServiceId)
+        {
+            if (!ObjectId.TryParse(categoryServiceId, out _)) return 0;
+
+            var filter = Builders<CategoryService>.Filter.Eq(g => g.CategoryServiceId, categoryServiceId);
+
+            if (filter == null) return 0;
+
+            var update = Builders<CategoryService>.Update
+                .Set(g => g.IsDeleted, false)
+                .Set(g => g.UpdateAt, DateTime.UtcNow);
 
             var result = await _CategoryServices.UpdateOneAsync(filter, update);
 
