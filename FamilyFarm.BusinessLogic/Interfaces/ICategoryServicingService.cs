@@ -15,5 +15,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<CategoryServiceResponseDTO> CreateCategoryService(CategoryService item);
         Task<CategoryServiceResponseDTO> UpdateCategoryService(string categoryServiceId, CategoryService item);
         Task<CategoryServiceResponseDTO> DeleteCategoryService(string groupRoleId);
+        Task<CategoryServiceResponseDTO> GetAllForAdmin();
+        Task<CategoryServiceResponseDTO> Restore(string categoryServiceId);
     }
 }

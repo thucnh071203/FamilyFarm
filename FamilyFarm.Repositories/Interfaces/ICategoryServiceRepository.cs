@@ -14,5 +14,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<CategoryService> CreateCategoryService(CategoryService item);
         Task<CategoryService> UpdateCategoryService(string categoryServiceId, CategoryService item);
         Task<long> DeleteCategoryService(string groupRoleId);
+        Task<List<CategoryService>> GetAllForAdmin();
+        Task<long> Restore(string categoryServiceId);
     }
 }
