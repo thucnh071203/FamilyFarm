@@ -42,10 +42,10 @@ namespace FamilyFarm.API.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        [HttpGet("get-by-id/{processId}")]
-        public async Task<IActionResult> GetProcessById(string processId)
+        [HttpGet("get-by-id/{serviceId}")]
+        public async Task<IActionResult> GetProcessById(string serviceId)
         {
-            var result = await _processService.GetProcessById(processId);
+            var result = await _processService.GetProcessById(serviceId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -66,9 +66,9 @@ namespace FamilyFarm.API.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        [HttpPost("update/{processId}")]
+        [HttpPut("update/{processId}")]
         [Authorize]
-        public async Task<IActionResult> UpdateProcess(string processId, [FromForm] ProcessRequestDTO process)
+        public async Task<IActionResult> UpdateProcess(string processId, [FromForm] ProcessUpdateRequestDTO process)
         {
             var account = _authenService.GetDataFromToken();
             if (account == null)

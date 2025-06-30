@@ -29,10 +29,14 @@ namespace FamilyFarm.Repositories.Implementations
         //{
         //    return await _dao.GetAllByFarmerAsync(accountId);
         //}
-
-        public async Task<Process> GetProcessById(string processId)
+        public async Task<Process> GetProcessByProcessId(string processId)
         {
             return await _dao.GetByIdAsync(processId);
+        }
+
+        public async Task<Process> GetProcessById(string serviceId)
+        {
+            return await _dao.GetLatestByServiceIdAsync(serviceId);
         }
 
         public async Task<Process> CreateProcess(Process item)

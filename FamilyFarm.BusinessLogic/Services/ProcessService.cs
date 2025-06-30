@@ -57,24 +57,68 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<ProcessResponseDTO> GetProcessById(string processId)
+        //public async Task<ProcessResponseDTO> GetProcessById(string processId)
+        //{
+        //    var process = await _processRepository.GetProcessById(processId);
+
+        //    if (process == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Process not found"
+        //        };
+        //    }
+
+        //    return new ProcessResponseDTO
+        //    {
+        //        Success = true,
+        //        Message = "Get process successfully",
+        //        Data = new List<ProcessMapper> { new ProcessMapper { process = process } }
+        //    };
+        //}
+
+        public async Task<ProcessOriginResponseDTO> GetProcessById(string serviceId)
         {
-            var process = await _processRepository.GetProcessById(processId);
+            var process = await _processRepository.GetProcessById(serviceId);
 
             if (process == null)
             {
-                return new ProcessResponseDTO
+                return new ProcessOriginResponseDTO
                 {
                     Success = false,
                     Message = "Process not found"
                 };
             }
 
-            return new ProcessResponseDTO
+            // Lấy tất cả các bước thuộc về process này
+            var steps = await _processStepRepository.GetStepsByProcessId(process.ProcessId);
+
+            var stepMappers = new List<ProcessStepMapper>();
+
+            foreach (var step in steps)
+            {
+                var images = await _processStepRepository.GetStepImagesByStepId(step.StepId);
+
+                stepMappers.Add(new ProcessStepMapper
+                {
+                    Step = step,
+                    Images = images
+                });
+            }
+
+            return new ProcessOriginResponseDTO
             {
                 Success = true,
                 Message = "Get process successfully",
-                Data = new List<ProcessMapper> { new ProcessMapper { process = process } }
+                Data = new List<ProcessOriginMapper>
+        {
+            new ProcessOriginMapper
+            {
+                process = process,
+                Steps = stepMappers
+            }
+        }
             };
         }
 
@@ -159,7 +203,59 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<ProcessResponseDTO> UpdateProcess(string processId, ProcessRequestDTO item)
+        //public async Task<ProcessResponseDTO> UpdateProcess(string processId, ProcessRequestDTO item)
+        //{
+        //    if (item == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Request is null"
+        //        };
+        //    }
+
+        //    var checkService = await _serviceRepository.GetServiceById(item.ServiceId);
+
+        //    if (checkService == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Service are null"
+        //        };
+        //    }
+
+        //    var checkOwner = await _processRepository.GetProcessById(processId);
+
+        //    var updateProcess = new Process
+        //    {
+        //        ProcessId = null,
+        //        ServiceId = item.ServiceId,
+        //        ProcessTittle = item.ProcessTittle,
+        //        Description = item.Description,
+        //        NumberOfSteps = item.NumberOfSteps,
+        //    };
+
+        //    var updated = await _processRepository.UpdateProcess(processId, updateProcess);
+
+        //    if (updated == null)
+        //    {
+        //        return new ProcessResponseDTO
+        //        {
+        //            Success = false,
+        //            Message = "Failed to update process"
+        //        };
+        //    }
+
+        //    return new ProcessResponseDTO
+        //    {
+        //        Success = true,
+        //        Message = "Service updated successfully",
+        //        Data = new List<ProcessMapper> { new ProcessMapper { process = updated } }
+        //    };
+        //}
+
+        public async Task<ProcessResponseDTO> UpdateProcess(string processId, ProcessUpdateRequestDTO item)
         {
             if (item == null)
             {
@@ -171,21 +267,29 @@ namespace FamilyFarm.BusinessLogic.Services
             }
 
             var checkService = await _serviceRepository.GetServiceById(item.ServiceId);
-
             if (checkService == null)
             {
                 return new ProcessResponseDTO
                 {
                     Success = false,
-                    Message = "Service are null"
+                    Message = "Service not found"
                 };
             }
 
-            var checkOwner = await _processRepository.GetProcessById(processId);
+            var checkProcess = await _processRepository.GetProcessByProcessId(processId);
+            if (checkProcess == null)
+            {
+                return new ProcessResponseDTO
+                {
+                    Success = false,
+                    Message = "Process not found"
+                };
+            }
 
+            // Cập nhật thông tin chính của Process
             var updateProcess = new Process
             {
-                ProcessId = null,
+                ProcessId = processId,
                 ServiceId = item.ServiceId,
                 ProcessTittle = item.ProcessTittle,
                 Description = item.Description,
@@ -193,7 +297,6 @@ namespace FamilyFarm.BusinessLogic.Services
             };
 
             var updated = await _processRepository.UpdateProcess(processId, updateProcess);
-
             if (updated == null)
             {
                 return new ProcessResponseDTO
@@ -203,13 +306,82 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            // Cập nhật Process Steps nếu có
+            if (item.ProcessSteps != null && item.ProcessSteps.Count > 0)
+            {
+                foreach (var step in item.ProcessSteps)
+                {
+                    ProcessStep? responseStep;
+
+                    if (!string.IsNullOrEmpty(step.StepId))
+                    {
+                        // Step đã tồn tại → cập nhật
+                        var updateStep = new ProcessStep
+                        {
+                            StepId = step.StepId,
+                            ProcessId = processId,
+                            StepNumber = step.StepNumber,
+                            StepTitle = step.StepTitle,
+                            StepDesciption = step.StepDescription
+                        };
+
+                        responseStep = await _processStepRepository.UpdateProcessStep(step.StepId, updateStep);
+                    }
+                    else
+                    {
+                        // Step mới → thêm mới
+                        var newStep = new ProcessStep
+                        {
+                            ProcessId = processId,
+                            StepNumber = step.StepNumber,
+                            StepTitle = step.StepTitle,
+                            StepDesciption = step.StepDescription
+                        };
+
+                        responseStep = await _processStepRepository.CreateProcessStep(newStep);
+                    }
+
+                    // Cập nhật ảnh của step
+                    if (responseStep != null && step.ImagesWithId != null && step.ImagesWithId.Count > 0)
+                    {
+                        foreach (var image in step.ImagesWithId)
+                        {
+                            if (!string.IsNullOrEmpty(image.ProcessStepImageId))
+                            {
+                                // ảnh đã tồn tại → cập nhật
+                                var updateImage = new ProcessStepImage
+                                {
+                                    ProcessStepImageId = image.ProcessStepImageId,
+                                    ProcessStepId = responseStep.StepId,
+                                    ImageUrl = image.ImageUrl
+                                };
+
+                                await _processStepRepository.UpdateStepImage(image.ProcessStepImageId, updateImage);
+                            }
+                            else
+                            {
+                                // ảnh mới → thêm mới
+                                var newImage = new ProcessStepImage
+                                {
+                                    ProcessStepId = responseStep.StepId,
+                                    ImageUrl = image.ImageUrl
+                                };
+
+                                await _processStepRepository.CreateStepImage(newImage);
+                            }
+                        }
+                    }
+                }
+            }
+
             return new ProcessResponseDTO
             {
                 Success = true,
-                Message = "Service updated successfully",
+                Message = "Process updated successfully",
                 Data = new List<ProcessMapper> { new ProcessMapper { process = updated } }
             };
         }
+
 
         public async Task<ProcessResponseDTO> DeleteProcess(string processId)
         {
