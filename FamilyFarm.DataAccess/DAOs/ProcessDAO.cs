@@ -41,6 +41,16 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _Processes.Find(p => p.ProcessId == processId && p.IsDelete != true).FirstOrDefaultAsync();
         }
 
+        public async Task<Process?> GetLatestByServiceIdAsync(string serviceId)
+        {
+            if (!ObjectId.TryParse(serviceId, out _)) return null;
+
+            return await _Processes
+                .Find(p => p.ServiceId == serviceId && p.IsDelete != true)
+                .SortByDescending(p => p.CreateAt)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Process> CreateAsync(Process process)
         {
             process.ProcessId = ObjectId.GenerateNewId().ToString();
@@ -66,11 +76,7 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Set(p => p.ProcessTittle, updateProcess.ProcessTittle)
                 .Set(p => p.Description, updateProcess.Description)
                 .Set(p => p.NumberOfSteps, updateProcess.NumberOfSteps)
-                //.Set(p => p.ContinueStep, updateProcess.ContinueStep)
-                //.Set(p => p.ProcessStatus, updateProcess.ProcessStatus)
                 .Set(p => p.UpdateAt, DateTime.UtcNow);
-                //.Set(p => p.IsCompletedByExpert, updateProcess.IsCompletedByExpert)
-                //.Set(p => p.IsCompletedByFarmer, updateProcess.IsCompletedByFarmer);
 
             var result = await _Processes.UpdateOneAsync(filter, update);
 
