@@ -46,5 +46,13 @@ namespace FamilyFarm.Repositories.Implementations
         {
             await _stepImageDao.DeleteStepImageById(imageId);
         }
+        public async Task DeleteStepById(string stepId)
+        {
+            await _stepDao.DeleteStepById(stepId);
+        }
+        public async Task DeleteImagesByStepId(string stepId)
+        {
+            await _stepImageDao.DeleteImagesByStepId(stepId);
+        }
     }
 }

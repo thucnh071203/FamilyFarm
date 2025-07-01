@@ -383,6 +383,19 @@ namespace FamilyFarm.BusinessLogic.Services
                 }
             }
 
+            // Xóa step nếu có
+            if (item.DeletedStepIds != null && item.DeletedStepIds.Count > 0)
+            {
+                foreach (var stepId in item.DeletedStepIds)
+                {
+                    // Xóa ảnh trước
+                    await _processStepRepository.DeleteImagesByStepId(stepId);
+
+                    // Xóa step
+                    await _processStepRepository.DeleteStepById(stepId);
+                }
+            }
+
             return new ProcessResponseDTO
             {
                 Success = true,

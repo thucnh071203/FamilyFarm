@@ -52,5 +52,11 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return updatedStep;
         }
+
+        public async Task DeleteStepById(string stepId)
+        {
+            var filter = Builders<ProcessStep>.Filter.Eq(p => p.StepId, stepId);
+            await _ProcessSteps.DeleteOneAsync(filter);
+        }
     }
 }
