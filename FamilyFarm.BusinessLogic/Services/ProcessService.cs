@@ -6,6 +6,7 @@ using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -371,6 +372,14 @@ namespace FamilyFarm.BusinessLogic.Services
                             }
                         }
                     }
+                }
+            }
+
+            if (item.DeletedImageIds != null && item.DeletedImageIds.Count > 0)
+            {
+                foreach (var imageId in item.DeletedImageIds)
+                {
+                    await _processStepRepository.DeleteStepImageById(imageId);
                 }
             }
 

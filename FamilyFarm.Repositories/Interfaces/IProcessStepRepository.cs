@@ -17,5 +17,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<ProcessStepImage>> GetStepImagesByStepId(string stepId);
         Task CreateStepImage(ProcessStepImage? request);
         Task<ProcessStepImage?> UpdateStepImage(string imageId, ProcessStepImage? request);
+        Task DeleteStepImageById(string imageId);
     }
 }

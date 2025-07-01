@@ -38,10 +38,13 @@ namespace FamilyFarm.Repositories.Implementations
         {
             await _stepImageDao.CreateStepImage(request);
         }
-
         public async Task<ProcessStepImage?> UpdateStepImage(string imageId, ProcessStepImage? request)
         {
             return await _stepImageDao.UpdateStepImage(imageId, request);
+        }
+        public async Task DeleteStepImageById(string imageId)
+        {
+            await _stepImageDao.DeleteStepImageById(imageId);
         }
     }
 }

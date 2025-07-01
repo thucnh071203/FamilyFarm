@@ -35,7 +35,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task<ProcessStepImage?> UpdateStepImage(string imageId, ProcessStepImage? request)
         {
-            //if (!ObjectId.TryParse(imageId, out _)) return null;
+            if (!ObjectId.TryParse(imageId, out _)) return null;
 
             var filter = Builders<ProcessStepImage>.Filter.Eq(p => p.ProcessStepImageId, imageId);
 
@@ -48,6 +48,12 @@ namespace FamilyFarm.DataAccess.DAOs
             var updatedImage = await _ProcessStepImags.Find(p => p.ProcessStepImageId == imageId).FirstOrDefaultAsync();
 
             return updatedImage;
+        }
+
+        public async Task DeleteStepImageById(string imageId)
+        {
+            var filter = Builders<ProcessStepImage>.Filter.Eq(p => p.ProcessStepImageId, imageId);
+            await _ProcessStepImags.DeleteOneAsync(filter);
         }
 
     }
