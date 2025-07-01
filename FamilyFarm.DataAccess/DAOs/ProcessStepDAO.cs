@@ -36,7 +36,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task<ProcessStep?> EditStep(string stepId, ProcessStep? request)
         {
-            //if (!ObjectId.TryParse(stepId, out _)) return null;
+            if (!ObjectId.TryParse(stepId, out _)) return null;
 
             var filter = Builders<ProcessStep>.Filter.Eq(p => p.StepId, stepId);
 

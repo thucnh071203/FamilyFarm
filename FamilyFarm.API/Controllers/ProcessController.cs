@@ -68,7 +68,7 @@ namespace FamilyFarm.API.Controllers
 
         [HttpPut("update/{processId}")]
         [Authorize]
-        public async Task<IActionResult> UpdateProcess(string processId, [FromForm] ProcessUpdateRequestDTO process)
+        public async Task<IActionResult> UpdateProcess(string processId, [FromBody] ProcessUpdateRequestDTO process)
         {
             var account = _authenService.GetDataFromToken();
             if (account == null)

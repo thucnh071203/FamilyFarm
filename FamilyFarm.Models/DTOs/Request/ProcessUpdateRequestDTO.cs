@@ -16,5 +16,7 @@ namespace FamilyFarm.Models.DTOs.Request
 
         // Danh sách các bước trong Process
         public List<ProcessStepUpdateRequestDTO>? ProcessSteps { get; set; }
+        // ✅ thêm mới
+        public List<string>? DeletedImageIds { get; set; }
     }
 }
