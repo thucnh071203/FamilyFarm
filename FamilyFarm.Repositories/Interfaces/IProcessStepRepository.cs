@@ -12,11 +12,13 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<ProcessStep>> GetStepsByProcessId(string processId);
         Task<ProcessStep?> CreateProcessStep(ProcessStep? processStep);
         Task<ProcessStep?> UpdateProcessStep(string stepId, ProcessStep? processStep);
+        Task DeleteStepById(string stepId);
 
         //Process Step image
         Task<List<ProcessStepImage>> GetStepImagesByStepId(string stepId);
         Task CreateStepImage(ProcessStepImage? request);
         Task<ProcessStepImage?> UpdateStepImage(string imageId, ProcessStepImage? request);
         Task DeleteStepImageById(string imageId);
+        Task DeleteImagesByStepId(string stepId);
     }
 }

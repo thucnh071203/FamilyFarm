@@ -56,5 +56,10 @@ namespace FamilyFarm.DataAccess.DAOs
             await _ProcessStepImags.DeleteOneAsync(filter);
         }
 
+        public async Task DeleteImagesByStepId(string stepId)
+        {
+            var filter = Builders<ProcessStepImage>.Filter.Eq(p => p.ProcessStepId, stepId);
+            await _ProcessStepImags.DeleteManyAsync(filter);
+        }
     }
 }
