@@ -39,7 +39,7 @@ namespace FamilyFarm.Repositories.Implementations
         }
         public async Task<List<Account>> GetSuggestedExperts(string userId, int number)
         {
-            return await _friendDao.GetListSuggestionFriends(userId, number);
+            return await _friendDao.GetSuggestedExperts(userId, number);
         }
         public async Task<(List<Account> Farmers, List<Account> Experts)> GetAvailableFarmersAndExpertsAsync(string accId)
         {

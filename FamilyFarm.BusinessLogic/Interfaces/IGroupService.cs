@@ -17,6 +17,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<GroupResponseDTO> UpdateGroup(string groupId, GroupRequestDTO item);
         Task<GroupResponseDTO> GetLatestGroupByCreator(string creatorId);
         Task<GroupResponseDTO> DeleteGroup(string groupId);
-        Task<List<Group>> GetAllByUserId(string userId);
+        Task<GroupCardResponseDTO> GetAllByUserId(string userId);
+        Task<GroupCardResponseDTO> GetGroupSuggestion(string userId, int number);
     }
 }

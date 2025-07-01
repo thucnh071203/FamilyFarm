@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
@@ -53,9 +54,28 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<List<Group>> GetAllByUserId(string userId)
+        public async Task<GroupCardResponseDTO> GetAllByUserId(string userId)
         {
-            return await _groupRepository.GetAllByUserId(userId);
+            var groupCards = await _groupRepository.GetAllByUserId(userId);
+
+            if (groupCards == null || groupCards.Count == 0)
+            {
+                return new GroupCardResponseDTO
+                {
+                    Success = false,
+                    Message = "User has not joined any group",
+                    Count = 0,
+                    Data = new List<GroupCardDTO>()
+                };
+            }
+
+            return new GroupCardResponseDTO
+            {
+                Success = true,
+                Message = "Get joined groups successfully",
+                Count = groupCards.Count,
+                Data = groupCards
+            };
         }
 
         public async Task<GroupResponseDTO> GetGroupById(string groupId)
@@ -310,5 +330,30 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = null
             };
         }
+
+        public async Task<GroupCardResponseDTO> GetGroupSuggestion(string userId, int number)
+        {
+            var groupCardList = await _groupRepository.GetGroupsSuggestion(userId, number);
+
+            if (groupCardList == null || groupCardList.Count == 0)
+            {
+                return new GroupCardResponseDTO
+                {
+                    Success = false,
+                    Message = "Group list is empty",
+                    Count = 0,
+                    Data = new List<GroupCardDTO>()
+                };
+            }
+
+            return new GroupCardResponseDTO
+            {
+                Success = true,
+                Message = "Get group successfully",
+                Count = groupCardList.Count,
+                Data = groupCardList
+            };
+        }
+
     }
 }

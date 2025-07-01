@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -24,21 +25,58 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             return await _Groups.Find(g => g.IsDeleted != true).ToListAsync();
         }
-        public async Task<List<Group>> GetAllByUserId(string userId)
+        //public async Task<List<Group>> GetAllByUserId(string userId)
+        //{
+        //    //get list member by userId
+        //    var memberFilter = Builders<GroupMember>.Filter.Eq(gm => gm.AccId, userId) &
+        //               Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Accept");
+
+        //    var memberList = await _GroupMembers.Find(memberFilter).ToListAsync();
+        //    //Lấy tất cả các groupId duy nhất từ danh sách thành viên
+        //    var groupIds = memberList.Select(m => m.GroupId).Distinct().ToList();
+        //    //tìm group theo group id
+        //    var groupFilter = Builders<Group>.Filter.In(a => a.GroupId, groupIds) &
+        //        Builders<Group>.Filter.Ne(b => b.IsDeleted, true);// IsDeleted != true
+        //    var groups = await _Groups.Find(groupFilter).ToListAsync();
+        //    return groups;
+        //}
+
+        public async Task<List<GroupCardDTO>> GetAllByUserId(string userId)
         {
-            //get list member by userId
+            // Lấy các groupId mà user đã tham gia (status = Accept)
             var memberFilter = Builders<GroupMember>.Filter.Eq(gm => gm.AccId, userId) &
-                       Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Accept");
+                               Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Accept");
 
             var memberList = await _GroupMembers.Find(memberFilter).ToListAsync();
-            //Lấy tất cả các groupId duy nhất từ danh sách thành viên
             var groupIds = memberList.Select(m => m.GroupId).Distinct().ToList();
-            //tìm group theo group id
-            var groupFilter = Builders<Group>.Filter.In(a => a.GroupId, groupIds) &
-                Builders<Group>.Filter.Ne(b => b.IsDeleted, true);// IsDeleted != true
+
+            // Lấy các group hợp lệ
+            var groupFilter = Builders<Group>.Filter.In(g => g.GroupId, groupIds) &
+                              Builders<Group>.Filter.Ne(g => g.IsDeleted, true);
             var groups = await _Groups.Find(groupFilter).ToListAsync();
-            return groups;
+
+            // Trả về danh sách GroupCardDTO
+            var result = new List<GroupCardDTO>();
+
+            foreach (var group in groups)
+            {
+                var count = await _GroupMembers.CountDocumentsAsync(
+                    Builders<GroupMember>.Filter.And(
+                        Builders<GroupMember>.Filter.Eq(m => m.GroupId, group.GroupId),
+                        Builders<GroupMember>.Filter.Eq(m => m.MemberStatus, "Accept")
+                    )
+                );
+
+                result.Add(new GroupCardDTO
+                {
+                    group = group,
+                    numberInGroup = (int)count
+                });
+            }
+
+            return result;
         }
+
         public async Task<Group> GetByIdAsync(string groupId)
         {
             if (!ObjectId.TryParse(groupId, out _)) return null;
@@ -102,6 +140,46 @@ namespace FamilyFarm.DataAccess.DAOs
                                 .SortByDescending(g => g.CreatedAt)
                                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<GroupCardDTO>> GetGroupsSuggestion(string userId, int number)
+        {
+            // Lấy danh sách GroupId mà user đã tham gia
+            var joinedGroupIds = await _GroupMembers
+                .Find(gm => gm.AccId == userId && gm.MemberStatus == "Accept")
+                .Project(gm => gm.GroupId)
+                .ToListAsync();
+
+            // Lọc các group chưa bị xóa và chưa được user tham gia
+            var filter = Builders<Group>.Filter.Ne(g => g.IsDeleted, true) &
+                         Builders<Group>.Filter.Nin(g => g.GroupId, joinedGroupIds);
+
+            // Lấy danh sách group
+            var groups = await _Groups.Find(filter)
+                .Limit(number)
+                .ToListAsync();
+
+            // Tạo danh sách GroupCardDTO với số lượng thành viên
+            var groupCardList = new List<GroupCardDTO>();
+
+            foreach (var group in groups)
+            {
+                var memberCount = await _GroupMembers.CountDocumentsAsync(
+     Builders<GroupMember>.Filter.And(
+         Builders<GroupMember>.Filter.Eq(m => m.GroupId, group.GroupId),
+         Builders<GroupMember>.Filter.Eq(m => m.MemberStatus, "Accept")
+     )
+ );
+
+                groupCardList.Add(new GroupCardDTO
+                {
+                    group = group,
+                    numberInGroup = (int)memberCount
+                });
+            }
+
+            return groupCardList;
+        }
+
 
     }
 }

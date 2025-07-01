@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.Models;
 
 namespace FamilyFarm.Repositories.Interfaces
@@ -15,6 +16,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<Group> UpdateGroup(string groupId, Group item);
         Task<long> DeleteGroup(string groupId);
         Task<Group> GetLatestGroupByCreator(string creatorId);
-        Task<List<Group>> GetAllByUserId(string userId);
+        Task<List<GroupCardDTO>> GetAllByUserId(string userId);
+        Task<List<GroupCardDTO>> GetGroupsSuggestion(string userId, int number);
     }
 }
