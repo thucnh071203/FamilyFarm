@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
 
@@ -22,7 +23,7 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.GetAllAsync();
         }
 
-        public async Task<List<Group>> GetAllByUserId(string userId)
+        public async Task<List<GroupCardDTO>> GetAllByUserId(string userId)
         {
             return await _dao.GetAllByUserId(userId);
         }
@@ -48,6 +49,11 @@ namespace FamilyFarm.Repositories.Implementations
         public async Task<Group> GetLatestGroupByCreator(string creatorId)
         {
             return await _dao.GetLatestByCreatorAsync(creatorId);
+        }
+
+        public async Task<List<GroupCardDTO>> GetGroupsSuggestion(string userId, int number)
+        {
+            return await _dao.GetGroupsSuggestion(userId, number);
         }
     }
 }

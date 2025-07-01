@@ -320,7 +320,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
-            var result = await _serviceOfFriend.GetListSuggestionFriends(accId, 8);
+            var result = await _serviceOfFriend.GetListSuggestionFriends(accId, 50);
 
             return Ok(result);
 

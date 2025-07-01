@@ -127,5 +127,36 @@ namespace FamilyFarm.API.Controllers
             var result = await _groupService.DeleteGroup(groupId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
+
+
+        [HttpGet("group-suggestion")]//get suggestion group in home and service
+        [Authorize]
+        public async Task<IActionResult> GetGroupSuggestion()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var groups = await _groupService.GetGroupSuggestion(accId, 4);
+            return Ok(groups);
+        }
+
+        [HttpGet("group-suggestion-in-group")]//get suggestion group in group
+        [Authorize]
+        public async Task<IActionResult> GetGroupSuggestionIngroup()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var groups = await _groupService.GetGroupSuggestion(accId, 20);
+            return Ok(groups);
+        }
+
+        [HttpGet("group-suggestion-in-service")]//get suggestion group in group
+        [Authorize]
+        public async Task<IActionResult> GetGroupSuggestionInService()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var groups = await _groupService.GetGroupSuggestion(accId, 2);
+            return Ok(groups);
+        }
     }
 }
