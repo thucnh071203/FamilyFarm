@@ -71,6 +71,18 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpPut("reject-booking/{bookingId}")]
+        [Authorize]
+        public async Task<IActionResult> RejectUpdateBookingStatus(string bookingId)
+        {
+            var result = await _bookingService.ExpertRejectBookingService(bookingId);
+
+            if (result == false)
+                return BadRequest();
+
+            return Ok(result);
+        }
+
         [HttpGet("expert-list-request-booking")]
         [Authorize]
         public async Task<ActionResult> ListRequestBookingOfExpert()
@@ -84,31 +96,6 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
-        [HttpPut("expert-response-booking/{bookingId}")]
-        [Authorize]
-        public async Task<IActionResult> UpdateBookingStatus(string bookingId, [FromBody] string status)
-        {
-            if (string.IsNullOrEmpty(bookingId)) return BadRequest();
-            bool? result = null;
-
-            switch (status.ToLower())
-            {
-                case "accept":
-                    result = await _bookingService.ExpertAcceptBookingService(bookingId);
-                    break;
-                case "reject":
-                    result = await _bookingService.ExpertRejectBookingService(bookingId);
-                    break;
-                default:
-                    return BadRequest("Invalid status.");
-            }
-
-            if (result !=true)// false hoặc null đều là lỗi
-                return BadRequest();
-
-            return Ok(result);
-        }
-
 
         [HttpGet("expert-all-booking")]
         [Authorize]

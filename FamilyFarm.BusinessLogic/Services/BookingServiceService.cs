@@ -36,7 +36,7 @@ namespace FamilyFarm.BusinessLogic.Services
             if (string.IsNullOrEmpty(bookingServiceId)) return null;
             var bookingservice = await _repository.GetById(bookingServiceId);
             if (bookingservice == null) return null;
-            bookingservice.BookingServiceStatus = "Cancel";
+            bookingservice.BookingServiceStatus = "Cancelled";
             bookingservice.CancelServiceAt = DateTime.Now;
             //try
             //{
@@ -76,7 +76,7 @@ namespace FamilyFarm.BusinessLogic.Services
             if (string.IsNullOrEmpty(bookingServiceId)) return null;
             var bookingservice = await _repository.GetById(bookingServiceId);
             if (bookingservice == null) return null;
-            bookingservice.BookingServiceStatus = "Reject";
+            bookingservice.BookingServiceStatus = "Rejected";
             bookingservice.RejectServiceAt = DateTime.Now;
             try
             {
