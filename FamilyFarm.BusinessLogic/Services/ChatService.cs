@@ -369,7 +369,6 @@ namespace FamilyFarm.BusinessLogic.Services
             //    throw new InvalidOperationException("Chat notification category not found.");
             //}
 
-            var templateNotifi = _notificationTemplate.GetNotificationTemplate("Chat");
             var account = await _accountRepository.GetAccountByIdAsync(senderId);
             if (shouldNotify)
             {
@@ -379,8 +378,8 @@ namespace FamilyFarm.BusinessLogic.Services
                     SenderId = senderId,
                     CategoryNotiId = "681370cd5908b0f4fb0cd0f8",
                     TargetId = chat.ChatId,
-                    TargetType = "Chat",//post tag friend, edit, delete group, 
-                    Content = string.Format(templateNotifi, account?.FullName)
+                    TargetType = "Chat", //để link tới notifi gốc Post, Chat, Process, ...
+                    Content = "You have a new message from " + account?.FullName
                 };
 
                 var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);
