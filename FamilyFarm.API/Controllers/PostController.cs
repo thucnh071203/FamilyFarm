@@ -5,6 +5,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyFarm.API.Controllers
@@ -65,20 +66,24 @@ namespace FamilyFarm.API.Controllers
         /// <returns>A response containing the list of posts that match the search criteria, or an error message in case of failure.</returns>
         [HttpGet("search")]
         [Authorize]
-        public async Task<IActionResult> SearchPosts([FromQuery] string? keyword, [FromQuery] List<string>? categoryIds, [FromQuery] bool isAndLogic = false)
+        public async Task<IActionResult> SearchPosts([FromQuery] string? keyword, [FromQuery] List<string> categoryIds, [FromQuery] bool isAndLogic = false)
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
+
             // Call the service method to perform the search
-            var posts = await _postService.SearchPosts(keyword, categoryIds, isAndLogic);
-            if (keyword != null){
-                var search = await _searchHistoryService.AddSearchHistory(accId, keyword);
+            var response = await _postService.SearchPosts(keyword, categoryIds, isAndLogic);
+
+            if (keyword != null)
+            {
+                await _searchHistoryService.AddSearchHistory(accId, keyword);
             }
-            if (!posts.Any())
-                return NotFound("No post found!");
+
+            if (response == null || response.Success == false)
+                return BadRequest(response);
 
             // Return the posts wrapped in an OK response if search is successful
-            return Ok(posts);
+            return Ok(response);
         }
 
         [HttpPost("create")]

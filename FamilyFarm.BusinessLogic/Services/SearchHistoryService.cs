@@ -51,7 +51,7 @@ namespace FamilyFarm.BusinessLogic.Services
             return new SearchHistoryResponseDTO
             {
                 Success = true,
-                Data = list
+                Data = list.OrderByDescending(s => s.SearchedAt).ToList()
             };
         }
     }

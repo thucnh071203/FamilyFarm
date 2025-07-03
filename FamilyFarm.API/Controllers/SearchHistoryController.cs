@@ -18,6 +18,7 @@ namespace FamilyFarm.API.Controllers
             _searchHistoryService = searchHistoryService;
             _authenService = authenService;
         }
+
         [HttpGet("list")]
         [Authorize]
         public async Task<ActionResult> GetListSearchHistory() {
@@ -30,6 +31,7 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
         [HttpPost("create/{searchKey}")]
         [Authorize]
         public async Task<ActionResult> AddSearchHistory(string searchKey)
@@ -43,6 +45,7 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
         [HttpDelete("delete/{searchId}")]
         [Authorize]
         public async Task<ActionResult> DeleteSearchHistory(string searchId)
