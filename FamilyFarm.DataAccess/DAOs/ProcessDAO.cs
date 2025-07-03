@@ -176,5 +176,16 @@ namespace FamilyFarm.DataAccess.DAOs
             var filter = Builders<Process>.Filter.Eq(p => p.ServiceId, serviceId);
             return await _Processes.Find(filter).FirstOrDefaultAsync();
         }
+
+        public async Task<bool?> HardDeleteByServiceId(string? serviceId)
+        {
+            if (string.IsNullOrEmpty(serviceId))
+                return null;
+
+            var filter = Builders<Process>.Filter.Eq(p => p.ServiceId, serviceId);
+            var result = await _Processes.DeleteManyAsync(filter);
+
+            return result.DeletedCount > 0;
+        }
     }
 }
