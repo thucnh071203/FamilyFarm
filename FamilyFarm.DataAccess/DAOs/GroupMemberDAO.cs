@@ -9,6 +9,7 @@ using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Group = FamilyFarm.Models.Models.Group;
 
 namespace FamilyFarm.DataAccess.DAOs
 {
@@ -16,10 +17,12 @@ namespace FamilyFarm.DataAccess.DAOs
     {
         private readonly IMongoCollection<GroupMember> _GroupMembers;
         private readonly IMongoCollection<Account> _Accounts;
+        private readonly IMongoCollection<Group> _Group;
         public GroupMemberDAO(IMongoDatabase database)
         {
             _GroupMembers = database.GetCollection<GroupMember>("GroupMember");
             _Accounts = database.GetCollection<Account>("Account");
+            _Group = database.GetCollection<Group>("Group");
         }
 
 
@@ -29,6 +32,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return await _GroupMembers.Find(g => g.GroupMemberId == groupMemberId && g.MemberStatus.Equals("Accept")).FirstOrDefaultAsync();
         }
+        
 
         public async Task<GroupMember> AddAsync(string groupId, string accountId, string inviterId)
         {
@@ -211,6 +215,7 @@ namespace FamilyFarm.DataAccess.DAOs
             if (!ObjectId.TryParse(accId, out _) || !ObjectId.TryParse(groupId, out _))
                 return null;
 
+            // Kiểm tra người này đã trong group chưa
             var existingMember = await _GroupMembers.Find(
                 gm => gm.AccId == accId && gm.GroupId == groupId && gm.MemberStatus != "Left"
             ).FirstOrDefaultAsync();
@@ -218,13 +223,28 @@ namespace FamilyFarm.DataAccess.DAOs
             if (existingMember != null)
                 return null;
 
+            // Lấy thông tin group
+            var group = await _Group.Find(g => g.GroupId == groupId).FirstOrDefaultAsync();
+            if (group == null)
+                return null;
+
+            // Tùy vào PrivacyType mà set role và status
+            string roleId = null;
+            string status = "Pending";
+
+            if (group.PrivacyType == "Public")
+            {
+                roleId = "680cebdfac700e1cb4c165b2"; // ID vai trò Member
+                status = "Accept";
+            }
+
             var groupMember = new GroupMember
             {
                 GroupMemberId = ObjectId.GenerateNewId().ToString(),
                 AccId = accId,
                 GroupId = groupId,
-                GroupRoleId = null, // chưa có vai trò khi chưa được duyệt
-                MemberStatus = "Pending",
+                GroupRoleId = roleId,
+                MemberStatus = status,
                 JointAt = DateTime.UtcNow,
                 InviteByAccId = null,
                 LeftAt = null
@@ -233,6 +253,7 @@ namespace FamilyFarm.DataAccess.DAOs
             await _GroupMembers.InsertOneAsync(groupMember);
             return groupMember;
         }
+
         public async Task<bool> RespondToJoinRequestAsync(string groupMemberId, string responseStatus)
         {
             if (!ObjectId.TryParse(groupMemberId, out _)) return false;
@@ -269,6 +290,28 @@ namespace FamilyFarm.DataAccess.DAOs
             var result = await _GroupMembers.UpdateOneAsync(filter, update);
             return result.ModifiedCount > 0;
         }
+
+        public async Task<bool> LeaveGroupAsync(string groupId, string accId)
+        {
+            // Kiểm tra nếu cần (nếu bạn lưu groupId và accId dưới dạng ObjectId)
+            if (!ObjectId.TryParse(groupId, out _) || !ObjectId.TryParse(accId, out _))
+                return false;
+
+            // Tìm GroupMember hợp lệ
+            var filter = Builders<GroupMember>.Filter.And(
+                Builders<GroupMember>.Filter.Eq(g => g.GroupId, groupId),
+                Builders<GroupMember>.Filter.Eq(g => g.AccId, accId),
+                Builders<GroupMember>.Filter.Eq(g => g.MemberStatus, "Accept")
+            );
+
+            var groupMember = await _GroupMembers.Find(filter).FirstOrDefaultAsync();
+            if (groupMember == null) return false;
+
+            // Xóa nếu tìm thấy
+            var result = await _GroupMembers.DeleteOneAsync(g => g.GroupMemberId == groupMember.GroupMemberId);
+            return result.DeletedCount > 0;
+        }
+
 
     }
 }
