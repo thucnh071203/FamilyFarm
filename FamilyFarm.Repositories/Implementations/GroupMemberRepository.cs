@@ -73,6 +73,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.UpdateRoleAsync(groupMemberId, newGroupRoleId);
         }
+        public async Task<bool> LeaveGroupAsync(string groupId, string accId)
+        {
+            return await _dao.LeaveGroupAsync(groupId, accId);
+        }
 
 
     }
