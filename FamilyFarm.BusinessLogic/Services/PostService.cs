@@ -495,13 +495,18 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <param name="isAndLogic">A boolean value indicating whether to use AND logic (true) or OR logic (false) 
         /// for filtering posts based on category membership.</param>
         /// <returns>A list of posts that match the provided keyword and/or categories.</returns>
-        public async Task<List<Post>> SearchPosts(string? keyword, List<string>? categoryIds, bool isAndLogic)
+        public async Task<ListPostResponseDTO?> SearchPosts(string? keyword, List<string>? categoryIds, bool isAndLogic)
         {
             // Check if both keyword and categoryIds are empty or null
             if (string.IsNullOrWhiteSpace(keyword) && (categoryIds == null || categoryIds.Count == 0))
             {
-                // If neither is provided, return new Emplty List
-                return new List<Post>();
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
             }
 
             List<Post> posts;
@@ -534,8 +539,51 @@ namespace FamilyFarm.BusinessLogic.Services
                     .ToList();
             }
 
-            // Return the final list of posts
-            return posts;
+            if (posts == null || posts.Count == 0)
+            {
+                return new ListPostResponseDTO
+                {
+                    Message = "No post found!",
+                    Success = true,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            // Map dữ liệu liên quan
+            List<PostMapper> data = new List<PostMapper>();
+            foreach (var post in posts)
+            {
+                var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                var comments = await _commentRepository.GetAllByPost(post.PostId);
+                var shares = await _sharePostRepository.GetByPost(post.PostId);
+
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+                var postMapper = new PostMapper
+                {
+                    ReactionCount = reactions.Count,
+                    CommentCount = comments.Count,
+                    ShareCount = shares?.Count,
+                    Post = post,
+                    OwnerPost = ownerPost,
+                    PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
+                    HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
+                    PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
+                    PostTags = await _postTagRepository.GetPostTagByPost(post.PostId)
+                };
+
+                data.Add(postMapper);
+            }
+
+            // Trả về kết quả
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post success.",
+                Success = true,
+                HasMore = false, // Không cần phân trang nên HasMore luôn là false
+                Data = data
+            };
         }
 
         public async Task<PostResponseDTO?> UpdatePost(string? username, UpdatePostRequestDTO? request)
