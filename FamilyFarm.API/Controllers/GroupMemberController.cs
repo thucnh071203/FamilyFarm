@@ -199,5 +199,14 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(user);
         }
+        [HttpDelete("leave/{groupId}")]
+        public async Task<IActionResult> LeaveGroup(string groupId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var check = await _groupMemberService.LeaveGroupAsync(groupId, accId);
+           
+            return Ok(check);
+        }
     }
 }
