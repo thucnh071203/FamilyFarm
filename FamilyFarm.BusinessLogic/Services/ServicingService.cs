@@ -20,14 +20,16 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IAccountRepository _accountRepository;
         private readonly IUploadFileService _uploadFileService;
         private readonly IProcessRepository _processRepository;
+        private readonly IProcessStepRepository _processStepRepository;
 
-        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository, IAccountRepository accountRepository, IUploadFileService uploadFileService, IProcessRepository processRepository)
+        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository, IAccountRepository accountRepository, IUploadFileService uploadFileService, IProcessRepository processRepository, IProcessStepRepository processStepRepository)
         {
             _serviceRepository = serviceRepository;
             _categoryServiceRepository = categoryServiceRepository;
             _accountRepository = accountRepository;
             _uploadFileService = uploadFileService;
             _processRepository = processRepository;
+            _processStepRepository = processStepRepository;
         }
 
         public async Task<ServiceResponseDTO> GetAllService()
@@ -317,6 +319,28 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<ServiceResponseDTO> DeleteService(string serviceId)
         {
+            var process = await _processRepository.GetProcessByServiceId(serviceId);
+
+            if (process != null)
+            {
+                //XOA CAC BANG LIEN QUAN
+                var processSteps = await _processStepRepository.GetStepsByProcessId(process.ProcessId);
+                if(processSteps != null && processSteps.Count > 0)
+                {
+                    foreach (var step in processSteps)
+                    {
+                        //XOA IMAGE CUA STEP
+                        await _processStepRepository.DeleteImagesByStepId(step.StepId);
+                        //XOA STEP DO
+                        await _processStepRepository.DeleteStepById(step.StepId);
+                    }
+                }
+                
+                //XOA PROCESS CUA SERVICE DO
+                var isDeleteProcess = await _processRepository.HardDeleteByService(serviceId);
+            }
+
+            
             var deletedCount = await _serviceRepository.DeleteService(serviceId);
 
             if (deletedCount == 0)
@@ -328,6 +352,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            
             return new ServiceResponseDTO
             {
                 Success = true,

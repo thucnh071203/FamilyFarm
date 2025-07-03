@@ -68,5 +68,10 @@ namespace FamilyFarm.Repositories.Implementations
         //{
         //    return await _dao.FitlerStatusAsync(status, accountId, roleId);
         //}
+
+        public async Task<bool?> HardDeleteByService(string? serviceId)
+        {
+            return await _dao.HardDeleteByServiceId(serviceId);
+        }
     }
 }

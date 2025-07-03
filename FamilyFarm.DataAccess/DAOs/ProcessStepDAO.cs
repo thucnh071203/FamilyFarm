@@ -58,5 +58,17 @@ namespace FamilyFarm.DataAccess.DAOs
             var filter = Builders<ProcessStep>.Filter.Eq(p => p.StepId, stepId);
             await _ProcessSteps.DeleteOneAsync(filter);
         }
+
+        public async Task<bool?> HardDeleteByProcess(string? processId)
+        {
+            if (string.IsNullOrEmpty(processId))
+                return null;
+
+            var filter = Builders<ProcessStep>.Filter.Eq(p => p.ProcessId, processId);
+            var result = await _ProcessSteps.DeleteManyAsync(filter);
+
+            return result.DeletedCount > 0;
+        }
+
     }
 }

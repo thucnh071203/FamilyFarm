@@ -54,5 +54,6 @@ namespace FamilyFarm.Repositories.Implementations
         {
             await _stepImageDao.DeleteImagesByStepId(stepId);
         }
+
     }
 }
