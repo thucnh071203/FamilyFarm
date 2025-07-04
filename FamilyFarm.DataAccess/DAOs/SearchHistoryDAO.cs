@@ -26,7 +26,7 @@ namespace FamilyFarm.DataAccess.DAOs
             if (searchList.Count == 0) return null;
 
             return searchList;
-        }
+        } 
 
         public async Task<bool?> AddSearchHistory(SearchHistory search)
         {
@@ -48,6 +48,20 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var update = Builders<SearchHistory>.Update.Set(a => a.IsDeleted, true);
             await _searchHistory.UpdateOneAsync(filter, update);
+
+            return true;
+        }
+
+        public async Task<bool?> DeleteSearchHistoryBySearchKey(string searchKey)
+        {
+            if (searchKey == null)
+            {
+                return false;
+            }
+            var filter = Builders<SearchHistory>.Filter.Eq(sh => sh.SearchKey, searchKey);
+
+            var update = Builders<SearchHistory>.Update.Set(a => a.IsDeleted, true);
+            await _searchHistory.UpdateManyAsync(filter, update);
 
             return true;
         }

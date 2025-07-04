@@ -12,5 +12,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<SearchHistory>?> GetListByAccId(string accId);
         Task<bool?> AddSearchHistory(SearchHistory search);
         Task<bool?> DeleteSearchHistory(string searchId);
+        Task<bool?> DeleteSearchHistoryBySearchKey(string searchKey);
     }
 }

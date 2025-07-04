@@ -20,6 +20,8 @@ namespace FamilyFarm.BusinessLogic.Services
         }
         public async Task<bool?> AddSearchHistory(string accId, string searchKey)
         {
+
+
             if (string.IsNullOrEmpty(searchKey)) return null;
             var searchHistory = new SearchHistory
             {
@@ -39,6 +41,13 @@ namespace FamilyFarm.BusinessLogic.Services
             return result;
         }
 
+        public async Task<bool?> DeleteSearchHistoryBySearchKey(string searchKey)
+        {
+            if (string.IsNullOrEmpty(searchKey)) return null;
+            var result = await _repository.DeleteSearchHistoryBySearchKey(searchKey);
+            return result;
+        }
+
         public async Task<SearchHistoryResponseDTO> GetListByAccId(string accId)
         {
             if (string.IsNullOrEmpty(accId)) return null;
@@ -54,5 +63,36 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = list.OrderByDescending(s => s.SearchedAt).ToList()
             };
         }
+
+        public async Task<SearchHistoryResponseDTO> GetListByAccIdNoDuplicate(string accId)
+        {
+            if (string.IsNullOrEmpty(accId)) return null;
+
+            var list = await _repository.GetListByAccId(accId);
+
+            if (list == null || list.Count == 0)
+            {
+                return new SearchHistoryResponseDTO
+                {
+                    Success = false,
+                    MessageError = "You don't have any search history",
+                };
+            }
+
+            // Lấy các mục không trùng SearchKey, ưu tiên bản ghi mới nhất
+            var distinctList = list
+                .Where(x => !x.IsDeleted)
+                .GroupBy(x => x.SearchKey.ToLower()) // nếu muốn không phân biệt hoa thường
+                .Select(g => g.OrderByDescending(x => x.SearchedAt).First())
+                .OrderByDescending(x => x.SearchedAt)
+                .ToList();
+
+            return new SearchHistoryResponseDTO
+            {
+                Success = true,
+                Data = distinctList
+            };
+        }
+
     }
 }
