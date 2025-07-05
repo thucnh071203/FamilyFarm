@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FamilyFarm.DataAccess.DAOs
@@ -148,6 +149,23 @@ namespace FamilyFarm.DataAccess.DAOs
             return result.ModifiedCount > 0;
         }
 
+        public async Task<BookingService> UpdateBookingPaymentAsync(string bookingId, BookingService booking)
+        {
+            if (!ObjectId.TryParse(bookingId, out _)) return null;
 
+            var filter = Builders<BookingService>.Filter.Eq(g => g.BookingServiceId, bookingId);
+
+            if (filter == null) return null;
+
+            var update = Builders<BookingService>.Update
+                .Set(g => g.IsPaidByFarmer, booking.IsPaidByFarmer)
+                .Set(g => g.IsPaidToExpert, booking.IsPaidToExpert);
+
+            var result = await _bookingService.UpdateOneAsync(filter, update);
+
+            var updatedBookingPay = await _bookingService.Find(g => g.BookingServiceId == bookingId && g.IsDeleted != true).FirstOrDefaultAsync();
+
+            return updatedBookingPay;
+        }
     }
 }

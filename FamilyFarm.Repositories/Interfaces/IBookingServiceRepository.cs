@@ -17,5 +17,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool?> Create(BookingService bookingService);
         Task UpdateStatus(BookingService bookingService);
         Task<bool?> UpdateStatus(string? bookingId, string? status);
+        Task<BookingService> UpdateBookingPayment(string bookingId, BookingService booking);
     }
 }
