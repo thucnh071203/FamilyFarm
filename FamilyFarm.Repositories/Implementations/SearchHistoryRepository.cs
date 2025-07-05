@@ -28,6 +28,11 @@ namespace FamilyFarm.Repositories.Implementations
             return await searchHistoryDAO.DeleteSearchHistory(searchId);
         }
 
+        public async Task<bool?> DeleteSearchHistoryBySearchKey(string searchKey)
+        {
+            return await searchHistoryDAO.DeleteSearchHistoryBySearchKey(searchKey);
+        }
+
         public async Task<List<SearchHistory>?> GetListByAccId(string accId)
         {
             return await searchHistoryDAO.GetListByAccId(accId);

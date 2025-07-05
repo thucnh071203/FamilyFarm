@@ -266,7 +266,7 @@ app.MapHub<ChatHub>("/chatHub");
 app.MapHub<NotificationHub>("/notificationHub");
 app.MapHub<TopEngagedPostHub>("/topEngagedPostHub");
 app.MapHub<CategoryServiceHub>("/categoryServiceHub");
-app.MapHub<CategoryServiceHub>("/friendHub");
+app.MapHub<FriendHub>("/friendHub");
 //app.MapHub<BookingHub>("/chatHub");
 
 app.Run();  
