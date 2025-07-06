@@ -218,6 +218,23 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpPut("change-background")]
+        [Authorize]
+        public async Task<ActionResult<UpdateBackgroundResponseDTO>> ChangeBackground([FromForm] UpdateBackgroundRequestDTO request)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accountId = userClaims?.AccId;
+
+            if (accountId == null)
+                return Unauthorized("Not permission for this action.");
+
+            var result = await _accountService.ChangeOwnBackground(accountId, request);
+            if (result == null)
+                return BadRequest("Error encountered during execution.");
+
+            return Ok(result);
+        }
+
         [HttpGet("list-censor/{role_id}")]
         public async Task<IActionResult> GetAllAccountByRoleId(string role_id)
         {
