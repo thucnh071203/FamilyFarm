@@ -205,5 +205,15 @@ namespace FamilyFarm.DataAccess.DAOs
 
             await _Services.UpdateOneAsync(filter, update);
         }
+
+        /// <summary>
+        ///     Get service by Id
+        /// </summary>
+        public async Task<Service> GetByIdOutDeleteAsync(string serviceId)
+        {
+            if (!ObjectId.TryParse(serviceId, out _)) return null;
+
+            return await _Services.Find(g => g.ServiceId == serviceId).FirstOrDefaultAsync();
+        }
     }
 }

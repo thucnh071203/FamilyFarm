@@ -11,6 +11,7 @@ using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Models.ModelsConfig;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -26,13 +27,15 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IServiceRepository _serviceRepository;
         private readonly VnPayLibrary _vnPayLibrary;
         private readonly VNPayConfig _config;
+        private readonly IPaymentRepository _paymentRepository;
 
-        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config)
+        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config, IPaymentRepository paymentRepository)
         {
             _paymentDAO = paymentDAO;
             _bookingRepository = bookingRepository;
             _serviceRepository = serviceRepository;
             _config = config.Value;
+            _paymentRepository = paymentRepository;
         }
 
         public async Task<PaymentResponseDTO> GetAllPayment()
@@ -66,7 +69,12 @@ namespace FamilyFarm.BusinessLogic.Services
             vnPay.AddRequestData("vnp_CurrCode", "VND");
             //vnPay.AddRequestData("vnp_TxnRef", request.BookingServiceId);
             //vnPay.AddRequestData("vnp_OrderInfo", $"Thanh toan booking {request.BookingServiceId}");
-            vnPay.AddRequestData("vnp_TxnRef", $"{request.BookingServiceId}_{request.SubprocessId}");
+            //vnPay.AddRequestData("vnp_TxnRef", $"{request.BookingServiceId}_{request.SubprocessId}");
+            var txnRef = string.IsNullOrWhiteSpace(request.SubprocessId)
+            ? request.BookingServiceId
+            : $"{request.BookingServiceId}_{request.SubprocessId}";
+
+            vnPay.AddRequestData("vnp_TxnRef", txnRef);
             vnPay.AddRequestData("vnp_OrderInfo", $"Thanh toan booking {request.BookingServiceId}, subprocess {request.SubprocessId}");
             vnPay.AddRequestData("vnp_OrderType", "other");
             vnPay.AddRequestData("vnp_Locale", "vn");
@@ -137,7 +145,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 PaymentId = ObjectId.GenerateNewId().ToString(),
                 BookingServiceId = booking.BookingServiceId,
-                SubProcessId = subprocessId,
+                SubProcessId = !string.IsNullOrEmpty(subprocessId) ? subprocessId : null, // ✅ Chỉ gán nếu không rỗng,
                 FromAccId = booking.AccId,
                 ToAccId = service.ProviderId,
                 PayAt = DateTime.Now
@@ -151,6 +159,48 @@ namespace FamilyFarm.BusinessLogic.Services
 
             return true;
         }
-    }
 
+        public async Task<PaymentResponseDTO> GetPaymentByBooking(string bookingId)
+        {
+            var payment = await _paymentRepository.GetPaymentByBooking(bookingId);
+
+            if (payment == null)
+            {
+                return new PaymentResponseDTO
+                {
+                    Success = false,
+                    Message = "Can not found payment by booking"
+                };
+            }
+
+            return new PaymentResponseDTO
+            {
+                Success = true,
+                Message = "Get payment by booking success",
+                Data = new List<PaymentTransaction> { payment }
+            };
+        }
+
+        public async Task<PaymentResponseDTO> GetPaymentBySubProcess(string processId)
+        {
+            var payment = await _paymentRepository.GetPaymentBySubProcess(processId);
+
+            if (payment == null)
+            {
+                return new PaymentResponseDTO
+                {
+                    Success = false,
+                    Message = "Can not found payment by sub process"
+                };
+            }
+
+            return new PaymentResponseDTO
+            {
+                Success = true,
+                Message = "Get payment by sub process success",
+                Data = new List<PaymentTransaction> { payment }
+            };
+        }
+
+    }
 }

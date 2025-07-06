@@ -1,9 +1,11 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.BusinessLogic.VNPay;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Models.ModelsConfig;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -18,12 +20,14 @@ namespace FamilyFarm.API.Controllers
         private readonly VnPayLibrary _vnPayLibrary;
         private readonly IBookingServiceService _bookingService;
         private readonly IPaymentService _paymentService;
+        private readonly IAuthenticationService _authenService;
 
-        public PaymentController(IConfiguration configuration, IBookingServiceService bookingService, IPaymentService paymentService)
+        public PaymentController(IConfiguration configuration, IBookingServiceService bookingService, IPaymentService paymentService, IAuthenticationService authenService)
         {
             _vnPayConfig = configuration.GetSection("VNPay").Get<VNPayConfig>();
             _bookingService = bookingService;
             _paymentService = paymentService;
+            _authenService = authenService;
         }
 
         /// <summary>
@@ -47,6 +51,30 @@ namespace FamilyFarm.API.Controllers
                 return StatusCode(500, $"Error creating VNPay URL: {ex.Message}");
             }
         }
+
+        //[HttpPost("create-payment")]
+        //public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequestDTO request)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //    if (string.IsNullOrEmpty(request.BookingServiceId) || request.Amount <= 0)
+        //    {
+        //        return BadRequest("Invalid payment data.");
+        //    }
+
+        //    try
+        //    {
+        //        var paymentUrl = await _paymentService.CreatePaymentUrlAsync(request, HttpContext);
+        //        return Ok(new { paymentUrl });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Error creating VNPay URL: {ex.Message}");
+        //    }
+        //}
 
         /// <summary>
         /// Xử lý callback từ VNPay sau khi thanh toán
@@ -76,5 +104,20 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
+        [HttpGet("get-by-bookingId/{bookingId}")]
+        [Authorize]
+        public async Task<IActionResult> GetPaymentByBookingId(string bookingId)
+        {
+            var payment = await _paymentService.GetPaymentByBooking(bookingId);
+            return Ok(payment);
+        }
+
+        [HttpGet("get-by-subProcessId/{subProcessId}")]
+        [Authorize]
+        public async Task<IActionResult> GetPaymentBySubProcessId(string subProcessId)
+        {
+            var payment = await _paymentService.GetPaymentBySubProcess(subProcessId);
+            return Ok(payment);
+        }
     }
 }

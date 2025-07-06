@@ -30,5 +30,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.CreateAsync(payment);
         }
+
+        public async Task<PaymentTransaction> GetPaymentByBooking(string bookingId)
+        {
+            return await _dao.GetByBookingIdAsync(bookingId);
+        }
+
+        public async Task<PaymentTransaction> GetPaymentBySubProcess(string subProcessId)
+        {
+            return await _dao.GetBySubProcessIdAsync(subProcessId);
+        }
     }
 }

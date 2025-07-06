@@ -159,7 +159,8 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var update = Builders<BookingService>.Update
                 .Set(g => g.IsPaidByFarmer, booking.IsPaidByFarmer)
-                .Set(g => g.IsPaidToExpert, booking.IsPaidToExpert);
+                .Set(g => g.IsPaidToExpert, booking.IsPaidToExpert)
+                .Set(g => g.BookingServiceStatus, "Paid");
 
             var result = await _bookingService.UpdateOneAsync(filter, update);
 

@@ -17,5 +17,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<PaymentTransaction> CreatePayment(PaymentTransaction transaction);
         Task<bool> HandleVNPayReturnAsync(IQueryCollection vnpayData);
         Task<string> CreatePaymentUrlAsync(CreatePaymentRequestDTO request, HttpContext httpContext);
+        Task<PaymentResponseDTO> GetPaymentByBooking(string bookingId);
+        Task<PaymentResponseDTO> GetPaymentBySubProcess(string processId);
     }
 }
