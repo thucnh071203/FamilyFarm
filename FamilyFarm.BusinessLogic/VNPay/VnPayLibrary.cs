@@ -14,8 +14,10 @@ namespace FamilyFarm.BusinessLogic.VNPay
 
         public void AddRequestData(string key, string value)
         {
-            if (!string.IsNullOrEmpty(value))
+            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value))
+            {
                 requestData.Add(key, value);
+            }
         }
 
         public string CreateRequestUrl(string baseUrl, string hashSecret)

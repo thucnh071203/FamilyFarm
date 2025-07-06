@@ -22,5 +22,6 @@ namespace FamilyFarm.Repositories.Interfaces
         //Task<long> GetTotalAllCountAsync();
         Task<Service> GetLastestService(string serviceId, string accId);
         Task UpdateProcessStatusService(string? serviceId);
+        Task<Service> GetByIdOutDelete(string serviceId);
     }
 }

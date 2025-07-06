@@ -16,7 +16,10 @@ namespace FamilyFarm.Models.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? AccId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
+        public string? ExpertId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public string? ServiceId { get; set; }
+        public string? ServiceName { get; set; }
         public string? Description { get; set; }
         public decimal? Price { get; set; }
         public decimal? CommissionRate { get; set; }
