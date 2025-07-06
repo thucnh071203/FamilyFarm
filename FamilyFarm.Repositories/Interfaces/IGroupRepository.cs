@@ -18,5 +18,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<Group> GetLatestGroupByCreator(string creatorId);
         Task<List<GroupCardDTO>> GetAllByUserId(string userId);
         Task<List<GroupCardDTO>> GetGroupsSuggestion(string userId, int number);
+        Task<List<string>> GetGroupIdsByUserId(string accId);
     }
 }
