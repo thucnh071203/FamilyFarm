@@ -55,5 +55,9 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetGroupsSuggestion(userId, number);
         }
+        public async Task<List<string>> GetGroupIdsByUserId(string accId)
+        {
+            return await _dao.GetGroupIdsByUserId(accId);
+        }
     }
 }

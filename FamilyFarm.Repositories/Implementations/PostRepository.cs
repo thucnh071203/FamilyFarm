@@ -83,6 +83,25 @@ namespace FamilyFarm.Repositories.Implementations
             var paginatedPosts = hasMore ? posts.Take(page_size).ToList() : posts;
             return (paginatedPosts, hasMore);
         }
+        public async Task<(List<Post>, bool)> GetListPostInYourGroup(string? lastPostId, int pageSize, List<string> groupIds)
+        {
+            var posts = await _postDAO.GetListPostInYourGroup(lastPostId, pageSize, groupIds);
+
+            var hasMore = posts.Count > pageSize;
+            var paginatedPosts = hasMore ? posts.Take(pageSize).ToList() : posts;
+
+            return (paginatedPosts, hasMore);
+        }
+        public async Task<(List<Post>, bool)> GetListPostInYourGroupDetail(string? lastPostId, int pageSize, string groupId)
+        {
+            var posts = await _postDAO.GetListPostInGroupDetail(lastPostId, pageSize, groupId);
+
+            var hasMore = posts.Count > pageSize;
+            var paginatedPosts = hasMore ? posts.Take(pageSize).ToList() : posts;
+
+            return (paginatedPosts, hasMore);
+        }
+
         public async Task<List<Post>?> GetListPostCheckedByAI()
         {
             return await _postDAO.GetListPostCheckedByAI();
