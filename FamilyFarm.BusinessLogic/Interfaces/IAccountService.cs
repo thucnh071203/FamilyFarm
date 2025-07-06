@@ -21,6 +21,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<UpdateProfileResponseDTO> UpdateProfileAsync(string username, UpdateProfileRequestDTO account);
         Task<MyProfileDTO?> GetUserProfileAsync(string accId);
         Task<UpdateAvatarResponseDTO?> ChangeOwnAvatar(string? accountId, UpdateAvatarRequesDTO? request);
+        Task<UpdateBackgroundResponseDTO?> ChangeOwnBackground(string? accountId, UpdateBackgroundRequestDTO? request);
         Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetTotalByRoleIdsAsync(List<string> roleIds);
         Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate);
         Task<List<Account>> GetAllAccountByRoleId(string role_id);

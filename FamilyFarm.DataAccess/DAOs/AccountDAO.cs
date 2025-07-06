@@ -323,6 +323,18 @@ namespace FamilyFarm.DataAccess.DAOs
             return result.ModifiedCount > 0 ? avatarUrl : null;
         }
 
+        public async Task<string?> UpdateBackground(string? accountId, string? backgroundUrl)
+        {
+            if (string.IsNullOrEmpty(accountId) || string.IsNullOrEmpty(backgroundUrl)) { return null; }
+
+            var filter = Builders<Account>.Filter.Eq(a => a.AccId, accountId);
+            var update = Builders<Account>.Update.Set(a => a.Background, backgroundUrl);
+
+            var result = await _Accounts.UpdateOneAsync(filter, update);
+
+            return result.ModifiedCount > 0 ? backgroundUrl : null;
+        }
+
         public async Task<List<string>> GetAccountIdsByFullNameAsync(string fullName)
         {
             if (string.IsNullOrEmpty(fullName))
