@@ -189,6 +189,38 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        public async Task<UpdateBackgroundResponseDTO?> ChangeOwnBackground(string? accountId, UpdateBackgroundRequestDTO? request)
+        {
+            if (accountId == null) return null;
+
+            var account = await _accountRepository.GetAccountById(accountId);
+
+            if (account == null) return null;
+
+            var oldBackground = account.Background;
+
+            // Upload ảnh nền mới lên Firebase
+            if (request == null || request.NewBackground == null)
+            {
+                return null;
+            }
+
+            var newBackground = await _uploadFileService.UploadImage(request.NewBackground);
+            if (newBackground == null || newBackground.UrlFile == null)
+                return null;
+
+            string? data = await _accountRepository.UpdateBackground(accountId, newBackground.UrlFile);
+
+            if (data == null) return null;
+
+            return new UpdateBackgroundResponseDTO
+            {
+                Message = "Update background successfully.",
+                Success = true,
+                Data = data
+            };
+        }
+
         //public async Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetTotalByRoleIdsAsync(List<string> roleIds)
         //{
         //    var counts = await _accountRepository.CountByRoleIdsAsync(roleIds);
