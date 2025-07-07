@@ -378,5 +378,111 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await _repository.UpdateStatus(bookingId, status);
         }
+
+        public async Task<BookingServiceResponseDTO?> GetListBookingPaid(string? expertId)
+        {
+            if (string.IsNullOrEmpty(expertId))
+                return null;
+
+            var listBooking = await _repository.GetBookingsByExpert(expertId, "Paid");
+            if(listBooking == null)
+                return new BookingServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "List paid booking of expert is invalid."
+                };
+
+            List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
+
+            foreach (var item in listBooking)
+            {
+                var service = await _serviceRepository.GetServiceById(item.ServiceId);
+                var farmer = await _accountRepository.GetAccountById(item.AccId);
+                var mapper = new BookingServiceMapper
+                {
+                    Account = new FriendMapper
+                    {
+                        AccId = farmer.AccId,
+                        RoleId = farmer.RoleId,
+                        Username = farmer.Username,
+                        FullName = farmer.FullName,
+                        Birthday = farmer.Birthday,
+                        Gender = farmer.Gender,
+                        City = farmer.City,
+                        Country = farmer.Country,
+                        Address = farmer.Address,
+                        Avatar = farmer.Avatar,
+                        Background = farmer.Background,
+                        WorkAt = farmer.WorkAt,
+                        StudyAt = farmer.StudyAt,
+                        Status = farmer.Status,
+                    },
+                    Service = service,
+                    Booking = item,
+
+                };
+                listResponse.Add(mapper);
+
+            }
+            return new BookingServiceResponseDTO
+            {
+                Success = true,
+                Data = listResponse,
+            };
+
+
+        }
+
+        public async Task<BookingServiceResponseDTO?> GetListBookingUnpaid(string? expertId)
+        {
+            if (string.IsNullOrEmpty(expertId))
+                return null;
+
+            var listBooking = await _repository.GetBookingsByExpert(expertId, "Accepted");
+            if (listBooking == null)
+                return new BookingServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "List paid booking of expert is invalid."
+                };
+
+            List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
+
+            foreach (var item in listBooking)
+            {
+                var service = await _serviceRepository.GetServiceById(item.ServiceId);
+                var farmer = await _accountRepository.GetAccountById(item.AccId);
+                var mapper = new BookingServiceMapper
+                {
+                    Account = new FriendMapper
+                    {
+                        AccId = farmer.AccId,
+                        RoleId = farmer.RoleId,
+                        Username = farmer.Username,
+                        FullName = farmer.FullName,
+                        Birthday = farmer.Birthday,
+                        Gender = farmer.Gender,
+                        City = farmer.City,
+                        Country = farmer.Country,
+                        Address = farmer.Address,
+                        Avatar = farmer.Avatar,
+                        Background = farmer.Background,
+                        WorkAt = farmer.WorkAt,
+                        StudyAt = farmer.StudyAt,
+                        Status = farmer.Status,
+                    },
+                    Service = service,
+                    Booking = item,
+
+                };
+                listResponse.Add(mapper);
+
+            }
+            return new BookingServiceResponseDTO
+            {
+                Success = true,
+                Data = listResponse,
+            };
+        }
     }
 }

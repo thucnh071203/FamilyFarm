@@ -172,6 +172,35 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("expert/booking-paid")]
+        [Authorize]
+        public async Task<ActionResult> ListPaidBookingByExpert()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+
+            var result = await _bookingService.GetListBookingPaid(accId);
+            if (result == null)
+                return BadRequest("Cannot get list paid booking of expert!");
+
+            return Ok(result);
+        }
+
+
+        [HttpGet("expert/booking-unpaid")]
+        [Authorize]
+        public async Task<ActionResult> ListUnpaidBookingByExpert()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+
+            var result = await _bookingService.GetListBookingUnpaid(accId);
+            if (result == null)
+                return BadRequest("Cannot get list unpaid booking of expert!");
+
+            return Ok(result);
+        }
+
         [HttpGet("get-by-id/{bookingId}")]
         [Authorize]
         public async Task<IActionResult> GetBookingById(string bookingId)

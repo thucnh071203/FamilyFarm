@@ -20,5 +20,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<bool?> CancelBookingService(string bookingServiceId);
         Task<bool?> RequestToBookingService(string? accId, string? serviceId, string? description);
         Task<bool?> UpdateStatusBooking(string? bookingId, string? status);
+        Task<BookingServiceResponseDTO?> GetListBookingPaid(string? expertId);
+        Task<BookingServiceResponseDTO?> GetListBookingUnpaid(string? expertId);
     }
 }
