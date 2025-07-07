@@ -57,7 +57,7 @@ namespace FamilyFarm.DataAccess.DAOs
             if (request == null)
                 return null;
 
-            request.PostId = ObjectId.GenerateNewId().ToString();
+            request.SharePostId = ObjectId.GenerateNewId().ToString();
             request.CreatedAt = DateTime.UtcNow;
             await _sharePosts.InsertOneAsync(request);
 
