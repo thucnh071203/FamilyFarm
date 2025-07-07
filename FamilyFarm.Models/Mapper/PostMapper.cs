@@ -19,5 +19,6 @@ namespace FamilyFarm.Models.Mapper
         public List<PostImage>? PostImages { get; set; }
         public List<HashTag>? HashTags { get; set; }
         public List<PostTag>? PostTags { get; set; }
+        public Group? Group { get; set; }
     }
 }

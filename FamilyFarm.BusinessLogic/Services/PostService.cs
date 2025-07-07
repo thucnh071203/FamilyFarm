@@ -81,6 +81,8 @@ namespace FamilyFarm.BusinessLogic.Services
             postRequest.CreatedAt = DateTime.UtcNow;
             postRequest.IsInGroup = request.isInGroup;
             postRequest.GroupId = request.GroupId;
+            
+           
             if (AICheck)//if true, status is 0, mean that content is Agriculture
             {
                 postRequest.Status = 0;
@@ -201,6 +203,11 @@ namespace FamilyFarm.BusinessLogic.Services
             data.PostCategories = postCategories;
             data.PostImages = postImages;
             data.HashTags = hashTags;
+
+            if (request.isInGroup == true)
+            {
+                data.Group = await _groupRepository.GetGroupById(postRequest.GroupId);
+            }
 
             return new PostResponseDTO
             {
@@ -811,9 +818,75 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _postRepository.SearchPostsInGroupAsync(groupId, keyword);
         }
 
-        public async Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword)
+        public async Task<ListPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword)
         {
-            return await _postRepository.SearchPostsWithAccountAsync(groupId, keyword);
+            
+
+            if (groupId == null)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "User has not joined any groups.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            // 2. Lấy list post thuộc các groupId đó
+
+            var posts = await _postRepository.SearchPostsInGroupAsync(groupId, keyword);
+            if (posts == null || posts.Count == 0)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+           
+
+            // 3. Chuẩn bị dữ liệu trả về
+            var data = new List<PostInGroupMapper>();
+            foreach (var post in posts)
+            {
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+                var postMapper = new PostInGroupMapper
+                {
+                    Post = post,
+                    PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
+                    HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
+                    PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
+                    PostTags = await _postTagRepository.GetPostTagByPost(post.PostId),
+                    ReactionCount = (await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post")).Count,
+                    CommentCount = (await _commentRepository.GetAllByPost(post.PostId)).Count,
+                    ShareCount = (await _sharePostRepository.GetByPost(post.PostId))?.Count ?? 0,
+                    OwnerPost = ownerPost,
+
+                };
+
+                // 4. Lấy Group cho post
+                if (!string.IsNullOrEmpty(post.GroupId))
+                {
+                    postMapper.Group = await _groupRepository.GetGroupById(post.GroupId);
+                }
+
+                data.Add(postMapper);
+            }
+
+            return new ListPostInGroupResponseDTO
+            {
+                Message = "Get posts from user's groups successful.",
+                Success = true,
+                HasMore = false,
+                Count = data.Count,
+                Data = data
+            };
+
         }
 
         public async Task<ListPostResponseDTO?> GetListPostValid()
@@ -1572,6 +1645,11 @@ namespace FamilyFarm.BusinessLogic.Services
                 Count = data.Count,
                 Data = data
             };
+        }
+        public async Task<long> CountPublicPostsInGroupAsync(string groupId)
+        {
+            if (string.IsNullOrEmpty(groupId)) return 0;
+            return await _postRepository.CountPublicPostsInGroupAsync(groupId);
         }
 
     }

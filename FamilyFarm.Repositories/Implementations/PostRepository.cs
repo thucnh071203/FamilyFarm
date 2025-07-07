@@ -121,5 +121,9 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _postDAO.GetPostsByAccId(accId, privacy);
         }
+        public async Task<long> CountPublicPostsInGroupAsync(string groupId)
+        {
+            return await _postDAO.CountPublicPostsInGroupAsync(groupId);
+        }
     }
 }

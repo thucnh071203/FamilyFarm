@@ -406,7 +406,7 @@ namespace FamilyFarm.DataAccess.DAOs
             // Điều kiện lọc theo isDeleted = false
             var isDeletedFilter = filterBuilder.Eq(p => p.IsDeleted, false);
             // Điều kiện PostScope = "Public"
-            var scopeFilter = filterBuilder.Eq(p => p.PostScope, "Public");
+            var scopeFilter = filterBuilder.Eq(p => p.PostScope, "Public")& filterBuilder.Eq(p => p.IsInGroup, false);
 
             // Kết hợp các filter chung
             var filters = new List<FilterDefinition<Post>> { isDeletedFilter, scopeFilter };
@@ -578,6 +578,22 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return posts;
         }
+        public async Task<long> CountPublicPostsInGroupAsync(string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(groupId))
+                return 0;
+
+           // var objectGroupId = ObjectId.Parse(groupId);
+
+            var filter = Builders<Post>.Filter.And(
+                Builders<Post>.Filter.Eq(p => p.GroupId, groupId),
+                Builders<Post>.Filter.Eq(p => p.IsDeleted, false),
+                Builders<Post>.Filter.Eq(p => p.PostScope, "Public")
+            );
+
+            return await _post.CountDocumentsAsync(filter);
+        }
+
 
     }
 }
