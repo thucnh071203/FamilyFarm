@@ -297,6 +297,17 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(response);
         }
+        [HttpGet("count-post-in-group")]
+        public async Task<IActionResult> CountPostInGroupDetail([FromQuery] string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(groupId))
+                return BadRequest(new { success = false, message = "groupId is required." });
+
+            var count = await _postService.CountPublicPostsInGroupAsync(groupId);
+
+            return Ok(new { success = true, data = count });
+        }
+
 
         [HttpGet("list-valid")]
         public async Task<ActionResult<ListPostResponseDTO>> ListPostValid()

@@ -28,5 +28,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<Post>?> GetListPostByAccId(string? accId, string? privacy);
         Task<(List<Post>, bool)> GetListPostInYourGroup(string? lastPostId, int pageSize, List<string> groupIds);
         Task<(List<Post>, bool)> GetListPostInYourGroupDetail(string? lastPostId, int pageSize, string groupId);
+        Task<long> CountPublicPostsInGroupAsync(string groupId);
     }
 }
