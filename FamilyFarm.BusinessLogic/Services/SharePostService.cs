@@ -110,22 +110,23 @@ namespace FamilyFarm.BusinessLogic.Services
             if (ownAccount == null)
                 return null;
 
-            bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.SharePostContent);
+            //bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.SharePostContent);
 
             var sharePost = new SharePost();
+            sharePost.PostId = request.PostId;
             sharePost.SharePostContent = request.SharePostContent;
             sharePost.SharePostScope = request.SharePostScope;
             sharePost.AccId = ownAccount.AccId;
             sharePost.CreatedAt = DateTime.UtcNow;
-
-            if (AICheck)
-            {
-                sharePost.Status = 0;
-            }
-            else
-            {
-                sharePost.Status = 1;
-            }
+            sharePost.Status = 0;
+            //if (AICheck)
+            //{
+            //    sharePost.Status = 0;
+            //}
+            //else
+            //{
+            //    sharePost.Status = 1;
+            //}
 
             var newSharePost = await _sharePostRepository.CreateAsync(sharePost);
 
