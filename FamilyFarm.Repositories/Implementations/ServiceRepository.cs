@@ -66,5 +66,9 @@ namespace FamilyFarm.Repositories.Implementations
         {
             await _dao.UpdateProcessStatus(serviceId);
         }
+        public async Task<Service> GetByIdOutDelete(string serviceId)
+        {
+            return await _dao.GetByIdOutDeleteAsync(serviceId);
+        }
     }
 }

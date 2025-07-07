@@ -180,6 +180,20 @@ namespace FamilyFarm.DataAccess.DAOs
             return groupCardList;
         }
 
+        public async Task<List<string>> GetGroupIdsByUserId(string accId)
+        {
+            var filter = Builders<GroupMember>.Filter.Eq(gm => gm.AccId, accId) &
+                         Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Accept");
+
+            var memberList = await _GroupMembers.Find(filter).ToListAsync();
+
+            var groupIds = memberList
+                .Select(m => m.GroupId)
+                .Distinct()
+                .ToList();
+
+            return groupIds;
+        }
 
     }
 }

@@ -200,5 +200,25 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("get-by-id/{bookingId}")]
+        [Authorize]
+        public async Task<IActionResult> GetBookingById(string bookingId)
+        {
+            if (string.IsNullOrEmpty(bookingId))
+            {
+                return BadRequest("Id is required.");
+            }
+
+            var booking = await _bookingService.GetById(bookingId);
+
+            if (booking == null)
+            {
+                return NotFound("Booking not found.");
+            }
+
+            return Ok(booking);
+        }
+
     }
 }

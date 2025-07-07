@@ -104,6 +104,7 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+
         [HttpPut("update")]
         //[HttpPut("update/{id}")]
         [Authorize]
@@ -296,6 +297,17 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(response);
         }
+        [HttpGet("count-post-in-group")]
+        public async Task<IActionResult> CountPostInGroupDetail([FromQuery] string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(groupId))
+                return BadRequest(new { success = false, message = "groupId is required." });
+
+            var count = await _postService.CountPublicPostsInGroupAsync(groupId);
+
+            return Ok(new { success = true, data = count });
+        }
+
 
         [HttpGet("list-valid")]
         public async Task<ActionResult<ListPostResponseDTO>> ListPostValid()
@@ -495,6 +507,37 @@ namespace FamilyFarm.API.Controllers
             if (result.Success == false)
                 return NotFound();
 
+            return Ok(result);
+        }
+        //get list post in list group
+        [HttpGet("get-post-in-user-groups")]
+        [Authorize]
+        public async Task<ActionResult<ListPostInGroupResponseDTO>> GetPostsInGroups([FromQuery] string? lastPostId, [FromQuery] int pageSize)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+            if (acc_id == null)
+                return Unauthorized();
+            if (pageSize <= 0 || pageSize > 50)
+                pageSize = 5; // default hoặc giới hạn max
+
+            var result = await _postService.GetPostsInYourGroups(lastPostId, pageSize, acc_id);
+            return Ok(result);
+        }
+
+        //get list post in group detail
+        [HttpGet("get-post-in-group-detail")]
+        [Authorize]
+        public async Task<ActionResult<ListPostInGroupResponseDTO>> GetPostsInGroupDetail([FromQuery] string? lastPostId, [FromQuery] int pageSize, [FromQuery] string groupId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+            if (acc_id == null)
+                return Unauthorized();
+            if (pageSize <= 0 || pageSize > 50)
+                pageSize = 5; // default hoặc giới hạn max
+
+            var result = await _postService.GetPostsInGroupDetail(lastPostId, pageSize, groupId);
             return Ok(result);
         }
     }

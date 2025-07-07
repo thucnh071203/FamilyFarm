@@ -16,6 +16,7 @@ using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.BusinessLogic.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using FamilyFarm.Models.Mapper;
+using FamilyFarm.Models.ModelsConfig;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +70,7 @@ builder.Services.AddScoped<StatisticDAO>();
 builder.Services.AddScoped<SavedPostDAO>();
 builder.Services.AddScoped<ProcessStepDAO>();
 builder.Services.AddScoped<ProcessStepImageDAO>();
+builder.Services.AddScoped<PaymentDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -105,6 +107,7 @@ builder.Services.AddScoped<ICategoryNotificationRepository, CategoryNotification
 builder.Services.AddScoped<IStatisticRepository, StatisticRepository>();
 builder.Services.AddScoped<ISavedPostRepository, SavedPostRepository>();
 builder.Services.AddScoped<IProcessStepRepository, ProcessStepRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -137,6 +140,7 @@ builder.Services.AddScoped<ISharePostService, SharePostService>();
 builder.Services.AddSingleton<INotificationTemplateService, NotificationTemplateService>();
 builder.Services.AddScoped<IStatisticService, StatisticService>();
 builder.Services.AddScoped<ISavedPostService, SavedPostService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 //builder.Services.AddScoped<FirebaseConnection>();
 
@@ -152,6 +156,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPay"));
 
 builder.Services.AddSignalR();
 

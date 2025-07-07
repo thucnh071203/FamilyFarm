@@ -308,7 +308,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 try
                 {
-                    var avatar = "";
+                    var avatar = "https://firebasestorage.googleapis.com/v0/b/prn221-69738.appspot.com/o/image%2F638841241684706439_default-avatar.jpg?alt=media&token=8190d336-e471-4a34-bf8e-7853e969b04f";
                     var certificate = "";
                    
 
@@ -559,6 +559,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 AccId = "",
                 RoleId = "68007b0387b41211f0af1d56",
                 Username = request.Username,
+                Avatar = "https://firebasestorage.googleapis.com/v0/b/prn221-69738.appspot.com/o/image%2F638841241684706439_default-avatar.jpg?alt=media&token=8190d336-e471-4a34-bf8e-7853e969b04f",
                 PasswordHash = hashedPassword,
                 FullName = request.FullName,
                 Email = request.Email,

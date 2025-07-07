@@ -406,7 +406,7 @@ namespace FamilyFarm.DataAccess.DAOs
             // Điều kiện lọc theo isDeleted = false
             var isDeletedFilter = filterBuilder.Eq(p => p.IsDeleted, false);
             // Điều kiện PostScope = "Public"
-            var scopeFilter = filterBuilder.Eq(p => p.PostScope, "Public");
+            var scopeFilter = filterBuilder.Eq(p => p.PostScope, "Public")& filterBuilder.Eq(p => p.IsInGroup, false);
 
             // Kết hợp các filter chung
             var filters = new List<FilterDefinition<Post>> { isDeletedFilter, scopeFilter };
@@ -484,5 +484,116 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return posts;
         }
+
+        public async Task<List<Post>> GetListPostInYourGroup(string? lastPostId, int pageSize, List<string> groupIds)
+        {
+            var filterBuilder = Builders<Post>.Filter;
+
+            // Lọc theo isDeleted = false
+            var isDeletedFilter = filterBuilder.Eq(p => p.IsDeleted, false);
+
+            // Lọc theo phạm vi bài viết là "Public"
+            var scopeFilter = filterBuilder.Eq(p => p.PostScope, "Public");
+
+            // Lọc theo GroupId nằm trong danh sách groupIds
+            var groupFilter = filterBuilder.In(p => p.GroupId, groupIds);
+
+            // Danh sách filter
+            var filters = new List<FilterDefinition<Post>> { isDeletedFilter, scopeFilter, groupFilter };
+
+            // Nếu có lastPostId thì thêm filter phân trang
+            if (!string.IsNullOrEmpty(lastPostId))
+            {
+                var lastPost = await _post.Find(p => p.PostId == lastPostId).FirstOrDefaultAsync();
+                if (lastPost != null)
+                {
+                    var createdAt = lastPost.CreatedAt ?? DateTime.MinValue;
+
+                    var createdAtFilter = filterBuilder.Or(
+                        filterBuilder.Lt(p => p.CreatedAt, createdAt),
+                        filterBuilder.And(
+                            filterBuilder.Eq(p => p.CreatedAt, createdAt),
+                            filterBuilder.Lt(p => p.PostId, lastPost.PostId)
+                        )
+                    );
+
+                    filters.Add(createdAtFilter);
+                }
+            }
+
+
+
+
+
+            var finalFilter = filterBuilder.And(filters);
+
+            var posts = await _post.Find(finalFilter)
+                .SortByDescending(p => p.CreatedAt)
+                .Limit(pageSize + 1)
+                .ToListAsync();
+
+            return posts;
+        }
+        public async Task<List<Post>> GetListPostInGroupDetail(string? lastPostId, int pageSize, string groupId)
+        {
+            var filterBuilder = Builders<Post>.Filter;
+
+            // Lọc bài chưa bị xóa
+            var isDeletedFilter = filterBuilder.Eq(p => p.IsDeleted, false);
+
+            // Lọc bài có phạm vi Public
+            var scopeFilter = filterBuilder.Eq(p => p.PostScope, "Public");
+
+            // Lọc theo đúng groupId
+            var groupFilter = filterBuilder.Eq(p => p.GroupId, groupId);
+
+            var filters = new List<FilterDefinition<Post>> { isDeletedFilter, scopeFilter, groupFilter };
+
+            // Phân trang bằng lastPostId nếu có
+            if (!string.IsNullOrEmpty(lastPostId))
+            {
+                var lastPost = await _post.Find(p => p.PostId == lastPostId).FirstOrDefaultAsync();
+                if (lastPost != null)
+                {
+                    var createdAt = lastPost.CreatedAt ?? DateTime.MinValue;
+
+                    var createdAtFilter = filterBuilder.Or(
+                        filterBuilder.Lt(p => p.CreatedAt, createdAt),
+                        filterBuilder.And(
+                            filterBuilder.Eq(p => p.CreatedAt, createdAt),
+                            filterBuilder.Lt(p => p.PostId, lastPost.PostId)
+                        )
+                    );
+
+                    filters.Add(createdAtFilter);
+                }
+            }
+
+            var finalFilter = filterBuilder.And(filters);
+
+            var posts = await _post.Find(finalFilter)
+                .SortByDescending(p => p.CreatedAt)
+                .Limit(pageSize + 1)
+                .ToListAsync();
+
+            return posts;
+        }
+        public async Task<long> CountPublicPostsInGroupAsync(string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(groupId))
+                return 0;
+
+           // var objectGroupId = ObjectId.Parse(groupId);
+
+            var filter = Builders<Post>.Filter.And(
+                Builders<Post>.Filter.Eq(p => p.GroupId, groupId),
+                Builders<Post>.Filter.Eq(p => p.IsDeleted, false),
+                Builders<Post>.Filter.Eq(p => p.PostScope, "Public")
+            );
+
+            return await _post.CountDocumentsAsync(filter);
+        }
+
+
     }
 }

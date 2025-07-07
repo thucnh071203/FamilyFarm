@@ -6,11 +6,13 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -31,8 +33,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IReactionRepository _reactionRepository;
         private readonly ICommentRepository _commentRepository;
         private readonly ISharePostRepository _sharePostRepository;
+        private readonly IGroupRepository _groupRepository;
 
-        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository)
+        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository, IGroupRepository groupRepository)
         {
             _postRepository = postRepository;
             _postCategoryRepository = postCategoryRepository;
@@ -47,6 +50,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _reactionRepository = reactionRepository;
             _commentRepository = commentRepository;
             _sharePostRepository = sharePostRepository;
+            _groupRepository = groupRepository;
         }
 
         /// <summary>
@@ -75,6 +79,10 @@ namespace FamilyFarm.BusinessLogic.Services
             postRequest.PostScope = request.Privacy;
             postRequest.AccId = ownAccount.AccId;
             postRequest.CreatedAt = DateTime.UtcNow;
+            postRequest.IsInGroup = request.isInGroup;
+            postRequest.GroupId = request.GroupId;
+            
+           
             if (AICheck)//if true, status is 0, mean that content is Agriculture
             {
                 postRequest.Status = 0;
@@ -196,6 +204,11 @@ namespace FamilyFarm.BusinessLogic.Services
             data.PostImages = postImages;
             data.HashTags = hashTags;
 
+            if (request.isInGroup == true)
+            {
+                data.Group = await _groupRepository.GetGroupById(postRequest.GroupId);
+            }
+
             return new PostResponseDTO
             {
                 Message = "Create post is successfully.",
@@ -203,6 +216,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = data
             };
         }
+
+        
 
         /// <summary>
         /// Retrieves a post and its related data by the post's unique identifier.
@@ -803,9 +818,75 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _postRepository.SearchPostsInGroupAsync(groupId, keyword);
         }
 
-        public async Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword)
+        public async Task<ListPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword)
         {
-            return await _postRepository.SearchPostsWithAccountAsync(groupId, keyword);
+            
+
+            if (groupId == null)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "User has not joined any groups.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            // 2. Lấy list post thuộc các groupId đó
+
+            var posts = await _postRepository.SearchPostsInGroupAsync(groupId, keyword);
+            if (posts == null || posts.Count == 0)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+           
+
+            // 3. Chuẩn bị dữ liệu trả về
+            var data = new List<PostInGroupMapper>();
+            foreach (var post in posts)
+            {
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+                var postMapper = new PostInGroupMapper
+                {
+                    Post = post,
+                    PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
+                    HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
+                    PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
+                    PostTags = await _postTagRepository.GetPostTagByPost(post.PostId),
+                    ReactionCount = (await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post")).Count,
+                    CommentCount = (await _commentRepository.GetAllByPost(post.PostId)).Count,
+                    ShareCount = (await _sharePostRepository.GetByPost(post.PostId))?.Count ?? 0,
+                    OwnerPost = ownerPost,
+
+                };
+
+                // 4. Lấy Group cho post
+                if (!string.IsNullOrEmpty(post.GroupId))
+                {
+                    postMapper.Group = await _groupRepository.GetGroupById(post.GroupId);
+                }
+
+                data.Add(postMapper);
+            }
+
+            return new ListPostInGroupResponseDTO
+            {
+                Message = "Get posts from user's groups successful.",
+                Success = true,
+                HasMore = false,
+                Count = data.Count,
+                Data = data
+            };
+
         }
 
         public async Task<ListPostResponseDTO?> GetListPostValid()
@@ -1396,5 +1477,180 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = data
             };
         }
+        /// <summary>
+        /// get list post in list group of user
+        /// </summary>
+        /// <param name="accId"></param>
+        /// <returns></returns>
+        public async Task<ListPostInGroupResponseDTO?> GetPostsInYourGroups(string? last_post_id, int page_size,string accId)
+        {
+            // 1. Lấy danh sách groupId user đã tham gia
+            var groupIds = await _groupRepository.GetGroupIdsByUserId(accId);
+            if (groupIds == null || groupIds.Count == 0)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "User has not joined any groups.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            // 2. Lấy list post thuộc các groupId đó
+           
+            var (posts, hasMore) = await _postRepository.GetListPostInYourGroup(last_post_id, page_size, groupIds);
+            if (posts == null || posts.Count == 0)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            var listPostInGroup = posts;
+
+            if (listPostInGroup.Count == 0)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "No posts found in user's groups.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            // 3. Chuẩn bị dữ liệu trả về
+            var data = new List<PostInGroupMapper>();
+            foreach (var post in listPostInGroup)
+            {
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+                var postMapper = new PostInGroupMapper
+                {
+                    Post = post,
+                    PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
+                    HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
+                    PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
+                    PostTags = await _postTagRepository.GetPostTagByPost(post.PostId),
+                    ReactionCount = (await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post")).Count,
+                    CommentCount = (await _commentRepository.GetAllByPost(post.PostId)).Count,
+                    ShareCount = (await _sharePostRepository.GetByPost(post.PostId))?.Count ?? 0,
+                    OwnerPost = ownerPost,
+
+                };
+
+                // 4. Lấy Group cho post
+                if (!string.IsNullOrEmpty(post.GroupId))
+                {
+                    postMapper.Group = await _groupRepository.GetGroupById(post.GroupId);
+                }
+
+                data.Add(postMapper);
+            }
+
+            return new ListPostInGroupResponseDTO
+            {
+                Message = "Get posts from user's groups successful.",
+                Success = true,
+                HasMore = hasMore,
+                Count = data.Count,
+                Data = data
+            };
+        }
+        /// <summary>
+        /// get list post in list group detail
+        /// </summary>
+        /// <param name="accId"></param>
+        /// <returns></returns>
+        public async Task<ListPostInGroupResponseDTO?> GetPostsInGroupDetail(string? last_post_id, int page_size, string groupIds)
+        {
+           
+            if (groupIds == null)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "User has not joined any groups.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            // 2. Lấy list post thuộc các groupId đó
+
+            var (posts, hasMore) = await _postRepository.GetListPostInYourGroupDetail(last_post_id, page_size, groupIds);
+            if (posts == null || posts.Count == 0)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            var listPostInGroup = posts;
+
+            if (listPostInGroup.Count == 0)
+            {
+                return new ListPostInGroupResponseDTO
+                {
+                    Message = "No posts found in user's groups.",
+                    Success = false,
+                    HasMore = false,
+                    Data = null
+                };
+            }
+
+            // 3. Chuẩn bị dữ liệu trả về
+            var data = new List<PostInGroupMapper>();
+            foreach (var post in listPostInGroup)
+            {
+                var account = await _accountRepository.GetAccountById(post.AccId);
+                var ownerPost = _mapper.Map<MyProfileDTO>(account);
+                var postMapper = new PostInGroupMapper
+                {
+                    Post = post,
+                    PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
+                    HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
+                    PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
+                    PostTags = await _postTagRepository.GetPostTagByPost(post.PostId),
+                    ReactionCount = (await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post")).Count,
+                    CommentCount = (await _commentRepository.GetAllByPost(post.PostId)).Count,
+                    ShareCount = (await _sharePostRepository.GetByPost(post.PostId))?.Count ?? 0,
+                    OwnerPost = ownerPost,
+
+                };
+
+                // 4. Lấy Group cho post
+                if (!string.IsNullOrEmpty(post.GroupId))
+                {
+                    postMapper.Group = await _groupRepository.GetGroupById(post.GroupId);
+                }
+
+                data.Add(postMapper);
+            }
+
+            return new ListPostInGroupResponseDTO
+            {
+                Message = "Get posts from user's groups successful.",
+                Success = true,
+                HasMore = hasMore,
+                Count = data.Count,
+                Data = data
+            };
+        }
+        public async Task<long> CountPublicPostsInGroupAsync(string groupId)
+        {
+            if (string.IsNullOrEmpty(groupId)) return 0;
+            return await _postRepository.CountPublicPostsInGroupAsync(groupId);
+        }
+
     }
 }

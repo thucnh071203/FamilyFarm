@@ -139,7 +139,7 @@ namespace FamilyFarm.BusinessLogic.Services
             List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
             foreach (var item in listBooking)
             {
-                var service = await _serviceRepository.GetServiceById(item.ServiceId);
+                var service = await _serviceRepository.GetByIdOutDelete(item.ServiceId);
                 var farmer = await _accountRepository.GetAccountById(item.AccId);
                 var mapper = new BookingServiceMapper
                 {
@@ -188,7 +188,7 @@ namespace FamilyFarm.BusinessLogic.Services
             List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
             foreach (var item in listBooking)
             {
-                var service = await _serviceRepository.GetServiceById(item.ServiceId);
+                var service = await _serviceRepository.GetByIdOutDelete(item.ServiceId);
                 var expert = await _accountRepository.GetAccountById(service.ProviderId);
                 var mapper = new BookingServiceMapper
                 {
@@ -358,7 +358,9 @@ namespace FamilyFarm.BusinessLogic.Services
 
             var bookingService = new BookingService();
             bookingService.AccId = accId;
+            bookingService.ExpertId = service.ProviderId;
             bookingService.ServiceId = serviceId;
+            bookingService.ServiceName = service.ServiceName;
             bookingService.Price = service.Price;
             bookingService.Description = description;
             bookingService.CommissionRate = service.Price * 0.10m; //Tính phần trăm hoa hồng 10%

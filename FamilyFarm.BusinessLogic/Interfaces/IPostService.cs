@@ -23,7 +23,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<DeletePostResponseDTO?> TempDeleted(string? acc_id, DeletePostRequestDTO request);
         Task<DeletePostResponseDTO?> RestorePostDeleted(string? acc_id, DeletePostRequestDTO request);
         Task<List<Post>> SearchPostsInGroupAsync(string groupId, string keyword);
-        Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
+        Task<ListPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
         Task<ListPostResponseDTO?> GetListPostValid(); //Lấy các bài post còn khả dụng
         Task<ListPostResponseDTO?> GetListPostDeleted(); //Lấy posts bị xóa
         Task<ListPostResponseDTO?> GetListAllPost(); //Lấy toàn bộ các bài post
@@ -33,5 +33,9 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ListPostResponseDTO?> GetListDeletedPostByAccount(string? accId);
         Task<ListPostResponseDTO?> GetPostsOwner(string? accId);
         Task<ListPostResponseDTO?> GetPostsPublicByAccId(string? accId);
+        Task<ListPostInGroupResponseDTO?> GetPostsInYourGroups(string? last_post_id, int page_size,string accId); //Lấy các bài post còn khả dụng trong các group mà user joined
+            //get list post in group detail
+        Task<ListPostInGroupResponseDTO?> GetPostsInGroupDetail(string? last_post_id, int page_size, string groupId);
+        Task<long> CountPublicPostsInGroupAsync(string groupId);
     }
 }
