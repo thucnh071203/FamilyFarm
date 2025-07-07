@@ -49,5 +49,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.UpdateStatus(bookingId, status);
         }
+
+        public async Task<List<BookingService>?> GetBookingsByExpert(string? expertId, string? status)
+        {
+            return await _dao.GetBookingByExpert(expertId, status); 
+        }
     }
 }

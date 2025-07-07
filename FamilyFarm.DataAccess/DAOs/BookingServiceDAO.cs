@@ -148,6 +148,28 @@ namespace FamilyFarm.DataAccess.DAOs
             return result.ModifiedCount > 0;
         }
 
+        public async Task<List<BookingService>?> GetBookingByExpert(string? expertId, string? status)
+        {
+            if (string.IsNullOrEmpty(expertId))
+                return null;
+
+            var filterBuilder = Builders<BookingService>.Filter;
+
+            // Tạo filter theo expertId
+            var filter = filterBuilder.Eq(b => b.ExpertId, expertId);
+
+            // Nếu có status thì thêm điều kiện lọc theo status
+            if (!string.IsNullOrEmpty(status))
+            {
+                var statusFilter = filterBuilder.Eq(b => b.BookingServiceStatus, status);
+                filter = filter & statusFilter;
+            }
+
+            var results = await _bookingService.Find(filter)
+                .SortByDescending(b => b.BookingServiceAt)
+                .ToListAsync();
+            return results;
+        }
 
     }
 }
