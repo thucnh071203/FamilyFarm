@@ -23,13 +23,15 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IGroupMemberRepository _memberRepository;
         private readonly IUploadFileService _uploadFileService;
         private readonly IHubContext<NotificationHub> _hubNotificationContext;
+        private readonly IHubContext<FriendHub> _hub;
 
-        public GroupService(IGroupRepository groupRepository, IGroupMemberRepository memberRepository, IUploadFileService uploadFileService, IHubContext<NotificationHub> hubNotificationContext)
+        public GroupService(IGroupRepository groupRepository, IGroupMemberRepository memberRepository, IUploadFileService uploadFileService, IHubContext<NotificationHub> hubNotificationContext, IHubContext<FriendHub> hub )
         {
             _groupRepository = groupRepository;
             _memberRepository = memberRepository;
             _uploadFileService = uploadFileService;
             _hubNotificationContext = hubNotificationContext;
+            _hub = hub;
         }
 
         public async Task<GroupResponseDTO> GetAllGroup()
@@ -313,6 +315,7 @@ namespace FamilyFarm.BusinessLogic.Services
             }
 
             var deleteAllMember = await _memberRepository.DeleteAllGroupMember(groupId);
+            await _hub.Clients.All.SendAsync("GroupDeleted", groupId);
 
             if (deleteAllMember == -1)
             {
