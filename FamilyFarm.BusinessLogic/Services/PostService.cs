@@ -34,8 +34,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly ICommentRepository _commentRepository;
         private readonly ISharePostRepository _sharePostRepository;
         private readonly IGroupRepository _groupRepository;
+        private readonly ISharePostTagRepository _sharePostTagRepository;
 
-        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository, IGroupRepository groupRepository)
+        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository, IGroupRepository groupRepository, ISharePostTagRepository sharePostTagRepository)
         {
             _postRepository = postRepository;
             _postCategoryRepository = postCategoryRepository;
@@ -51,6 +52,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _commentRepository = commentRepository;
             _sharePostRepository = sharePostRepository;
             _groupRepository = groupRepository;
+            _sharePostTagRepository = sharePostTagRepository;
         }
 
         /// <summary>
@@ -1306,8 +1308,15 @@ namespace FamilyFarm.BusinessLogic.Services
                         var originalAccount = await _accountRepository.GetAccountById(originalPost.AccId);
                         var originalOwner = _mapper.Map<MyProfileDTO>(originalAccount);
 
+                        var originalReactions = await _reactionRepository.GetAllByEntityAsync(originalPost.PostId, "Post");
+                        var originalComments = await _commentRepository.GetAllByPost(originalPost.PostId);
+                        var originalShares = await _sharePostRepository.GetByPost(originalPost.PostId);
+
                         originalPostMapper = new PostMapper
                         {
+                            ReactionCount = originalReactions.Count,
+                            CommentCount = originalComments.Count,
+                            ShareCount = originalShares?.Count,
                             Post = originalPost,
                             OwnerPost = originalOwner,
                             PostImages = await _postImageRepository.GetPostImageByPost(originalPost.PostId),
@@ -1317,6 +1326,8 @@ namespace FamilyFarm.BusinessLogic.Services
                         };
                     }
 
+                    var sharePostTag = await _sharePostTagRepository.GetAllBySharePost(sharePost.SharePostId);
+
                     var sharePostMapper = new SharePostMapper
                     {
                         ReactionCount = reactions.Count,
@@ -1324,7 +1335,9 @@ namespace FamilyFarm.BusinessLogic.Services
                         ShareCount = shares?.Count,
                         SharePost = sharePost,
                         OwnerSharePost = ownerSharePost,
-                        OriginalPost = originalPostMapper
+                        OriginalPost = originalPostMapper,
+                        HashTags = await _hashTagRepository.GetHashTagByPost(sharePost.SharePostId),
+                        SharePostTags = await _sharePostTagRepository.GetAllBySharePost(sharePost.SharePostId)
                     };
 
                     var postMapper = new PostMapper

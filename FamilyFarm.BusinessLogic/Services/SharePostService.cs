@@ -165,12 +165,15 @@ namespace FamilyFarm.BusinessLogic.Services
                     if (account == null)
                         continue;
 
-                    var postTag = new SharePostTag();
-                    postTag.AccId = account.AccId;
-                    postTag.SharePostId = newSharePost.SharePostId;
-                    postTag.CreatedAt = DateTime.UtcNow;
+                    var sharePostTag = new SharePostTag();
+                    sharePostTag.AccId = account.AccId;
+                    sharePostTag.SharePostId = newSharePost.SharePostId;
+                    sharePostTag.Fullname = account.FullName;
+                    sharePostTag.Username = account.Username;
+                    sharePostTag.Avatar = account.Avatar;
+                    sharePostTag.CreatedAt = DateTime.UtcNow;
 
-                    var newSharePostTag = await _sharePostTagRepository.CreateAsyns(postTag);
+                    var newSharePostTag = await _sharePostTagRepository.CreateAsyns(sharePostTag);
                     if (newSharePostTag != null)
                         sharePostTags.Add(newSharePostTag);
                 }
@@ -288,6 +291,9 @@ namespace FamilyFarm.BusinessLogic.Services
                     {
                         AccId = account.AccId,
                         SharePostId = newSharePost.SharePostId,
+                        Fullname = account.FullName,
+                        Username = account.Username,
+                        Avatar = account.Avatar,
                         CreatedAt = DateTime.UtcNow
                     };
 
