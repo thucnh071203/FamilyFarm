@@ -1,4 +1,5 @@
-﻿using FamilyFarm.Models.DTOs.Response;
+﻿using FamilyFarm.Models.DTOs.EntityDTO;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<SearchPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
         Task<List<Post>?> GetListPost(int is_deleted);
         Task<(List<Post> posts, bool hasMore)> GetPaginatedPosts(string? last_post_id, int page_size);
+        Task<(List<BasePostItem> items, bool hasMore)> GetPaginatedPostsAndSharePosts(string? lastPostId, string? lastSharePostId, int pageSize);
         Task<List<Post>?> GetListPostCheckedByAI();
         Task<List<Post>?> GetListPostByAccId(string? accId, string? privacy);
         Task<(List<Post>, bool)> GetListPostInYourGroup(string? lastPostId, int pageSize, List<string> groupIds);
