@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
@@ -13,13 +14,15 @@ namespace FamilyFarm.Repositories.Implementations
     public class PostRepository : IPostRepository
     {
         private readonly PostDAO _postDAO;
+        private readonly SharePostDAO _sharePostDAO;
         private readonly ReactionDAO _reactionDAO;
         private readonly CommentDAO _commentDAO;
-        public PostRepository(PostDAO postDAO, ReactionDAO reactionDAO, CommentDAO commentDAO)
+        public PostRepository(PostDAO postDAO, ReactionDAO reactionDAO, CommentDAO commentDAO, SharePostDAO sharePostDAO)
         {
             _postDAO = postDAO;
             _reactionDAO = reactionDAO;
             _commentDAO = commentDAO;
+            _sharePostDAO = sharePostDAO;
         }
 
         public async Task<List<Post>> SearchPostsByKeyword(string keyword)
@@ -83,6 +86,53 @@ namespace FamilyFarm.Repositories.Implementations
             var paginatedPosts = hasMore ? posts.Take(page_size).ToList() : posts;
             return (paginatedPosts, hasMore);
         }
+
+        public async Task<(List<BasePostItem> items, bool hasMore)> GetPaginatedPostsAndSharePosts(string? lastPostId, string? lastSharePostId, int pageSize)
+        {
+            // Lấy Posts
+            var posts = await _postDAO.GetListInfinitePostAndSharePost(lastPostId, lastSharePostId, pageSize);
+
+            // Lấy SharePosts
+            var sharePosts = await _sharePostDAO.GetListInfiniteSharePost(lastSharePostId, pageSize);
+
+            // Tạo danh sách kết hợp
+            var combinedItems = new List<BasePostItem>();
+
+            // Thêm Posts
+            foreach (var post in posts)
+            {
+                combinedItems.Add(new BasePostItem
+                {
+                    Id = post.PostId,
+                    CreatedAt = post.CreatedAt ?? DateTime.MinValue,
+                    Type = "Post",
+                    Post = post
+                });
+            }
+
+            // Thêm SharePosts
+            foreach (var sharePost in sharePosts)
+            {
+                combinedItems.Add(new BasePostItem
+                {
+                    Id = sharePost.SharePostId,
+                    CreatedAt = sharePost.CreatedAt,
+                    Type = "SharePost",
+                    SharePost = sharePost
+                });
+            }
+
+            // Sắp xếp theo CreatedAt giảm dần
+            var sortedItems = combinedItems
+                .OrderByDescending(x => x.CreatedAt)
+                .ToList();
+
+            var hasMore = sortedItems.Count > pageSize;
+            var paginatedItems = hasMore ? sortedItems.Take(pageSize).ToList() : sortedItems;
+
+            return (paginatedItems, hasMore);
+        }
+
         public async Task<(List<Post>, bool)> GetListPostInYourGroup(string? lastPostId, int pageSize, List<string> groupIds)
         {
             var posts = await _postDAO.GetListPostInYourGroup(lastPostId, pageSize, groupIds);

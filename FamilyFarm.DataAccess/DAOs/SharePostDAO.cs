@@ -19,6 +19,36 @@ namespace FamilyFarm.DataAccess.DAOs
             _sharePosts = database.GetCollection<SharePost>("SharePost");
         }
 
+        public async Task<List<SharePost>> GetListInfiniteSharePost(string? lastSharePostId, int pageSize)
+        {
+            var filterBuilder = Builders<SharePost>.Filter;
+
+            // Điều kiện lọc theo isDeleted = false
+            var isDeletedFilter = filterBuilder.Eq(sp => sp.IsDeleted, false);
+            // Điều kiện SharePostScope = "Public"
+            var scopeFilter = filterBuilder.Eq(sp => sp.SharePostScope, "Public");
+
+            // Kết hợp các filter chung
+            var filters = new List<FilterDefinition<SharePost>> { isDeletedFilter, scopeFilter };
+
+            if (!string.IsNullOrEmpty(lastSharePostId))
+            {
+                // Thêm điều kiện phân trang: SharePostId < lastSharePostId
+                var lastIdFilter = filterBuilder.Lt(sp => sp.SharePostId, lastSharePostId);
+                filters.Add(lastIdFilter);
+            }
+
+            // Kết hợp tất cả các filter
+            var finalFilter = filterBuilder.And(filters);
+
+            var sharePosts = await _sharePosts.Find(finalFilter)
+                .SortByDescending(sp => sp.CreatedAt)
+                .Limit(pageSize + 1)
+                .ToListAsync();
+
+            return sharePosts;
+        }
+
         public async Task<SharePost?> GetById(string? sharePostId)
         {
             if (string.IsNullOrEmpty(sharePostId))

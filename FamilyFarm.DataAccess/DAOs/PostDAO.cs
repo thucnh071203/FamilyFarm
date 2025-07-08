@@ -429,6 +429,36 @@ namespace FamilyFarm.DataAccess.DAOs
             return posts;
         }
 
+        public async Task<List<Post>> GetListInfinitePostAndSharePost(string? lastPostId, string? lastSharePostId, int pageSize)
+        {
+            var filterBuilder = Builders<Post>.Filter;
+
+            // Điều kiện lọc theo isDeleted = false
+            var isDeletedFilter = filterBuilder.Eq(p => p.IsDeleted, false);
+            // Điều kiện PostScope = "Public"
+            var scopeFilter = filterBuilder.Eq(p => p.PostScope, "Public") & filterBuilder.Eq(p => p.IsInGroup, false);
+
+            // Kết hợp các filter chung
+            var filters = new List<FilterDefinition<Post>> { isDeletedFilter, scopeFilter };
+
+            if (!string.IsNullOrEmpty(lastPostId))
+            {
+                // Thêm điều kiện phân trang: PostId < lastPostId
+                var lastIdFilter = filterBuilder.Lt(p => p.PostId, lastPostId);
+                filters.Add(lastIdFilter);
+            }
+
+            // Kết hợp tất cả các filter
+            var finalFilter = filterBuilder.And(filters);
+
+            var posts = await _post.Find(finalFilter)
+                .SortByDescending(p => p.CreatedAt)
+                .Limit(pageSize + 1)
+                .ToListAsync();
+
+            return posts;
+        }
+
 
         /// <summary>
         /// get list post that status is 1, mean it's content dont relate with Agriculture
