@@ -13,10 +13,12 @@ namespace FamilyFarm.DataAccess.DAOs
     public class ProcessDAO
     {
         private readonly IMongoCollection<Process> _Processes;
+        private readonly IMongoCollection<SubProcess> _Subprocesses;
 
         public ProcessDAO(IMongoDatabase database)
         {
             _Processes = database.GetCollection<Process>("Process");
+            _Subprocesses = database.GetCollection<SubProcess>("SubProcess");
         }
 
         public async Task<List<Process>> GetAllAsync()
@@ -186,6 +188,23 @@ namespace FamilyFarm.DataAccess.DAOs
             var result = await _Processes.DeleteManyAsync(filter);
 
             return result.DeletedCount > 0;
+        }
+
+        public async Task<SubProcess?> CreateSubprocess(SubProcess? subProcess)
+        {
+            if (subProcess == null)
+                return null;
+
+            try
+            {
+                await _Subprocesses.InsertOneAsync(subProcess);
+                return subProcess;
+            }
+            catch (Exception ex)
+            {
+                
+                return null;
+            }
         }
     }
 }

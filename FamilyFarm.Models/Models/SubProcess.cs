@@ -12,13 +12,16 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string SubprocessId { get; set; }
+        public string? SubprocessId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
         public string? FarmerId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? ExpertId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
         public string? BookingServiceId {  get; set; } //Sub process xử lý cho booking nào
         [BsonRepresentation(BsonType.ObjectId)]
         public string? ProcessId { get; set; } //Copy từ process nào
+        public string? Title { get; set; }
         public string? Description { get; set; }
         public int NumberOfSteps { get; set; }
         public int ContinueStep { get; set; }

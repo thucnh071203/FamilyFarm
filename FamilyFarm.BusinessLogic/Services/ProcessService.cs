@@ -23,7 +23,7 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IBookingServiceRepository _bookingServiceRepository;
         private readonly IUploadFileService _uploadFileService;
         private readonly IProcessStepRepository _processStepRepository;
-
+        
         public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository, IUploadFileService uploadFileService, IProcessStepRepository processStepRepository)
         {
             _processRepository = processRepository;
@@ -459,6 +459,69 @@ namespace FamilyFarm.BusinessLogic.Services
                 Count = searchAllProcess.Count,
                 Data = processMappers
             };
+        }
+
+        public async Task<bool?> CreateSubprocess(string? expertId, CreateSubprocessRequestDTO request)
+        {
+            if (request == null || expertId == null)
+                return null;
+
+            //THEM SUBPROCESS MỚI
+            var requestSubproccess = new SubProcess
+            {
+                SubprocessId = null,
+                FarmerId = request.FarmerId,
+                ExpertId = expertId,
+                BookingServiceId = request.BookingServiceId,
+                Description = request.Description,
+                Title = request.Title,
+                NumberOfSteps = request.NumberOfSteps,
+                ProcessId = request.ProcessId,
+                ContinueStep = 1, //Mặc định đang ở bước 1
+                SubProcessStatus = "Created", //Đã tạo sub process
+                CreatedAt = DateTime.UtcNow,
+                IsCompletedByFarmer = false,
+                IsDeleted = false
+            };
+
+            var created = await _processRepository.CreateSubprocess(requestSubproccess);
+
+            if(created == null)
+                return false;
+
+            //KHI TẠO SUBPROCESS THÀNH CÔNG THÌ TẠO CÁC STEP
+            if (request.ProcessSteps != null && request.ProcessSteps.Count > 0)
+            {
+                foreach (var step in request.ProcessSteps)
+                {
+                    var newStep = new ProcessStep();
+                    newStep.SubprocessId = created.SubprocessId; //Các step chưa subprocess ID
+                    newStep.StepNumber = step.StepNumber;
+                    newStep.StepTitle = step.StepTitle;
+                    newStep.StepDesciption = step.StepDescription;
+
+                    var responseStep = await _processStepRepository.CreateProcessStep(newStep);
+
+                    //Tạo image cho mỗi step
+                    if (step.Images != null && step.Images.Count > 0)
+                    {
+                        foreach (var imageUrl in step.Images)
+                        {
+                            var stepImage = new ProcessStepImage();
+                            stepImage.ProcessStepId = responseStep.StepId;
+                            stepImage.ImageUrl = imageUrl ?? "";
+
+                            await _processStepRepository.CreateStepImage(stepImage);
+                        }
+                    }
+
+                }
+            }
+
+            //KHI TẠO THÀNH CÔNG RỒI UPDATE TRẠNG THÁI BOOKING LẠI
+            await _bookingServiceRepository.UpdateStatus(request.BookingServiceId, "On Process");
+            return true;
+
         }
 
         //public async Task<ProcessResponseDTO> FilterProcessByStatus(string? status, string accountId)

@@ -149,5 +149,23 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("subprocess")]
+        [Authorize]
+        public async Task<IActionResult> CreateSubprocess([FromBody] CreateSubprocessRequestDTO request)
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            var result = await _processService.CreateSubprocess(account.AccId, request);
+            if (result == null)
+                return BadRequest("Data is invalid. Cannot create subprocess!");
+
+            return result == true ? Ok(new { success = result }) : BadRequest("Create subprocess fail!");
+        }
+
     }
 }

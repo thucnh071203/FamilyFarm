@@ -21,5 +21,8 @@ namespace FamilyFarm.Repositories.Interfaces
         //Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId);
         Task<Process?> GetProcessByServiceId(string? serviceId);
         Task<bool?> HardDeleteByService(string? serviceId);
+
+        //SUBPROCESS
+        Task<SubProcess?> CreateSubprocess(SubProcess? request);
     }
 }
