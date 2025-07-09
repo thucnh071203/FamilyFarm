@@ -182,6 +182,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task<List<string>> GetGroupIdsByUserId(string accId)
         {
+            // Lấy danh sách group member của người dùng
             var filter = Builders<GroupMember>.Filter.Eq(gm => gm.AccId, accId) &
                          Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Accept");
 
@@ -192,8 +193,20 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Distinct()
                 .ToList();
 
-            return groupIds;
+            if (!groupIds.Any())
+                return new List<string>();
+
+            // Kiểm tra các GroupId tương ứng có bị xóa hay không
+            var groupFilter = Builders<Group>.Filter.In(g => g.GroupId, groupIds) &
+                              Builders<Group>.Filter.Eq(g => g.IsDeleted, false);
+
+            var validGroups = await _Groups.Find(groupFilter)
+                                           .Project(g => g.GroupId) // chỉ lấy GroupId
+                                           .ToListAsync();
+
+            return validGroups;
         }
+
 
     }
 }

@@ -73,5 +73,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.HardDeleteByServiceId(serviceId);
         }
+
+        public async Task<SubProcess?> CreateSubprocess(SubProcess? request)
+        {
+            return await _dao.CreateSubprocess(request);
+        }
     }
 }
