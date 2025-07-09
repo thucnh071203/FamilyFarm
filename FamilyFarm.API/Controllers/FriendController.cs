@@ -369,5 +369,27 @@ namespace FamilyFarm.API.Controllers
 
         }
 
+        [HttpGet("check-is-friend")]
+        public async Task<IActionResult> CheckIsFriend([FromQuery] string receiverId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var senderId = userClaims?.AccId;
+
+            try
+            {
+                var status = await _serviceOfFriend.CheckIsFriendAsync(senderId, receiverId);
+                return Ok(new { status });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+
     }
 }
