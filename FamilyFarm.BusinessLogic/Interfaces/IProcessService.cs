@@ -23,5 +23,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
 
         //SUBPROCESS
         Task<bool?> CreateSubprocess(string? expertId, CreateSubprocessRequestDTO request);
+        Task<ListSubprocessResponseDTO?> GetListSubprocessByExpert(string? expertId);
+        Task<ListSubprocessResponseDTO?> GetListSubprocessByFarmer(string? farmerId);
     }
 }

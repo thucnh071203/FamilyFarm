@@ -167,5 +167,46 @@ namespace FamilyFarm.API.Controllers
             return result == true ? Ok(new { success = result }) : BadRequest("Create subprocess fail!");
         }
 
+        [HttpGet("subprocesses/expert-self-view")]
+        [Authorize]
+        public async Task<IActionResult> GetListSubprocessByExpert()
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            var result = await _processService.GetListSubprocessByExpert(account.AccId);
+            if (result == null)
+                return BadRequest("Error while retrieving list");
+
+            if (result.Success == false)
+                return NotFound(result.Message);
+
+            return Ok(result);
+        }
+
+        [HttpGet("subprocesses/farmer-self-view")]
+        [Authorize]
+        public async Task<IActionResult> GetListSubprocessByFarmer()
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            var result = await _processService.GetListSubprocessByFarmer(account.AccId);
+            if (result == null)
+                return BadRequest("Error while retrieving list");
+
+            if (result.Success == false)
+                return NotFound(result.Message);
+
+            return Ok(result);
+        }
     }
 }

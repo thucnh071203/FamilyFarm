@@ -23,6 +23,8 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool?> HardDeleteByService(string? serviceId);
 
         //SUBPROCESS
+        Task<List<SubProcess>?> GetAllSubprocessByExpert(string? expertId);
+        Task<List<SubProcess>?> GetAllSubprocessByFarmer(string? farmerId);
         Task<SubProcess?> CreateSubprocess(SubProcess? request);
     }
 }

@@ -78,5 +78,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.CreateSubprocess(request);
         }
+
+        public async Task<List<SubProcess>?> GetAllSubprocessByExpert(string? expertId)
+        {
+            return await _dao.GetSubprocessesByExpert(expertId);
+        }
+
+        public async Task<List<SubProcess>?> GetAllSubprocessByFarmer(string? farmerId)
+        {
+            return await _dao.GetSubprocessesByFarmer(farmerId);
+        }
     }
 }
