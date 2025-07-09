@@ -55,5 +55,9 @@ namespace FamilyFarm.Repositories.Implementations
             await _stepImageDao.DeleteImagesByStepId(stepId);
         }
 
+        public async Task<List<ProcessStep>?> GetStepsBySubprocess(string? subprocessId)
+        {
+            return await _stepDao.GetStepsBySubprocess(subprocessId);
+        }
     }
 }
