@@ -21,5 +21,8 @@ namespace FamilyFarm.Repositories.Interfaces
         Task DeleteStepImageById(string imageId);
         Task DeleteImagesByStepId(string stepId);
 
+        //SUBPROCESS
+        Task<List<ProcessStep>?> GetStepsBySubprocess(string? subprocessId);
+
     }
 }

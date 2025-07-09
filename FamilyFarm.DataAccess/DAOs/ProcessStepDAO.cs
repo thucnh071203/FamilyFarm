@@ -13,7 +13,7 @@ namespace FamilyFarm.DataAccess.DAOs
     public class ProcessStepDAO
     {
         private readonly IMongoCollection<ProcessStep> _ProcessSteps;
-
+        
         public ProcessStepDAO(IMongoDatabase database)
         {
             _ProcessSteps = database.GetCollection<ProcessStep>("ProcessStep");
@@ -70,5 +70,10 @@ namespace FamilyFarm.DataAccess.DAOs
             return result.DeletedCount > 0;
         }
 
+        public async Task<List<ProcessStep>?> GetStepsBySubprocess(string? subprocessId)
+        {
+            if (!ObjectId.TryParse(subprocessId, out _)) return null;
+            return await _ProcessSteps.Find(p => p.SubprocessId == subprocessId).ToListAsync();
+        }
     }
 }

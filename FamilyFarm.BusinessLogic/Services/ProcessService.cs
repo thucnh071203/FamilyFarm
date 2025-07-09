@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
@@ -522,6 +523,131 @@ namespace FamilyFarm.BusinessLogic.Services
             await _bookingServiceRepository.UpdateStatus(request.BookingServiceId, "On Process");
             return true;
 
+        }
+
+        public async Task<ListSubprocessResponseDTO?> GetListSubprocessByExpert(string? expertId)
+        {
+            if (string.IsNullOrEmpty(expertId))
+                return null;
+
+            var listSubprocess = await _processRepository.GetAllSubprocessByExpert(expertId);
+
+            if (listSubprocess == null || listSubprocess.Count <= 0)
+                return new ListSubprocessResponseDTO
+                {
+                    Message = "Cannot get list subprocess",
+                    Success = false
+                };
+
+            //Neu lay được list subprocess, thì lấy thông tin của step và step image luôn
+            var listSubprocessesDTO = new List<SubprocessEntityDTO>();
+
+            foreach(var subprocess in listSubprocess)
+            {                
+                //LẤY STEPS
+                var listSteps = await _processStepRepository.GetStepsBySubprocess(subprocess.SubprocessId);
+                if (listSteps == null || listSteps.Count <= 0)
+                    continue;
+
+                //Nếu có step thì lấy step image 
+                var listProcessStepEntityDTO = new List<ProcessStepEntityDTO>();
+                foreach (var step in listSteps)
+                {
+                    if (step.StepId == null)
+                        continue;
+
+                    var listImageSteps = await _processStepRepository.GetStepImagesByStepId(step.StepId);
+
+                    var processStep = new ProcessStepEntityDTO
+                    {
+                        ProcessStep = step,
+                        ProcessStepImages = listImageSteps
+                    };
+
+                    listProcessStepEntityDTO.Add(processStep);
+                }
+
+
+                //ADD VÔ LIST SUBPROCESS
+                var subprocessData = new SubprocessEntityDTO
+                {
+                    SubProcess = subprocess,
+                    ProcessSteps = listProcessStepEntityDTO
+                };
+                
+                listSubprocessesDTO.Add(subprocessData);
+            }
+
+            return new ListSubprocessResponseDTO
+            {
+                Message = "Get list subprocess successfully.",
+                Success = true,
+                Count = listSubprocessesDTO.Count,
+                Subprocesses = listSubprocessesDTO
+            };
+            
+        }
+
+        public async Task<ListSubprocessResponseDTO?> GetListSubprocessByFarmer(string? farmerId)
+        {
+            if (string.IsNullOrEmpty(farmerId))
+                return null;
+
+            var listSubprocess = await _processRepository.GetAllSubprocessByFarmer(farmerId);
+
+            if (listSubprocess == null || listSubprocess.Count <= 0)
+                return new ListSubprocessResponseDTO
+                {
+                    Message = "Cannot get list subprocess",
+                    Success = false
+                };
+
+            //Neu lay được list subprocess, thì lấy thông tin của step và step image luôn
+            var listSubprocessesDTO = new List<SubprocessEntityDTO>();
+
+            foreach (var subprocess in listSubprocess)
+            {
+                //LẤY STEPS
+                var listSteps = await _processStepRepository.GetStepsBySubprocess(subprocess.SubprocessId);
+                if (listSteps == null || listSteps.Count <= 0)
+                    continue;
+
+                //Nếu có step thì lấy step image 
+                var listProcessStepEntityDTO = new List<ProcessStepEntityDTO>();
+                foreach (var step in listSteps)
+                {
+                    if (step.StepId == null)
+                        continue;
+
+                    var listImageSteps = await _processStepRepository.GetStepImagesByStepId(step.StepId);
+
+                    var processStep = new ProcessStepEntityDTO
+                    {
+                        ProcessStep = step,
+                        ProcessStepImages = listImageSteps
+                    };
+
+                    listProcessStepEntityDTO.Add(processStep);
+                }
+
+
+                //ADD VÔ LIST SUBPROCESS
+                var subprocessData = new SubprocessEntityDTO
+                {
+                    SubProcess = subprocess,
+                    ProcessSteps = listProcessStepEntityDTO
+                };
+
+                listSubprocessesDTO.Add(subprocessData);
+            }
+
+            return new ListSubprocessResponseDTO
+            {
+                Message = "Get list subprocess successfully.",
+                Success = true,
+                Count = listSubprocessesDTO.Count,
+                Subprocesses = listSubprocessesDTO
+            };
         }
 
         //public async Task<ProcessResponseDTO> FilterProcessByStatus(string? status, string accountId)

@@ -206,5 +206,29 @@ namespace FamilyFarm.DataAccess.DAOs
                 return null;
             }
         }
+
+        public async Task<List<SubProcess>?> GetSubprocessesByExpert(string? expertId)
+        {
+            if (string.IsNullOrEmpty(expertId))
+                return null;
+
+            var filter = Builders<SubProcess>.Filter.Eq(sp => sp.ExpertId, expertId);
+
+            var subprocesses = await _Subprocesses.Find(filter).ToListAsync();
+
+            return subprocesses;
+        }
+
+        public async Task<List<SubProcess>?> GetSubprocessesByFarmer(string? farmerId)
+        {
+            if (string.IsNullOrEmpty(farmerId))
+                return null;
+
+            var filter = Builders<SubProcess>.Filter.Eq(sp => sp.FarmerId, farmerId);
+
+            var subprocesses = await _Subprocesses.Find(filter).ToListAsync();
+
+            return subprocesses;
+        }
     }
 }

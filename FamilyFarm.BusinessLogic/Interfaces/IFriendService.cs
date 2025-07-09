@@ -10,6 +10,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
 {
     public interface IFriendService
     {
+        Task<string> CheckIsFriendAsync(string senderId, string receiverId);
         Task<FriendResponseDTO?> GetListFriends(string userId);
         Task<FriendResponseDTO?> GetListFollower(string receiverId);
         Task<FriendResponseDTO?> GetListFollowing(string senderId);
