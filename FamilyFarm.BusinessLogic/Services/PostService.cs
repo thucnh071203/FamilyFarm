@@ -34,8 +34,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly ICommentRepository _commentRepository;
         private readonly ISharePostRepository _sharePostRepository;
         private readonly IGroupRepository _groupRepository;
+        private readonly ISharePostTagRepository _sharePostTagRepository;
 
-        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository, IGroupRepository groupRepository)
+        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository, IGroupRepository groupRepository, ISharePostTagRepository sharePostTagRepository)
         {
             _postRepository = postRepository;
             _postCategoryRepository = postCategoryRepository;
@@ -51,6 +52,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _commentRepository = commentRepository;
             _sharePostRepository = sharePostRepository;
             _groupRepository = groupRepository;
+            _sharePostTagRepository = sharePostTagRepository;
         }
 
         /// <summary>
@@ -1237,6 +1239,127 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        public async Task<ListPostResponseDTO?> GetListInfinitePostAndSharePost(string? lastPostId, string? lastSharePostId, int pageSize)
+        {
+            // 1. Lấy danh sách post và sharepost theo phân trang
+            var (items, hasMore) = await _postRepository.GetPaginatedPostsAndSharePosts(lastPostId, lastSharePostId, pageSize);
+
+            if (items == null || items.Count == 0)
+            {
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false,
+                    HasMore = false,
+                    Count = 0,
+                    Data = null
+                };
+            }
+
+            // 2. Map dữ liệu liên quan
+            List<PostMapper> data = new List<PostMapper>();
+
+            foreach (var item in items)
+            {
+                if (item.Type == "Post" && item.Post != null)
+                {
+                    // Xử lý Post
+                    var post = item.Post;
+                    var reactions = await _reactionRepository.GetAllByEntityAsync(post.PostId, "Post");
+                    var comments = await _commentRepository.GetAllByPost(post.PostId);
+                    var shares = await _sharePostRepository.GetByPost(post.PostId);
+
+                    var account = await _accountRepository.GetAccountById(post.AccId);
+                    var ownerPost = _mapper.Map<MyProfileDTO>(account);
+
+                    var postMapper = new PostMapper
+                    {
+                        ReactionCount = reactions.Count,
+                        CommentCount = comments.Count,
+                        ShareCount = shares?.Count,
+                        Post = post,
+                        OwnerPost = ownerPost,
+                        PostImages = await _postImageRepository.GetPostImageByPost(post.PostId),
+                        HashTags = await _hashTagRepository.GetHashTagByPost(post.PostId),
+                        PostCategories = await _postCategoryRepository.GetCategoryByPost(post.PostId),
+                        PostTags = await _postTagRepository.GetPostTagByPost(post.PostId),
+                        ItemType = "Post"
+                    };
+
+                    data.Add(postMapper);
+                }
+                else if (item.Type == "SharePost" && item.SharePost != null)
+                {
+                    // Xử lý SharePost
+                    var sharePost = item.SharePost;
+                    var reactions = await _reactionRepository.GetAllByEntityAsync(sharePost.SharePostId, "SharePost");
+                    var comments = await _commentRepository.GetAllByPost(sharePost.SharePostId);
+                    var shares = await _sharePostRepository.GetByPost(sharePost.SharePostId);
+
+                    var account = await _accountRepository.GetAccountById(sharePost.AccId);
+                    var ownerSharePost = _mapper.Map<MyProfileDTO>(account);
+
+                    // Lấy thông tin post gốc
+                    var originalPost = await _postRepository.GetPostById(sharePost.PostId);
+                    PostMapper? originalPostMapper = null;
+
+                    if (originalPost != null)
+                    {
+                        var originalAccount = await _accountRepository.GetAccountById(originalPost.AccId);
+                        var originalOwner = _mapper.Map<MyProfileDTO>(originalAccount);
+
+                        var originalReactions = await _reactionRepository.GetAllByEntityAsync(originalPost.PostId, "Post");
+                        var originalComments = await _commentRepository.GetAllByPost(originalPost.PostId);
+                        var originalShares = await _sharePostRepository.GetByPost(originalPost.PostId);
+
+                        originalPostMapper = new PostMapper
+                        {
+                            ReactionCount = originalReactions.Count,
+                            CommentCount = originalComments.Count,
+                            ShareCount = originalShares?.Count,
+                            Post = originalPost,
+                            OwnerPost = originalOwner,
+                            PostImages = await _postImageRepository.GetPostImageByPost(originalPost.PostId),
+                            HashTags = await _hashTagRepository.GetHashTagByPost(originalPost.PostId),
+                            PostCategories = await _postCategoryRepository.GetCategoryByPost(originalPost.PostId),
+                            PostTags = await _postTagRepository.GetPostTagByPost(originalPost.PostId)
+                        };
+                    }
+
+                    var sharePostTag = await _sharePostTagRepository.GetAllBySharePost(sharePost.SharePostId);
+
+                    var sharePostMapper = new SharePostMapper
+                    {
+                        ReactionCount = reactions.Count,
+                        CommentCount = comments.Count,
+                        ShareCount = shares?.Count,
+                        SharePost = sharePost,
+                        OwnerSharePost = ownerSharePost,
+                        OriginalPost = originalPostMapper,
+                        HashTags = await _hashTagRepository.GetHashTagByPost(sharePost.SharePostId),
+                        SharePostTags = await _sharePostTagRepository.GetAllBySharePost(sharePost.SharePostId)
+                    };
+
+                    var postMapper = new PostMapper
+                    {
+                        ItemType = "SharePost",
+                        SharePostData = sharePostMapper
+                    };
+
+                    data.Add(postMapper);
+                }
+            }
+
+            // 3. Trả về kết quả
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post and sharepost success.",
+                Success = true,
+                HasMore = hasMore,
+                Count = data.Count,
+                Data = data
+            };
+        }
 
         public async Task<ListPostResponseDTO?> GetListPostCheckedAI()
         {

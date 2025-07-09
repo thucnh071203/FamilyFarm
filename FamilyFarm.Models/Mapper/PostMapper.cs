@@ -20,5 +20,7 @@ namespace FamilyFarm.Models.Mapper
         public List<HashTag>? HashTags { get; set; }
         public List<PostTag>? PostTags { get; set; }
         public Group? Group { get; set; }
+        public string? ItemType { get; set; } = "Post"; // "Post" hoặc "SharePost"
+        public SharePostMapper? SharePostData { get; set; } // Dữ liệu SharePost nếu là SharePost
     }
 }

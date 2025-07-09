@@ -357,6 +357,21 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("infinite-with-share")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> ListPostAndSharePostInfinite([FromQuery] string? lastPostId, [FromQuery] string? lastSharePostId, [FromQuery] int pageSize)
+        {
+            if (pageSize <= 0 || pageSize > 50)
+                pageSize = 5; // default hoặc giới hạn max
+
+            var result = await _postService.GetListInfinitePostAndSharePost(lastPostId, lastSharePostId, pageSize);
+
+            if (result == null || result.Success == false)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
         [HttpGet("list-checked-by-ai")]
         public async Task<ActionResult<ListPostResponseDTO?>> GetListPostCheckedAI()
         {

@@ -17,6 +17,9 @@ namespace FamilyFarm.Models.Models
         public string SharePostId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
         public string AccId { get; set; }
+        public string? Username { get; set; }
+        public string? Fullname { get; set; }
+        public string? Avatar { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }
