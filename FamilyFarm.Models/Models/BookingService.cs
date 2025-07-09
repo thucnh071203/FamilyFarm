@@ -24,6 +24,7 @@ namespace FamilyFarm.Models.Models
         public decimal? Price { get; set; }
         public decimal? CommissionRate { get; set; }
         public DateTime? BookingServiceAt { get; set; }
+        public DateTime? PaymentDueDate { get; set; }
         public string? BookingServiceStatus { get; set; }
         public DateTime? CancelServiceAt { get; set; }
         public DateTime? RejectServiceAt { get; set; }
