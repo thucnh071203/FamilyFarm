@@ -17,6 +17,7 @@ using FamilyFarm.BusinessLogic.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.ModelsConfig;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -204,6 +205,22 @@ builder.Services.AddAuthentication(options =>
             }
             return Task.CompletedTask;
         }
+    };
+});
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(e => e.Value.Errors.Count > 0)
+            .Select(e => new {
+                Field = e.Key,
+                Errors = e.Value.Errors.Select(er => er.ErrorMessage).ToArray()
+            });
+
+        var result = new BadRequestObjectResult(errors);
+        return result;
     };
 });
 

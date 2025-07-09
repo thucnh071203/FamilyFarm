@@ -20,5 +20,8 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ProcessResponseDTO> DeleteProcess(string processId);
         Task<ProcessResponseDTO> GetAllProcessByKeyword(string? keyword);
         //Task<ProcessResponseDTO> FilterProcessByStatus(string? status, string accountId);
+
+        //SUBPROCESS
+        Task<bool?> CreateSubprocess(string? expertId, CreateSubprocessRequestDTO request);
     }
 }
