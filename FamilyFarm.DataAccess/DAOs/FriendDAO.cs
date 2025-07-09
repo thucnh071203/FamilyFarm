@@ -113,6 +113,23 @@ namespace FamilyFarm.DataAccess.DAOs
             return null;
         }
 
+        public async Task<string> CheckIsFriendAsync(string senderId, string receiverId)
+        {
+            var filter = Builders<Friend>.Filter.Or(
+                Builders<Friend>.Filter.And(
+                    Builders<Friend>.Filter.Eq(f => f.SenderId, senderId),
+                    Builders<Friend>.Filter.Eq(f => f.ReceiverId, receiverId)
+                ),
+                Builders<Friend>.Filter.And(
+                    Builders<Friend>.Filter.Eq(f => f.SenderId, receiverId),
+                    Builders<Friend>.Filter.Eq(f => f.ReceiverId, senderId)
+                )
+            );
+
+            var friend = await _Friend.Find(filter).FirstOrDefaultAsync();
+            return friend?.Status ?? "null";
+        }
+
         public async Task CreateAsync(Friend Friend)
         {
             await _Friend.InsertOneAsync(Friend);

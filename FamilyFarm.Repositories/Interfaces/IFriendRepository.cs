@@ -9,6 +9,7 @@ namespace FamilyFarm.Repositories.Interfaces
 {
     public interface IFriendRepository
     {
+        Task<string> CheckIsFriendAsync(string senderId, string receiverId);
         Task<List<Account>> GetListFriends(string userId, string roleId);
         Task<List<Account>> GetListFollower(string receiverId);
         Task<List<Account>> GetListFollowing(string senderId, string roleId);

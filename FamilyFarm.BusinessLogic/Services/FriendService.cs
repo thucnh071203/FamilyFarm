@@ -4,6 +4,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -448,6 +449,9 @@ namespace FamilyFarm.BusinessLogic.Services
             return listResult;
         }
 
-
+        public async Task<string> CheckIsFriendAsync(string senderId, string receiverId)
+        {
+            return await friendRepository.CheckIsFriendAsync(senderId, receiverId);
+        }
     }
 }
