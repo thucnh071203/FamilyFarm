@@ -28,14 +28,16 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly VnPayLibrary _vnPayLibrary;
         private readonly VNPayConfig _config;
         private readonly IPaymentRepository _paymentRepository;
+        private readonly IRevenueRepository _revenueRepository;
 
-        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config, IPaymentRepository paymentRepository)
+        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config, IPaymentRepository paymentRepository, IRevenueRepository revenueRepository)
         {
             _paymentDAO = paymentDAO;
             _bookingRepository = bookingRepository;
             _serviceRepository = serviceRepository;
             _config = config.Value;
             _paymentRepository = paymentRepository;
+            _revenueRepository = revenueRepository;
         }
 
         public async Task<PaymentResponseDTO> GetAllPayment()
@@ -60,6 +62,8 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<string> CreatePaymentUrlAsync(CreatePaymentRequestDTO request, HttpContext httpContext)
         {
+            Console.WriteLine("Chao thanh toan");
+            Console.WriteLine(request.Amount);
             var vnPay = new VnPayLibrary();
 
             vnPay.AddRequestData("vnp_Version", "2.1.0");
@@ -148,10 +152,24 @@ namespace FamilyFarm.BusinessLogic.Services
                 SubProcessId = !string.IsNullOrEmpty(subprocessId) ? subprocessId : null, // ✅ Chỉ gán nếu không rỗng,
                 FromAccId = booking.AccId,
                 ToAccId = service.ProviderId,
+                IsRepayment = false,
                 PayAt = DateTime.Now
             };
 
             await _paymentDAO.CreateAsync(payment);
+
+            // Tạo mới doanh thu nếu chưa có dữ liệu, có rồi thì trả về dữ liệu có rồi
+            await _revenueRepository.CreateNewRevenue();
+
+            // ✅ Tính số tiền vừa thanh toán
+            decimal amount = decimal.Parse(vnpayData["vnp_Amount"]) / 100;
+            Console.WriteLine("Kiểm tra payment");
+            Console.WriteLine(amount);
+
+            // ✅ Ví dụ: 10% là hoa hồng
+            decimal commission = amount * 0.10m;
+
+            await _revenueRepository.ChangeRevenue(amount, commission);
 
             booking.IsPaidByFarmer = true;
             booking.IsPaidToExpert = false;

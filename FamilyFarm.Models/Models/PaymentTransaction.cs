@@ -19,6 +19,7 @@ namespace FamilyFarm.Models.Models
         public string? SubProcessId { get; set; }
         public string? FromAccId { get; set; }
         public string? ToAccId { get; set; }
+        public bool? IsRepayment { get; set; }
         public DateTime? PayAt { get; set; }
     }
 }
