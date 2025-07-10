@@ -12,10 +12,12 @@ namespace FamilyFarm.DataAccess.DAOs
     public class PostImageDAO
     {
         private readonly IMongoCollection<PostImage> _postImageCollection;
+        private readonly IMongoCollection<Post> _post;
 
         public PostImageDAO(IMongoDatabase database)
         {
             _postImageCollection = database.GetCollection<PostImage>("PostImage");
+            _post = database.GetCollection<Post>("Post");
         }
 
 
@@ -153,5 +155,37 @@ namespace FamilyFarm.DataAccess.DAOs
                 return false;
             }
         }
+
+        public async Task<List<string>> GetAllImage(string accId)
+        {
+            if (string.IsNullOrEmpty(accId)) return null;
+
+            try
+            {
+                // Lọc post theo accId và chưa bị xóa
+                var postFilter = Builders<Post>.Filter.Eq(p => p.AccId, accId) &
+                                 Builders<Post>.Filter.Ne(p => p.IsDeleted, true);
+                var posts = await _post.Find(postFilter).ToListAsync();
+
+                //  Lấy danh sách PostId
+                var postIds = posts.Select(p => p.PostId).ToList();
+
+                if (!postIds.Any()) return new List<string>();
+
+                // Lọc ảnh theo postId và chưa bị xóa
+                var imageFilter = Builders<PostImage>.Filter.In(pi => pi.PostId, postIds) &
+                                  Builders<PostImage>.Filter.Ne(pi => pi.IsDeleted, true);
+                var images = await _postImageCollection.Find(imageFilter).ToListAsync();
+
+                // Trả về danh sách ImageUrl
+                return images.Select(img => img.ImageUrl).ToList();
+            }
+            catch (Exception ex)
+            {
+                // Ghi log nếu cần: Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
     }
 }

@@ -38,5 +38,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
             //get list post in group detail
         Task<ListPostInGroupResponseDTO?> GetPostsInGroupDetail(string? last_post_id, int page_size, string groupId);
         Task<long> CountPublicPostsInGroupAsync(string groupId);
+        Task<List<string>> GetAllImage(string accId);
     }
 }

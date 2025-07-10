@@ -555,5 +555,72 @@ namespace FamilyFarm.API.Controllers
             var result = await _postService.GetPostsInGroupDetail(lastPostId, pageSize, groupId);
             return Ok(result);
         }
+
+        [HttpGet("images/{accId}")]
+        public async Task<IActionResult> GetAllImagesOfOther(string accId)
+        {
+            if (string.IsNullOrEmpty(accId))
+                return BadRequest("Account ID is required.");
+
+            try
+            {
+                var imageUrls = await _postService.GetAllImage(accId);
+
+                if (imageUrls == null || imageUrls.Count == 0)
+                    return NotFound("No images found.");
+
+                return Ok(new
+                {
+                    Success = true,
+                    Count = imageUrls.Count,
+                    Data = imageUrls
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Internal server error.",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("images")]
+        [Authorize]
+        public async Task<IActionResult> GetAllImages()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            if (accId == null)
+                return Unauthorized();
+            if (string.IsNullOrEmpty(accId))
+                return BadRequest("Account ID is required.");
+
+            try
+            {
+                var imageUrls = await _postService.GetAllImage(accId);
+
+                if (imageUrls == null || imageUrls.Count == 0)
+                    return NotFound("No images found.");
+
+                return Ok(new
+                {
+                    Success = true,
+                    Count = imageUrls.Count,
+                    Data = imageUrls
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Internal server error.",
+                    Error = ex.Message
+                });
+            }
+        }
     }
 }
