@@ -15,6 +15,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         //Task<ProcessResponseDTO> GetAllProcessByExpert(string accountId);
         //Task<ProcessResponseDTO> GetAllProcessByFarmer(string accountId);
         Task<ProcessOriginResponseDTO> GetProcessById(string serviceId);
+        Task<ProcessOriginResponseDTO> GetProcessByProcessId(string processId);
         Task<ProcessResponseDTO> CreateProcess(ProcessRequestDTO item);
         Task<ProcessResponseDTO> UpdateProcess(string processId, ProcessUpdateRequestDTO item);
         Task<ProcessResponseDTO> DeleteProcess(string processId);
@@ -25,5 +26,8 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<bool?> CreateSubprocess(string? expertId, CreateSubprocessRequestDTO request);
         Task<ListSubprocessResponseDTO?> GetListSubprocessByExpert(string? expertId);
         Task<ListSubprocessResponseDTO?> GetListSubprocessByFarmer(string? farmerId);
+
+        Task<ProcessStepResultResponseDTO> CreateProcessStepResult(ProcessStepResultRequestDTO request);
+        Task<ProcessStepResultResponseDTO> GetProcessStepResultsByStepId(string stepId);
     }
 }

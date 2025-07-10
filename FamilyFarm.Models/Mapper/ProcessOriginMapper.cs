@@ -10,6 +10,7 @@ namespace FamilyFarm.Models.Mapper
     public class ProcessOriginMapper
     {
         public Process process { get; set; }
+        public Service? Service { get; set; }
         public List<ProcessStepMapper>? Steps { get; set; }
     }
 

@@ -59,5 +59,25 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _stepDao.GetStepsBySubprocess(subprocessId);
         }
+
+        public async Task<ProcessStepResults> CreateProcessStepResult(ProcessStepResults result)
+        {
+            return await _stepDao.CreateProcessStepResultAsync(result);
+        }
+
+        public async Task<List<ProcessStepResults>> GetProcessStepResultsByStepId(string stepId)
+        {
+            return await _stepDao.GetProcessStepResultsByStepIdAsync(stepId);
+        }
+
+        public async Task<StepResultImages> CreateStepResultImage(StepResultImages image)
+        {
+            return await _stepDao.CreateStepResultImageAsync(image);
+        }
+
+        public async Task<List<StepResultImages>> GetStepResultImagesByStepResultId(string stepResultId)
+        {
+            return await _stepDao.GetStepResultImagesByStepResultIdAsync(stepResultId);
+        }
     }
 }

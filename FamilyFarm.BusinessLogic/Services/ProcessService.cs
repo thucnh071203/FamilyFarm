@@ -113,14 +113,67 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Success = true,
                 Message = "Get process successfully",
+
                 Data = new List<ProcessOriginMapper>
-        {
-            new ProcessOriginMapper
-            {
-                process = process,
-                Steps = stepMappers
-            }
+                {
+                    new ProcessOriginMapper
+                    {
+                        process = process,
+                        Service = await _serviceRepository.GetServiceById(process.ServiceId),
+                        Steps = stepMappers
+                    }
+                }
+            };
         }
+
+        public async Task<ProcessOriginResponseDTO> GetProcessByProcessId(string processId)
+        {
+            if (string.IsNullOrEmpty(processId))
+            {
+                return new ProcessOriginResponseDTO
+                {
+                    Success = false,
+                    Message = "Invalid process ID"
+                };
+            }
+
+            var process = await _processRepository.GetProcessByProcessId(processId);
+            if (process == null)
+            {
+                return new ProcessOriginResponseDTO
+                {
+                    Success = false,
+                    Message = "Process not found"
+                };
+            }
+
+            // Lấy tất cả các bước thuộc về process này
+            var steps = await _processStepRepository.GetStepsByProcessId(process.ProcessId);
+            var stepMappers = new List<ProcessStepMapper>();
+
+            foreach (var step in steps)
+            {
+                var images = await _processStepRepository.GetStepImagesByStepId(step.StepId);
+                stepMappers.Add(new ProcessStepMapper
+                {
+                    Step = step,
+                    Images = images
+                });
+            }
+
+            return new ProcessOriginResponseDTO
+            {
+                Success = true,
+                Message = "Get process successfully",
+                Data = new List<ProcessOriginMapper>
+                {
+                    new ProcessOriginMapper
+                    {
+                        process = process,
+                        Service = await _serviceRepository.GetServiceById(process.ServiceId),
+                        Steps = stepMappers
+                    }
+                }
             };
         }
 
@@ -684,5 +737,122 @@ namespace FamilyFarm.BusinessLogic.Services
         //        Data = processMappers
         //    };
         //}
+
+        public async Task<ProcessStepResultResponseDTO> CreateProcessStepResult(ProcessStepResultRequestDTO request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.StepId))
+            {
+                return new ProcessStepResultResponseDTO
+                {
+                    Success = false,
+                    Message = "Invalid request data"
+                };
+            }
+
+            var step = await _processStepRepository.GetProcessStepResultsByStepId(request.StepId);
+            if (step == null)
+            {
+                return new ProcessStepResultResponseDTO
+                {
+                    Success = false,
+                    Message = "Process step not found"
+                };
+            }
+
+            var newResult = new ProcessStepResults
+            {
+                StepResultId = null,
+                StepId = request.StepId,
+                StepResultComment = request.StepResultComment,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var createdResult = await _processStepRepository.CreateProcessStepResult(newResult);
+            if (createdResult == null)
+            {
+                return new ProcessStepResultResponseDTO
+                {
+                    Success = false,
+                    Message = "Failed to create process step result"
+                };
+            }
+            // Xử lý upload hình ảnh nếu có
+            var images = new List<StepResultImages>();
+            if (request.Images != null && request.Images.Any())
+            {
+                var uploadResults = await _uploadFileService.UploadListImage(request.Images);
+                foreach (var uploadResult in uploadResults)
+                {
+                    if (uploadResult != null)
+                    {
+                        var stepResultImage = new StepResultImages
+                        {
+                            StepResultImageId = null,
+                            StepResultId = createdResult.StepResultId,
+                            ImageUrl = uploadResult.UrlFile
+                        };
+                        var createdImage = await _processStepRepository.CreateStepResultImage(stepResultImage);
+                        if (createdImage != null)
+                        {
+                            images.Add(createdImage);
+                        }
+                    }
+                }
+            }
+
+            return new ProcessStepResultResponseDTO
+            {
+                Success = true,
+                Message = "Process step result created successfully",
+                Data = new List<ProcessStepResultMapper>
+                {
+                    new ProcessStepResultMapper
+                    {
+                        Result = createdResult,
+                        Images = images
+                    }
+                }
+            };
+        }
+
+        public async Task<ProcessStepResultResponseDTO> GetProcessStepResultsByStepId(string stepId)
+        {
+            if (string.IsNullOrEmpty(stepId))
+            {
+                return new ProcessStepResultResponseDTO
+                {
+                    Success = false,
+                    Message = "Invalid step ID"
+                };
+            }
+
+            var results = await _processStepRepository.GetProcessStepResultsByStepId(stepId);
+            if (results == null)
+            {
+                return new ProcessStepResultResponseDTO
+                {
+                    Success = false,
+                    Message = "No results found for this step"
+                };
+            }
+
+            var resultMappers = new List<ProcessStepResultMapper>();
+            foreach (var result in results)
+            {
+                var images = await _processStepRepository.GetStepResultImagesByStepResultId(result.StepResultId);
+                resultMappers.Add(new ProcessStepResultMapper
+                {
+                    Result = result,
+                    Images = images
+                });
+            }
+
+            return new ProcessStepResultResponseDTO
+            {
+                Success = true,
+                Message = "Retrieved process step results successfully",
+                Data = resultMappers
+            };
+        }
     }
 }
