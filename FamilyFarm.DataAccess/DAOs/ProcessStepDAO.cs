@@ -13,10 +13,14 @@ namespace FamilyFarm.DataAccess.DAOs
     public class ProcessStepDAO
     {
         private readonly IMongoCollection<ProcessStep> _ProcessSteps;
-        
+        private readonly IMongoCollection<ProcessStepResults> _ProcessStepResults;
+        private readonly IMongoCollection<StepResultImages> _StepResultImages;
+
         public ProcessStepDAO(IMongoDatabase database)
         {
             _ProcessSteps = database.GetCollection<ProcessStep>("ProcessStep");
+            _ProcessStepResults = database.GetCollection<ProcessStepResults>("ProcessStepResults");
+            _StepResultImages = database.GetCollection<StepResultImages>("StepResultImages");
         }
 
         public async Task<List<ProcessStep>> GetStepsByProcessId(string processId)
@@ -74,6 +78,37 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             if (!ObjectId.TryParse(subprocessId, out _)) return null;
             return await _ProcessSteps.Find(p => p.SubprocessId == subprocessId).ToListAsync();
+        }
+
+        // Thêm ProcessStepResult
+        public async Task<ProcessStepResults> CreateProcessStepResultAsync(ProcessStepResults result)
+        {
+            await _ProcessStepResults.InsertOneAsync(result);
+            return result;
+        }
+
+        // Lấy danh sách ProcessStepResults theo StepId, sắp xếp theo CreatedAt giảm dần
+        public async Task<List<ProcessStepResults>> GetProcessStepResultsByStepIdAsync(string stepId)
+        {
+            return await _ProcessStepResults
+                .Find(r => r.StepId == stepId)
+                .SortByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
+        // Thêm StepResultImage
+        public async Task<StepResultImages> CreateStepResultImageAsync(StepResultImages image)
+        {
+            await _StepResultImages.InsertOneAsync(image);
+            return image;
+        }
+
+        // Lấy danh sách hình ảnh theo StepResultId
+        public async Task<List<StepResultImages>> GetStepResultImagesByStepResultIdAsync(string stepResultId)
+        {
+            return await _StepResultImages
+                .Find(i => i.StepResultId == stepResultId)
+                .ToListAsync();
         }
     }
 }

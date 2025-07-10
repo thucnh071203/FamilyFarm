@@ -24,5 +24,10 @@ namespace FamilyFarm.Repositories.Interfaces
         //SUBPROCESS
         Task<List<ProcessStep>?> GetStepsBySubprocess(string? subprocessId);
 
+        Task<ProcessStepResults> CreateProcessStepResult(ProcessStepResults result);
+        Task<List<ProcessStepResults>> GetProcessStepResultsByStepId(string stepId);
+        Task<StepResultImages> CreateStepResultImage(StepResultImages image);
+        Task<List<StepResultImages>> GetStepResultImagesByStepResultId(string stepResultId);
+
     }
 }
