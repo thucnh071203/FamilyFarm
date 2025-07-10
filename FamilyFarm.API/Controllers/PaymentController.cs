@@ -52,30 +52,6 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
-        //[HttpPost("create-payment")]
-        //public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequestDTO request)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    if (string.IsNullOrEmpty(request.BookingServiceId) || request.Amount <= 0)
-        //    {
-        //        return BadRequest("Invalid payment data.");
-        //    }
-
-        //    try
-        //    {
-        //        var paymentUrl = await _paymentService.CreatePaymentUrlAsync(request, HttpContext);
-        //        return Ok(new { paymentUrl });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Error creating VNPay URL: {ex.Message}");
-        //    }
-        //}
-
         /// <summary>
         /// Xử lý callback từ VNPay sau khi thanh toán
         /// </summary>

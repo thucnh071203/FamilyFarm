@@ -137,6 +137,20 @@ namespace FamilyFarm.BusinessLogic.Services
             string bookingServiceId = parts[0];
             string subprocessId = parts.Length > 1 ? parts[1] : null;
 
+            var existedBookingSubProcess = await _paymentRepository.GetPaymentBySubProcess(subprocessId);
+            if (existedBookingSubProcess != null)
+            {
+                Console.WriteLine("⚠️ Đã tồn tại thanh toán cho subprocess này, không xử lý lại.");
+                return true;
+            }
+
+            var existedBookingPayment = await _paymentRepository.GetPaymentByBooking(bookingServiceId);
+            if (existedBookingPayment != null)
+            {
+                Console.WriteLine("⚠️ Đã tồn tại thanh toán cho booking này, không xử lý lại.");
+                return true;
+            }
+
             if (responseCode != "00") return false;
 
             var booking = await _bookingRepository.GetById(bookingServiceId);
