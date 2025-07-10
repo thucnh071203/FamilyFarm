@@ -72,6 +72,7 @@ builder.Services.AddScoped<SavedPostDAO>();
 builder.Services.AddScoped<ProcessStepDAO>();
 builder.Services.AddScoped<ProcessStepImageDAO>();
 builder.Services.AddScoped<PaymentDAO>();
+builder.Services.AddScoped<RevenueDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -109,6 +110,7 @@ builder.Services.AddScoped<IStatisticRepository, StatisticRepository>();
 builder.Services.AddScoped<ISavedPostRepository, SavedPostRepository>();
 builder.Services.AddScoped<IProcessStepRepository, ProcessStepRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IRevenueRepository, RevenueRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
