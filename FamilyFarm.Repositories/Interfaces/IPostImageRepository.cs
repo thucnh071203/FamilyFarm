@@ -16,5 +16,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool> InactiveImagesByPostId(string? post_id);
         Task<bool> ActiveImagesByPostId(string? post_id);
         Task<PostImage?> GetPostImageById(string? image_id);
+        Task<List<string>> GetAllImage(string accId);
     }
 }

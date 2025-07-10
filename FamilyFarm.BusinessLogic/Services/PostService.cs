@@ -1775,5 +1775,10 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _postRepository.CountPublicPostsInGroupAsync(groupId);
         }
 
+        public async Task<List<string>> GetAllImage(string accId)
+        {
+            return await _postImageRepository.GetAllImage(accId);
+        }
+
     }
 }
