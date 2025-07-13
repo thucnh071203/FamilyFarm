@@ -49,6 +49,14 @@ namespace FamilyFarm.API.Controllers
             return result.Success ? Ok(result) : NotFound(result);
         }
 
+        [HttpGet("get-by-process-id/{processId}")]
+        [Authorize]
+        public async Task<IActionResult> GetProcessByProcessId(string processId)
+        {
+            var result = await _processService.GetProcessByProcessId(processId);
+            return result.Success ? Ok(result) : NotFound(result);
+        }
+
         [HttpPost("create")]
         [Authorize]
         public async Task<IActionResult> CreateProcess([FromBody] ProcessRequestDTO process)
