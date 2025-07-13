@@ -1,5 +1,6 @@
 ﻿using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
@@ -21,11 +22,14 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IFriendRequestRepository _requestRepository;
         private readonly IAccountRepository _accountRepository;
         private readonly IHubContext<FriendHub> _hub;
-        public FriendRequestService(IFriendRequestRepository requestRepository, IAccountRepository accountRepository, IHubContext<FriendHub> hub)
+        private readonly INotificationService _notificationService;
+
+        public FriendRequestService(IFriendRequestRepository requestRepository, IAccountRepository accountRepository, IHubContext<FriendHub> hub, INotificationService notificationService = null)
         {
             _requestRepository = requestRepository;
             _accountRepository = accountRepository;
             _hub = hub;
+            _notificationService = notificationService;
         }
         public async Task<FriendResponseDTO?> GetAllSendFriendRequests(string username)
         {
@@ -138,6 +142,23 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 await _hub.Clients.All.SendAsync("FriendUpdate"); //  đặt sau khi xử lý DB thành công
             }
+            //notification
+            var account = await _accountRepository.GetAccountByAccId(receiverId);
+            var notiRequest = new SendNotificationRequestDTO
+            {
+                ReceiverIds = new List<string> { receiverId },
+                SenderId = senderId,
+                CategoryNotiId = "685d3f6d1d2b7e9f45ae1c3d",
+                TargetId = receiverId,
+                TargetType = "Friend", //để link tới notifi gốc Post, Chat, Process, ...
+                Content = "You have a notification about friend relationship from " + account?.FullName
+            };
+
+            var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);//send noti
+            if (!notiResponse.Success)
+            {
+                Console.WriteLine($"Notification failed: {notiResponse.Message}");
+            }
             return result;
         }
 
@@ -160,6 +181,23 @@ namespace FamilyFarm.BusinessLogic.Services
             if (result)
             {
                 await _hub.Clients.All.SendAsync("FriendUpdate"); // đặt sau khi xử lý DB thành công
+            }
+            var account = await _accountRepository.GetAccountByAccId(receiverId);
+            //send notifi
+            var notiRequest = new SendNotificationRequestDTO
+            {
+                ReceiverIds = new List<string> { receiverId },
+                SenderId = senderId,
+                CategoryNotiId = "685d3f6d1d2b7e9f45ae1c3d",
+                TargetId = receiverId,
+                TargetType = "Friend", //để link tới notifi gốc Post, Chat, Process, ...
+                Content = "You have a notification about friend relationship from " + account?.FullName
+            };
+
+            var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);//send noti
+            if (!notiResponse.Success)
+            {
+                Console.WriteLine($"Notification failed: {notiResponse.Message}");
             }
             return result;
         }

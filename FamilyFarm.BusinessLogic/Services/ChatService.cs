@@ -382,7 +382,7 @@ namespace FamilyFarm.BusinessLogic.Services
                     Content = "You have a new message from " + account?.FullName
                 };
 
-                var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);
+                var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);//send noti
                 if (!notiResponse.Success)
                 {
                     Console.WriteLine($"Notification failed: {notiResponse.Message}");
