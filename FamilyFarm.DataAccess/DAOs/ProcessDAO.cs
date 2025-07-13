@@ -230,5 +230,60 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return subprocesses;
         }
+
+        public async Task<SubProcess?> GetBySubProcessId(string subprocessId)
+        {
+            if (string.IsNullOrEmpty(subprocessId))
+                return null;
+
+            if (!ObjectId.TryParse(subprocessId, out _)) return null;
+
+            var filter = Builders<SubProcess>.Filter.Eq(sp => sp.SubprocessId, subprocessId);
+
+            var subprocess = await _Subprocesses.Find(filter).FirstOrDefaultAsync();
+
+            return subprocess;
+        }
+
+        public async Task<SubProcess?> UpdateSubProcess(string subprocessId, SubProcess updateSubProcess)
+        {
+            if (string.IsNullOrEmpty(subprocessId) || !ObjectId.TryParse(subprocessId, out _))
+                return null;
+
+            var filter = Builders<SubProcess>.Filter.Eq(sp => sp.SubprocessId, subprocessId);
+
+            // Cập nhật các trường mà bạn muốn thay đổi.
+            var update = Builders<SubProcess>.Update
+                .Set(sp => sp.Title, updateSubProcess.Title)
+                .Set(sp => sp.Description, updateSubProcess.Description)
+                .Set(sp => sp.NumberOfSteps, updateSubProcess.NumberOfSteps)
+                .Set(sp => sp.ContinueStep, updateSubProcess.ContinueStep)
+                .Set(sp => sp.SubProcessStatus, updateSubProcess.SubProcessStatus)
+                .Set(sp => sp.IsCompletedByFarmer, updateSubProcess.IsCompletedByFarmer)
+                .Set(sp => sp.Price, updateSubProcess.Price)
+                .Set(sp => sp.IsAccept, updateSubProcess.IsAccept)
+                .Set(sp => sp.PayAt, updateSubProcess.PayAt)
+                .Set(sp => sp.IsExtraProcess, updateSubProcess.IsExtraProcess)
+                .Set(sp => sp.UpdatedAt, DateTime.UtcNow); // Cập nhật thời gian
+
+            var result = await _Subprocesses.UpdateOneAsync(filter, update);
+
+            if (result.ModifiedCount > 0)
+            {
+                return await _Subprocesses.Find(filter).FirstOrDefaultAsync();
+            }
+
+            return null;
+        }
+
+        public async Task<List<SubProcess>?> GetAllSubProcessComplete()
+        {
+            var filter = Builders<SubProcess>.Filter.And(
+                Builders<SubProcess>.Filter.Eq(c => c.IsDeleted, false),
+                Builders<SubProcess>.Filter.Eq(c => c.IsCompletedByFarmer, true)
+            );
+
+            return await _Subprocesses.Find(filter).ToListAsync();
+        }
     }
 }

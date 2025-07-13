@@ -18,6 +18,12 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<bool> HandleVNPayReturnAsync(IQueryCollection vnpayData);
         Task<string> CreatePaymentUrlAsync(CreatePaymentRequestDTO request, HttpContext httpContext);
         Task<PaymentResponseDTO> GetPaymentByBooking(string bookingId);
+        Task<PaymentResponseDTO> GetRePaymentByBooking(string bookingId);
         Task<PaymentResponseDTO> GetPaymentBySubProcess(string processId);
+        Task<PaymentResponseDTO> GetRePaymentBySubprocess(string subprocessId);
+        //Task<RepaymentResponseDTO> RepayToExpertAsync(CreateRepaymentRequestDTO);
+        Task<bool> HandleRepaymentVNPayReturnAsync(IQueryCollection vnpayData);
+        Task<string> CreateRepaymentUrlAsync(CreateRepaymentRequestDTO request, HttpContext httpContext);
+        Task<ListPaymentResponseDTO> GetListPayment();
     }
 }

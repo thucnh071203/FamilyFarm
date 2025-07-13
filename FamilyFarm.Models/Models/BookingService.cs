@@ -26,11 +26,11 @@ namespace FamilyFarm.Models.Models
         public DateTime? BookingServiceAt { get; set; }
         public DateTime? PaymentDueDate { get; set; }
         public string? BookingServiceStatus { get; set; }
+        public DateTime? CompleteServiceAt { get; set; }
         public DateTime? CancelServiceAt { get; set; }
         public DateTime? RejectServiceAt { get; set; }
         public bool? IsDeleted { get; set; }
         public bool? IsPaidByFarmer { get; set; }
         public bool? IsPaidToExpert { get; set; }
-
     }
 }

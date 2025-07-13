@@ -21,14 +21,16 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IServiceRepository _serviceRepository;
         //private readonly IHubContext<BookingHub> _bookingHub;
         private readonly IHubContext<NotificationHub> _notificationHub;
+        private readonly IPaymentRepository _paymentRepository;
 
-        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<NotificationHub> notificationHub)
+        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<NotificationHub> notificationHub, IPaymentRepository paymentRepository)
         {
             _repository = repository;
             _accountRepository = accountRepository;
             _serviceRepository = serviceRepository;
             //_bookingHub = bookingHub;
             _notificationHub = notificationHub;
+            _paymentRepository = paymentRepository;
         }
 
         public async Task<bool?> CancelBookingService(string bookingServiceId)
@@ -484,6 +486,79 @@ namespace FamilyFarm.BusinessLogic.Services
                     Service = service,
                     Booking = item,
 
+                };
+                listResponse.Add(mapper);
+
+            }
+            return new BookingServiceResponseDTO
+            {
+                Success = true,
+                Data = listResponse,
+            };
+        }
+
+        public async Task<BookingServiceResponseDTO?> GetListBookingCompleted()
+        {
+            //var listBooking = (await _repository.GetAllBookingCompleted())
+            //        .OrderByDescending(x => x.CompleteServiceAt)
+            //        .ToList();
+
+            var listBooking = await _repository.GetAllBookingCompleted();
+
+            if (listBooking == null)
+                return new BookingServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "List completed booking is invalid."
+                };
+
+            List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
+
+            foreach (var item in listBooking)
+            {
+                var service = await _serviceRepository.GetServiceById(item.ServiceId);
+                var farmer = await _accountRepository.GetAccountById(item.AccId);
+                var expert = await _accountRepository.GetAccountById(service.ProviderId);
+                var payment = await _paymentRepository.GetRepaymentByBookingId(item.BookingServiceId);
+                var mapper = new BookingServiceMapper
+                {
+                    Account = new FriendMapper
+                    {
+                        AccId = farmer.AccId,
+                        RoleId = farmer.RoleId,
+                        Username = farmer.Username,
+                        FullName = farmer.FullName,
+                        Birthday = farmer.Birthday,
+                        Gender = farmer.Gender,
+                        City = farmer.City,
+                        Country = farmer.Country,
+                        Address = farmer.Address,
+                        Avatar = farmer.Avatar,
+                        Background = farmer.Background,
+                        WorkAt = farmer.WorkAt,
+                        StudyAt = farmer.StudyAt,
+                        Status = farmer.Status,
+                    },
+                    Expert = new ExpertMapper
+                    {
+                        AccId = expert.AccId,
+                        RoleId = expert.RoleId,
+                        Username = expert.Username,
+                        FullName = expert.FullName,
+                        Birthday = expert.Birthday,
+                        Gender = expert.Gender,
+                        City = expert.City,
+                        Country = expert.Country,
+                        Address = expert.Address,
+                        Avatar = expert.Avatar,
+                        Background = expert.Background,
+                        WorkAt = expert.WorkAt,
+                        StudyAt = expert.StudyAt,
+                        Status = expert.Status,
+                    },
+                    Service = service,
+                    Booking = item,
+                    Payment = payment
                 };
                 listResponse.Add(mapper);
 

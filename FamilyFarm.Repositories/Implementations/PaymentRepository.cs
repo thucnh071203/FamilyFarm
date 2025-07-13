@@ -40,5 +40,13 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetBySubProcessIdAsync(subProcessId);
         }
+        public async Task<PaymentTransaction> GetRepaymentByBookingId(string bookingId)
+        {
+            return await _dao.GetRepaymentByBookingIdAsync(bookingId);
+        }
+        public async Task<PaymentTransaction> GetRepaymentBySubProcessId(string subProcessId)
+        {
+            return await _dao.GetRepaymentBySubProcessIdAsync(subProcessId);
+        }
     }
 }

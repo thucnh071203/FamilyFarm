@@ -24,8 +24,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IBookingServiceRepository _bookingServiceRepository;
         private readonly IUploadFileService _uploadFileService;
         private readonly IProcessStepRepository _processStepRepository;
-        
-        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository, IUploadFileService uploadFileService, IProcessStepRepository processStepRepository)
+        private readonly IPaymentRepository _paymenRepository;
+
+        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository, IUploadFileService uploadFileService, IProcessStepRepository processStepRepository, IPaymentRepository paymenRepository)
         {
             _processRepository = processRepository;
             _accountRepository = accountRepository;
@@ -33,6 +34,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _bookingServiceRepository = bookingServiceRepository;
             _uploadFileService = uploadFileService;
             _processStepRepository = processStepRepository;
+            _paymenRepository = paymenRepository;
         }
 
         public async Task<ProcessResponseDTO> GetAllProcess()
@@ -684,5 +686,79 @@ namespace FamilyFarm.BusinessLogic.Services
         //        Data = processMappers
         //    };
         //}
+
+        public async Task<SubProcessResponseDTO?> GetListSubProcessCompleted()
+        {
+            //var listSubProcess = (await _processRepository.GetAllSubProcessCompleted())
+            //        .OrderByDescending(x => x.CompleteAt)
+            //        .ToList();
+
+            var listSubProcess = await _processRepository.GetAllSubProcessCompleted();
+
+            if (listSubProcess == null)
+                return new SubProcessResponseDTO
+                {
+                    Success = false,
+                    Message = "List completed sub process is invalid."
+                };
+
+            List<SubProcessMapper> listResponse = new List<SubProcessMapper>();
+
+            foreach (var item in listSubProcess)
+            {
+                var booking = await _bookingServiceRepository.GetById(item.BookingServiceId);
+                var service = await _serviceRepository.GetServiceById(booking.ServiceId);
+                var farmer = await _accountRepository.GetAccountById(item.FarmerId);
+                var expert = await _accountRepository.GetAccountById(service.ProviderId);
+                var payment = await _paymenRepository.GetRepaymentBySubProcessId(item.SubprocessId);
+                var mapper = new SubProcessMapper
+                {
+                    Account = new FriendMapper
+                    {
+                        AccId = farmer.AccId,
+                        RoleId = farmer.RoleId,
+                        Username = farmer.Username,
+                        FullName = farmer.FullName,
+                        Birthday = farmer.Birthday,
+                        Gender = farmer.Gender,
+                        City = farmer.City,
+                        Country = farmer.Country,
+                        Address = farmer.Address,
+                        Avatar = farmer.Avatar,
+                        Background = farmer.Background,
+                        WorkAt = farmer.WorkAt,
+                        StudyAt = farmer.StudyAt,
+                        Status = farmer.Status,
+                    },
+                    Expert = new ExpertMapper
+                    {
+                        AccId = expert.AccId,
+                        RoleId = expert.RoleId,
+                        Username = expert.Username,
+                        FullName = expert.FullName,
+                        Birthday = expert.Birthday,
+                        Gender = expert.Gender,
+                        City = expert.City,
+                        Country = expert.Country,
+                        Address = expert.Address,
+                        Avatar = expert.Avatar,
+                        Background = expert.Background,
+                        WorkAt = expert.WorkAt,
+                        StudyAt = expert.StudyAt,
+                        Status = expert.Status,
+                    },
+                    Service = service,
+                    SubProcess = item,
+                    Payment = payment
+                };
+                listResponse.Add(mapper);
+
+            }
+            return new SubProcessResponseDTO
+            {
+                Success = true,
+                Data = listResponse,
+            };
+        }
     }
 }

@@ -35,7 +35,9 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             if (!ObjectId.TryParse(bookingId, out _)) return null;
 
-            return await _Payments.Find(p => p.BookingServiceId == bookingId).FirstOrDefaultAsync();
+            return await _Payments
+                .Find(p => p.BookingServiceId == bookingId && p.SubProcessId == null)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<PaymentTransaction> GetBySubProcessIdAsync(string subProcessId)
@@ -49,6 +51,22 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             await _Payments.InsertOneAsync(payment);
             return payment;
+        }
+
+        public async Task<PaymentTransaction> GetRepaymentByBookingIdAsync(string bookingId)
+        {
+            if (!ObjectId.TryParse(bookingId, out _)) return null;
+
+            return await _Payments
+                .Find(p => p.BookingServiceId == bookingId && p.SubProcessId == null && p.IsRepayment == true)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<PaymentTransaction> GetRepaymentBySubProcessIdAsync(string subProcessId)
+        {
+            if (!ObjectId.TryParse(subProcessId, out _)) return null;
+
+            return await _Payments.Find(p => p.SubProcessId == subProcessId && p.IsRepayment == true).FirstOrDefaultAsync();
         }
     }
 }

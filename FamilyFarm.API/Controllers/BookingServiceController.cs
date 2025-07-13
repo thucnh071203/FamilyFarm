@@ -220,5 +220,15 @@ namespace FamilyFarm.API.Controllers
             return Ok(booking);
         }
 
+        [HttpGet("booking-completed")]
+        [Authorize]
+        public async Task<ActionResult> ListCompletedBooking()
+        {
+            var result = await _bookingService.GetListBookingCompleted();
+            if (result == null)
+                return BadRequest("Cannot get list unpaid booking of expert!");
+
+            return Ok(result);
+        }
     }
 }

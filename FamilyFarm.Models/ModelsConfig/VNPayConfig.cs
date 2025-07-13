@@ -12,5 +12,6 @@ namespace FamilyFarm.Models.ModelsConfig
         public string? HashSecret { get; set; }
         public string? PaymentUrl { get; set; }
         public string? ReturnUrl { get; set; }
+        public string? ReturnUrlRepayment { get; set; }
     }
 }

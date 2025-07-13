@@ -208,5 +208,16 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("sub-process-completed")]
+        [Authorize]
+        public async Task<ActionResult> ListCompletedSubProcess()
+        {
+            var result = await _processService.GetListSubProcessCompleted();
+            if (result == null)
+                return BadRequest("Cannot get list completed sub process!");
+
+            return Ok(result);
+        }
     }
 }

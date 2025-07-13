@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.SignalR;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.ModelsConfig;
 using Microsoft.AspNetCore.Mvc;
+using FamilyFarm.Models.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -144,6 +145,7 @@ builder.Services.AddSingleton<INotificationTemplateService, NotificationTemplate
 builder.Services.AddScoped<IStatisticService, StatisticService>();
 builder.Services.AddScoped<ISavedPostService, SavedPostService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IRepaymentCacheService, RepaymentCacheService>();
 
 //builder.Services.AddScoped<FirebaseConnection>();
 

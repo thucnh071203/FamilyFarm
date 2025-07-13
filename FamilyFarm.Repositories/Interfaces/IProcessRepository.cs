@@ -26,5 +26,8 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<SubProcess>?> GetAllSubprocessByExpert(string? expertId);
         Task<List<SubProcess>?> GetAllSubprocessByFarmer(string? farmerId);
         Task<SubProcess?> CreateSubprocess(SubProcess? request);
+        Task<SubProcess?> GetSubProcessBySubProcessId(string? subProcessId);
+        Task<SubProcess?> UpdateSubProcess(string? subProcessId, SubProcess subProcess);
+        Task<List<SubProcess>?> GetAllSubProcessCompleted();
     }
 }
