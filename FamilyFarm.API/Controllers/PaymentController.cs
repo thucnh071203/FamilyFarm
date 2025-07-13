@@ -1,4 +1,5 @@
-﻿using FamilyFarm.BusinessLogic;
+﻿using System.Security.Cryptography;
+using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.BusinessLogic.VNPay;
@@ -30,6 +31,21 @@ namespace FamilyFarm.API.Controllers
             _authenService = authenService;
         }
 
+        [HttpGet("all-payment")]
+        public async Task<IActionResult> GetAllPayments()
+        {
+            var result = await _paymentService.GetAllPayment();
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("list-payment")]
+        [Authorize]
+        public async Task<IActionResult> ListPayments()
+        {
+            var result = await _paymentService.GetListPayment();
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         /// <summary>
         /// Tạo link thanh toán VNPay và trả về cho frontend redirect
         /// </summary>
@@ -51,30 +67,6 @@ namespace FamilyFarm.API.Controllers
                 return StatusCode(500, $"Error creating VNPay URL: {ex.Message}");
             }
         }
-
-        //[HttpPost("create-payment")]
-        //public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequestDTO request)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    if (string.IsNullOrEmpty(request.BookingServiceId) || request.Amount <= 0)
-        //    {
-        //        return BadRequest("Invalid payment data.");
-        //    }
-
-        //    try
-        //    {
-        //        var paymentUrl = await _paymentService.CreatePaymentUrlAsync(request, HttpContext);
-        //        return Ok(new { paymentUrl });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Error creating VNPay URL: {ex.Message}");
-        //    }
-        //}
 
         /// <summary>
         /// Xử lý callback từ VNPay sau khi thanh toán
@@ -112,6 +104,14 @@ namespace FamilyFarm.API.Controllers
             return Ok(payment);
         }
 
+        [HttpGet("get-repay-by-bookingId/{bookingId}")]
+        [Authorize]
+        public async Task<IActionResult> GetRePaymentByBookingId(string bookingId)
+        {
+            var payment = await _paymentService.GetRePaymentByBooking(bookingId);
+            return Ok(payment);
+        }
+
         [HttpGet("get-by-subProcessId/{subProcessId}")]
         [Authorize]
         public async Task<IActionResult> GetPaymentBySubProcessId(string subProcessId)
@@ -119,5 +119,67 @@ namespace FamilyFarm.API.Controllers
             var payment = await _paymentService.GetPaymentBySubProcess(subProcessId);
             return Ok(payment);
         }
+
+        [HttpGet("get-repay-by-subprocessId/{subprocessId}")]
+        [Authorize]
+        public async Task<IActionResult> GetRePaymentBySubProcessId(string subprocessId)
+        {
+            var payment = await _paymentService.GetRePaymentBySubprocess(subprocessId);
+            return Ok(payment);
+        }
+
+        [HttpPost("create-repayment")]
+        [Authorize]
+        public async Task<IActionResult> CreateRepayment([FromBody] CreateRepaymentRequestDTO request)
+        {
+            Console.WriteLine("Repayment API");
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+
+            request.AdminId = accId;
+
+            if (string.IsNullOrEmpty(request.BookingServiceId) || request.Amount <= 0)
+                return BadRequest("Invalid repayment data.");
+
+            try
+            {
+                var url = await _paymentService.CreateRepaymentUrlAsync(request, HttpContext);
+                return Ok(new { paymentUrl = url });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error creating repayment URL: {ex.Message}");
+            }
+        }
+
+        [HttpGet("vnpay-return-repayment")]
+        public async Task<IActionResult> VNPayReturnRepayment()
+        {
+            Console.WriteLine("Return Repayment API");
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+
+            try
+            {
+                var success = await _paymentService.HandleRepaymentVNPayReturnAsync(Request.Query);
+                var txnRef = Request.Query["vnp_TxnRef"].ToString();
+
+                return Ok(new
+                {
+                    success = success,
+                    txnRef = txnRef,
+                    message = success ? "Hoàn trả expert thành công" : "Hoàn trả thất bại"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = ex.Message
+                });
+            }
+        }
+
     }
 }

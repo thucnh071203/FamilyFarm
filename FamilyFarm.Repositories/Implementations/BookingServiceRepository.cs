@@ -60,5 +60,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.UpdateBookingPaymentAsync(bookingId, booking);
         }
+
+        public async Task<BookingService> UpdateBooking(string bookingId, BookingService booking)
+        {
+            return await _dao.UpdateBookingAsync(bookingId, booking);
+        }
+
+        public async Task<List<BookingService>?> GetAllBookingCompleted()
+        {
+            return await _dao.GetAllBookingComplete();
+        }
     }
 }

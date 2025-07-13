@@ -29,6 +29,7 @@ namespace FamilyFarm.Models.Models
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
+        public DateTime? CompleteAt { get; set; }
         public bool? IsCompletedByFarmer { get; set; }
         public bool? IsDeleted {  get; set; }
         public decimal? Price { get; set; } //Dành cho các sub process thêm cho farmer

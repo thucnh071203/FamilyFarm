@@ -33,6 +33,15 @@ namespace FamilyFarm.DataAccess.DAOs
             return await _bookingService.Find(filter).FirstOrDefaultAsync();
         }
 
+        public async Task<List<BookingService>?> GetAllBookingComplete()
+        {
+            var filter = Builders<BookingService>.Filter.And(
+                Builders<BookingService>.Filter.Eq(c => c.IsDeleted, false),
+                Builders<BookingService>.Filter.Eq(c => c.BookingServiceStatus, "Completed")
+            );
+
+            return await _bookingService.Find(filter).ToListAsync();
+        }
 
         public async Task<List<BookingService>?> GetAllBookingByAccid(string id)
         {
@@ -184,7 +193,7 @@ namespace FamilyFarm.DataAccess.DAOs
             var update = Builders<BookingService>.Update
                 .Set(g => g.IsPaidByFarmer, booking.IsPaidByFarmer)
                 .Set(g => g.IsPaidToExpert, booking.IsPaidToExpert)
-                .Set(g => g.BookingServiceStatus, "Paid");
+                .Set(g => g.BookingServiceStatus, booking.BookingServiceStatus);
 
             var result = await _bookingService.UpdateOneAsync(filter, update);
 
@@ -192,5 +201,47 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return updatedBookingPay;
         }
+
+        public async Task<BookingService?> UpdateBookingAsync(string bookingServiceId, BookingService updatedBookingService)
+        {
+            if (string.IsNullOrEmpty(bookingServiceId))
+                return null;
+
+            // Kiểm tra xem bookingServiceId có hợp lệ hay không
+            if (!ObjectId.TryParse(bookingServiceId, out _))
+                return null;
+
+            var filter = Builders<BookingService>.Filter.Eq(b => b.BookingServiceId, bookingServiceId);
+
+            // Tạo bản cập nhật các trường mà bạn muốn thay đổi
+            var update = Builders<BookingService>.Update
+                .Set(b => b.ServiceName, updatedBookingService.ServiceName)
+                .Set(b => b.Description, updatedBookingService.Description)
+                .Set(b => b.Price, updatedBookingService.Price)
+                .Set(b => b.CommissionRate, updatedBookingService.CommissionRate)
+                .Set(b => b.BookingServiceAt, updatedBookingService.BookingServiceAt)
+                .Set(b => b.PaymentDueDate, updatedBookingService.PaymentDueDate)
+                .Set(b => b.BookingServiceStatus, updatedBookingService.BookingServiceStatus)
+                .Set(b => b.IsPaidByFarmer, updatedBookingService.IsPaidByFarmer)
+                .Set(b => b.IsPaidToExpert, updatedBookingService.IsPaidToExpert)
+                .Set(b => b.CancelServiceAt, updatedBookingService.CancelServiceAt)
+                .Set(b => b.RejectServiceAt, updatedBookingService.RejectServiceAt)
+                .Set(b => b.IsDeleted, updatedBookingService.IsDeleted)
+                .Set(b => b.ExpertId, updatedBookingService.ExpertId)
+                .Set(b => b.ServiceId, updatedBookingService.ServiceId);
+
+            // Thực hiện cập nhật
+            var result = await _bookingService.UpdateOneAsync(filter, update);
+
+            // Kiểm tra nếu có bản ghi được sửa đổi
+            if (result.ModifiedCount > 0)
+            {
+                // Trả về bản ghi đã được cập nhật
+                return await _bookingService.Find(b => b.BookingServiceId == bookingServiceId).FirstOrDefaultAsync();
+            }
+
+            return null; // Nếu không có gì thay đổi, trả về null
+        }
+
     }
 }

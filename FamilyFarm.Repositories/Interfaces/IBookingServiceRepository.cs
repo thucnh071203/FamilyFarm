@@ -9,7 +9,7 @@ namespace FamilyFarm.Repositories.Interfaces
 {
     public interface IBookingServiceRepository
     {
-       Task<BookingService?> GetById(string id);
+        Task<BookingService?> GetById(string id);
         Task<List<BookingService>?> GetAllBookingByAccid(string id);
         Task<List<BookingService>?> GetListRequestBookingByAccid(string id);
         Task<List<BookingService>?> GetAllBookingByServiceId(string id);
@@ -19,6 +19,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool?> UpdateStatus(string? bookingId, string? status);
         Task<List<BookingService>?> GetBookingsByExpert(string? expertId, string? status);
         Task<BookingService> UpdateBookingPayment(string bookingId, BookingService booking);
-
+        Task<BookingService> UpdateBooking(string bookingId, BookingService booking);
+        Task<List<BookingService>?> GetAllBookingCompleted();
     }
 }
