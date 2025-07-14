@@ -467,6 +467,16 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("moderation")]
+        
+        public async Task<ActionResult<bool?>> ModerationContentByAI(string content)
+        {
+
+            var result = await _cohereService.IsAgricultureRelatedAsync(content);
+
+            return Ok(result);
+        }
+
         [HttpGet("account/deleted-post")]
         [Authorize]
         public async Task<ActionResult<ListPostResponseDTO>> ListDeletedPostByAccount()
