@@ -74,6 +74,7 @@ builder.Services.AddScoped<ProcessStepDAO>();
 builder.Services.AddScoped<ProcessStepImageDAO>();
 builder.Services.AddScoped<PaymentDAO>();
 builder.Services.AddScoped<RevenueDAO>();
+builder.Services.AddScoped<ReviewDAO>();
 
 // Repository DI
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -112,6 +113,7 @@ builder.Services.AddScoped<ISavedPostRepository, SavedPostRepository>();
 builder.Services.AddScoped<IProcessStepRepository, ProcessStepRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IRevenueRepository, RevenueRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 // Service DI
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -146,6 +148,7 @@ builder.Services.AddScoped<IStatisticService, StatisticService>();
 builder.Services.AddScoped<ISavedPostService, SavedPostService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IRepaymentCacheService, RepaymentCacheService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 //builder.Services.AddScoped<FirebaseConnection>();
 
