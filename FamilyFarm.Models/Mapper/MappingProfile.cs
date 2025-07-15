@@ -60,6 +60,8 @@ namespace FamilyFarm.Models.Mapper
                 .ForMember(dest => dest.CategoryName, opt => opt.Ignore())
                 .ForMember(dest => dest.TargetContent, opt => opt.Ignore())
                 .ForMember(dest => dest.Status, opt => opt.Ignore());
+
+            CreateMap<Review, ReviewRequestDTO>();
         }
     }
 }

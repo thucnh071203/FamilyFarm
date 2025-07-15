@@ -8,12 +8,12 @@ using MongoDB.Bson;
 
 namespace FamilyFarm.Models.Models
 {
-    public class ReviewService
+    public class Review
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public required string ReviewId { get; set; }
-        public int? Rating { get; set; }
+        public int Rating { get; set; }
         public string? Comment { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
@@ -22,6 +22,6 @@ namespace FamilyFarm.Models.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public required string AccId { get; set; }
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string BookingServiceId { get; set; }
+        public required string ServiceId { get; set; }
     }
 }
