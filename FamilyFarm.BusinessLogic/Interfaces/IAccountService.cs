@@ -29,6 +29,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<Account?> GetAccountByAccId(string accId);
         Task<List<Account>> GetAllAccountExceptAdmin();
         Task<ForgotPasswordResponseDTO> GetAccountByEmail(string email);
-
+        Task<Account?> CheckAccountByEmail(string? email);
+        Task<Account?> CheckAccountByPhone(string? phone);
     }
 }

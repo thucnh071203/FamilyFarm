@@ -81,6 +81,34 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            // 🚫 Check trùng email (nếu thay đổi)
+            if (!string.IsNullOrEmpty(request.Email) && request.Email != account.Email)
+            {
+                var existedEmailAcc = await _accountRepository.GetAccountByEmail(request.Email);
+                if (existedEmailAcc != null && existedEmailAcc.AccId != id)
+                {
+                    return new UpdateProfileResponseDTO
+                    {
+                        IsSuccess = false,
+                        MessageError = "Email already in use."
+                    };
+                }
+            }
+
+            // 🚫 Check trùng số điện thoại (nếu thay đổi)
+            if (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != account.PhoneNumber)
+            {
+                var existedPhoneAcc = await _accountRepository.GetAccountByPhone(request.PhoneNumber);
+                if (existedPhoneAcc != null && existedPhoneAcc.AccId != id)
+                {
+                    return new UpdateProfileResponseDTO
+                    {
+                        IsSuccess = false,
+                        MessageError = "Phone number already in use."
+                    };
+                }
+            }
+
             string finalBgUrl = account.Background;
 
             if (request.Background != null)
@@ -310,6 +338,16 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = getAccByEmail
             };
 
+        }
+
+        public async Task<Account?> CheckAccountByEmail(string? email)
+        {
+            return await _accountRepository.GetAccountByEmail(email);
+        }
+
+        public async Task<Account?> CheckAccountByPhone(string? phone)
+        {
+            return await _accountRepository.GetAccountByPhone(phone);
         }
     }
 }
