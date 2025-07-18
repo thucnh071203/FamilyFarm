@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
 
 namespace FamilyFarm.BusinessLogic.Services
 {
@@ -21,8 +24,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IUploadFileService _uploadFileService;
         private readonly IProcessRepository _processRepository;
         private readonly IProcessStepRepository _processStepRepository;
+        private readonly IMapper _mapper;
 
-        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository, IAccountRepository accountRepository, IUploadFileService uploadFileService, IProcessRepository processRepository, IProcessStepRepository processStepRepository)
+        public ServicingService(IServiceRepository serviceRepository, ICategoryServiceRepository categoryServiceRepository, IAccountRepository accountRepository, IUploadFileService uploadFileService, IProcessRepository processRepository, IProcessStepRepository processStepRepository, IMapper mapper)
         {
             _serviceRepository = serviceRepository;
             _categoryServiceRepository = categoryServiceRepository;
@@ -30,6 +34,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _uploadFileService = uploadFileService;
             _processRepository = processRepository;
             _processStepRepository = processStepRepository;
+            _mapper = mapper;
         }
 
         public async Task<ServiceResponseDTO> GetAllService()
@@ -141,6 +146,10 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             var service = await _serviceRepository.GetServiceById(serviceId);
 
+            // Load provider profile
+            var account = await _accountRepository.GetAccountByAccId(service.ProviderId);
+            var provider = _mapper.Map<MyProfileDTO>(account);
+
             if (service == null)
             {
                 return new ServiceResponseDTO
@@ -154,7 +163,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 Success = true,
                 Message = "Get service successfully",
-                Data = new List<ServiceMapper> { new ServiceMapper { service = service } }
+                Data = new List<ServiceMapper> { new ServiceMapper { service = service, Provider = provider } }
             };
         }
 
