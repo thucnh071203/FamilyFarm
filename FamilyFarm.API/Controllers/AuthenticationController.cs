@@ -39,11 +39,17 @@ namespace FamilyFarm.API.Controllers
 
             if (result != null && result.Message != null)
             {
-                return StatusCode(423, result);
+                return StatusCode(423, result); // Account locked
             }
 
-            return result is not null ? result : Unauthorized();
+            if (result != null)
+            {
+                return Ok(result); // ✅ Bao bọc trong Ok()
+            }
+
+            return Unauthorized();
         }
+
 
         [Authorize]
         [HttpPost("logout")]
