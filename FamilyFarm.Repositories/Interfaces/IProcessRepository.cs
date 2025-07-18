@@ -21,6 +21,7 @@ namespace FamilyFarm.Repositories.Interfaces
         //Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId);
         Task<Process?> GetProcessByServiceId(string? serviceId);
         Task<bool?> HardDeleteByService(string? serviceId);
+        Task<bool?> UpdateContinueStep(string? subprocessId, int stepNumber);
 
         //SUBPROCESS
         Task<List<SubProcess>?> GetAllSubprocessByExpert(string? expertId);

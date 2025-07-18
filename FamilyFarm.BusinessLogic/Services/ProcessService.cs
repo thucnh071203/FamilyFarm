@@ -876,6 +876,22 @@ namespace FamilyFarm.BusinessLogic.Services
                 }
             }
 
+            //NẾU THEM RESULT THÀNH CÔNG THÌ UPDATE LAI CONTINUE STEP VAO SUBPROCESS CUA NO
+            //Lay step dựa trên stepId
+            var processStep = await _processStepRepository.GetStepById(createdResult.StepId);
+
+            if(processStep != null)
+            {
+                var subprocess = await _processRepository.GetSubProcessBySubProcessId(request.SubprocessId);
+
+                //KIỂM TRA XEM STEP CONTINUE HIEN TAI CO LỚN HƠN STEP NUMBER CỦA RESULT MỚI TẠO HAY KHÔNG
+                if(subprocess != null && subprocess.ContinueStep < processStep.StepNumber)
+                {
+                    //NẾU CONTINUE STEP NHỎ HƠN THÌ CẬP NHẬT
+                    await _processRepository.UpdateContinueStep(subprocess.SubprocessId, processStep.StepNumber);
+                }
+            }
+
             return new ProcessStepResultResponseDTO
             {
                 Success = true,
