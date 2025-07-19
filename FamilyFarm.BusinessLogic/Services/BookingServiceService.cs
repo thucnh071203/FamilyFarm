@@ -22,8 +22,9 @@ namespace FamilyFarm.BusinessLogic.Services
         //private readonly IHubContext<BookingHub> _bookingHub;
         private readonly IHubContext<NotificationHub> _notificationHub;
         private readonly IPaymentRepository _paymentRepository;
+        private readonly IHubContext<AllHub> _allHub;
 
-        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<NotificationHub> notificationHub, IPaymentRepository paymentRepository)
+        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<NotificationHub> notificationHub, IPaymentRepository paymentRepository, IHubContext<AllHub> allHub)
         {
             _repository = repository;
             _accountRepository = accountRepository;
@@ -31,6 +32,7 @@ namespace FamilyFarm.BusinessLogic.Services
             //_bookingHub = bookingHub;
             _notificationHub = notificationHub;
             _paymentRepository = paymentRepository;
+            _allHub = allHub;
         }
 
         public async Task<bool?> CancelBookingService(string bookingServiceId)
@@ -83,6 +85,14 @@ namespace FamilyFarm.BusinessLogic.Services
             try
             {
                 await _repository.UpdateStatus(bookingservice);
+
+                // Gửi SignalR đến Farmer
+                var accId = bookingservice.AccId;
+                if (!string.IsNullOrEmpty(accId))
+                {
+                    await _notificationHub.Clients.Group(accId).SendAsync("ReceiveBookingStatusChanged", bookingServiceId, "Rejected");
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -103,6 +113,14 @@ namespace FamilyFarm.BusinessLogic.Services
             try
             {
                 await _repository.UpdateStatus(bookingservice);
+
+                // Gửi SignalR đến Farmer
+                var accId = bookingservice.AccId;
+                if (!string.IsNullOrEmpty(accId))
+                {
+                    await _notificationHub.Clients.Group(accId).SendAsync("ReceiveBookingStatusChanged", bookingServiceId, "Accepted");
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -261,6 +279,11 @@ namespace FamilyFarm.BusinessLogic.Services
                 var service = await _repository.GetListRequestBookingByServiceId(item.ServiceId);
                 listBooking.AddRange(service);
             }
+
+            listBooking = listBooking
+            .OrderByDescending(x => x.BookingServiceAt)
+            .ToList();
+
             if (listBooking == null) return new BookingServiceResponseDTO
             {
                 Success = false,
@@ -383,6 +406,23 @@ namespace FamilyFarm.BusinessLogic.Services
             bookingService.IsPaidToExpert = false;
 
             var isRequestSuccess = await _repository.Create(bookingService);
+
+            var expertId = service.ProviderId; // lấy từ Service tương ứng
+
+            var lastTestBookingByFarmer = await _repository.GetLastestBookingByFarmer(accId);
+
+            var farmer = await _accountRepository.GetAccountByAccId(accId);
+
+            await _notificationHub.Clients.Group(expertId).SendAsync("ReceiveNewBookingRequest", new
+            {
+                BookingServiceId = lastTestBookingByFarmer.BookingServiceId,
+                ServiceName = service.ServiceName,
+                FarmerName = farmer.FullName, // nếu có
+                FarmerAvatar = farmer.Avatar, // ✅ bổ sung avatar
+                BookingServiceAt = lastTestBookingByFarmer.BookingServiceAt?.ToString("o"),
+                Status = lastTestBookingByFarmer.BookingServiceStatus
+            });
+
             return isRequestSuccess;
         }
 

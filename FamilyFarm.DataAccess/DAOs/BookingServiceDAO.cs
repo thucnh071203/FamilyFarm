@@ -243,5 +243,23 @@ namespace FamilyFarm.DataAccess.DAOs
             return null; // Nếu không có gì thay đổi, trả về null
         }
 
+        public async Task<BookingService?> GetLastestBookingByFarmerAsync(string? farmerId)
+        {
+            if (string.IsNullOrEmpty(farmerId))
+                return null;
+
+            // Kiểm tra xem bookingServiceId có hợp lệ hay không
+            if (!ObjectId.TryParse(farmerId, out _))
+                return null;
+
+            var filter = Builders<BookingService>.Filter.Eq(x => x.AccId, farmerId) &
+                         Builders<BookingService>.Filter.Eq(x => x.IsDeleted, false);
+
+            var sort = Builders<BookingService>.Sort.Descending(x => x.BookingServiceAt);
+
+            return await _bookingService.Find(filter)
+                            .Sort(sort)
+                            .FirstOrDefaultAsync();
+        }
     }
 }
