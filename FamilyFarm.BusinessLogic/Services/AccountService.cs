@@ -111,23 +111,59 @@ namespace FamilyFarm.BusinessLogic.Services
 
             string finalBgUrl = account.Background;
 
+            //if (request.Background != null)
+            //{
+            //    var imageURL = await _uploadFileService.UploadImage(request.Background);
+            //    if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+            //    {
+            //        finalBgUrl = imageURL.UrlFile;
+            //    }
+            //}
+
             if (request.Background != null)
             {
-                var imageURL = await _uploadFileService.UploadImage(request.Background);
-                if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                try
                 {
-                    finalBgUrl = imageURL.UrlFile;
+                    var imageURL = await _uploadFileService.UploadImage(request.Background);
+                    if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                    {
+                        finalBgUrl = imageURL.UrlFile;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Logging tùy ý
+                    Console.WriteLine($"Upload avatar failed: {ex.Message}");
+                    // fallback: dùng avatar cũ
                 }
             }
 
             string finalAvtUrl = account.Avatar;
 
+            //if (request.Avatar != null)
+            //{
+            //    var imageURL = await _uploadFileService.UploadImage(request.Avatar);
+            //    if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+            //    {
+            //        finalAvtUrl = imageURL.UrlFile;
+            //    }
+            //}
+
             if (request.Avatar != null)
             {
-                var imageURL = await _uploadFileService.UploadImage(request.Avatar);
-                if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                try
                 {
-                    finalAvtUrl = imageURL.UrlFile;
+                    var imageURL = await _uploadFileService.UploadImage(request.Avatar);
+                    if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                    {
+                        finalAvtUrl = imageURL.UrlFile;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Logging tùy ý
+                    Console.WriteLine($"Upload avatar failed: {ex.Message}");
+                    // fallback: dùng avatar cũ
                 }
             }
 
