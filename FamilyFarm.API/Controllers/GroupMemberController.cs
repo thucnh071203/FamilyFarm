@@ -78,8 +78,16 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpDelete("delete/{groupMemberId}")]
+        [Authorize]
         public async Task<IActionResult> DeleteGroupMember(string groupMemberId)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
             var group = await _groupMemberService.GetGroupMemberById(groupMemberId);
             if (group == null)
                 return BadRequest("Group member not found");
@@ -89,8 +97,12 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("users/in-group/{groupId}")]
+        [Authorize]
         public async Task<IActionResult> GetUsersByGroupId(string groupId)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return Unauthorized("Invalid token or user not found.");
             var users = await _groupMemberService.GetUsersInGroupAsync(groupId);
             if (users == null || users.Count == 0)
                 return NotFound("No users found in this group.");

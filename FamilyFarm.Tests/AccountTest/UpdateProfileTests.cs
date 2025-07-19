@@ -17,7 +17,7 @@ using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 using FamilyFarm.Models.DTOs.Response;
 
-namespace FamilyFarm.Tests.AccountTest
+namespace FamilyFarm.Tests.AccountTests
 {
     //public class FileUploadResult
     //{
