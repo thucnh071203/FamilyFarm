@@ -11,7 +11,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 
-namespace FamilyFarm.Tests
+namespace FamilyFarm.Tests.AuthenticationTest
 {
     [TestFixture]
     public class LoginTests
@@ -129,7 +129,7 @@ namespace FamilyFarm.Tests
             {
                 Assert.IsNotNull(result);
                 Assert.IsNotNull(statusResult);
-                Assert.AreEqual(423, statusResult?.StatusCode, "Expected status code 423 (Locked).");
+                Assert.AreEqual(423, statusResult?.StatusCode, "Exp ected status code 423 (Locked).");
                 Assert.AreEqual(lockedResponse, statusResult?.Value, "Returned value should match locked account response.");
             });
         }
