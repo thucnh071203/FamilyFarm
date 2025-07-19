@@ -14,7 +14,7 @@ using FamilyFarm.BusinessLogic.PasswordHashing;
 namespace FamilyFarm.Tests
 {
     [TestFixture]
-    public class AuthenticationControllerTests
+    public class LoginTests
     {
         private Mock<IAuthenticationService> _authenServiceMock;
         private Mock<IAccountService> _accountServiceMock;
