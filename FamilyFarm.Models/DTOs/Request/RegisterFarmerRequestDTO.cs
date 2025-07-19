@@ -10,17 +10,17 @@ namespace FamilyFarm.Models.DTOs.Request
     public class RegisterFarmerRequestDTO
     {
         [Required]
-        public required string Username { get; set; }
+        public string Username { get; set; }
         [Required]
-        public required string Password { get; set; }
-        public required string FullName { get; set; }
+        public string Password { get; set; }
+        public string FullName { get; set; }
         [Required]
-        public required string Email { get; set; }
+        public string Email { get; set; }
         [Required]
-        public required string Phone { get; set; }
-        public required string Identify { get; set; }
-        public required string City { get; set; }
-        public required string Country { get; set; }
+        public string Phone { get; set; }
+        public string Identify { get; set; }
+        public string City { get; set; }
+        public string Country { get; set; }
         public string Address { get; set; }
     }
 }
