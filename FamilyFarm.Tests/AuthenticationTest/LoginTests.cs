@@ -11,7 +11,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 
-namespace FamilyFarm.Tests
+namespace FamilyFarm.Tests.AuthenticationTest
 {
     [TestFixture]
     public class LoginTests
