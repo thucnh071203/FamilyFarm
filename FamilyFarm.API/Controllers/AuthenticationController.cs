@@ -61,7 +61,7 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest();
 
             var result = await _authenService.Logout(username);
-            return result is not null ? result : Unauthorized();
+            return result is not null ? Ok(result) : Unauthorized();
         }
 
         [AllowAnonymous]
@@ -200,7 +200,15 @@ namespace FamilyFarm.API.Controllers
         [HttpPut("set-password")]
         public async Task<IActionResult> SetPassword([FromBody] SetPasswordDTO request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return BadRequest();
+
             var account = await _accountService.GetAccountById(userClaims.AccId);
             if (account == null)
                 return NotFound("Account not found");
@@ -218,7 +226,13 @@ namespace FamilyFarm.API.Controllers
         [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO request)
         {
-            var userClaims = _authenService.GetDataFromToken();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+                var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return BadRequest();
 
             var account = await _accountService.GetAccountById(userClaims.AccId);
             if (account == null)
@@ -270,6 +284,9 @@ namespace FamilyFarm.API.Controllers
         [HttpPut("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ResetPasswordDTO request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var account = await _accountService.GetAccountById(request.AccId);
             if (account == null)
                 return NotFound("Account not found");

@@ -4,6 +4,7 @@ using FamilyFarm.BusinessLogic.Services;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,8 +39,16 @@ namespace FamilyFarm.API.Controllers
         /// If no reports exist, it returns an empty list with a 200 OK status.
         /// </returns>
         [HttpGet("all")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetAllReport()
         {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            if (user.RoleName != "Admin")
+                return Forbid();
+
             var reports = await _reportService.GetAll();
             return Ok(reports);
         }
@@ -54,6 +63,7 @@ namespace FamilyFarm.API.Controllers
         /// If no pending reports exist, it returns an empty list with a 200 OK status.
         /// </returns>
         [HttpGet("all-pending")]
+        [Authorize]
         public async Task<IActionResult> GetAllPending()
         {
             var response = await _reportService.GetAll();
@@ -76,6 +86,7 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("get-by-id/{id}")]
+        [Authorize]
         public async Task<IActionResult> GeById(string id)
         {
             var report = await _reportService.GetById(id);
@@ -96,10 +107,20 @@ namespace FamilyFarm.API.Controllers
         /// - Ok with the created report if the operation is successful
         /// </returns>
         [HttpPost("create")]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] CreateReportRequestDTO request)
         {
             // Lấy thông tin tài khoản từ token
             var account = _authenService.GetDataFromToken();
+            if (account == null)
+            {
+                return Unauthorized(new ReportResponseDTO
+                {
+                    Success = false,
+                    Message = "User is not authenticated.",
+                    Data = null
+                });
+            }
 
             // Tạo DTO với ReporterId từ token
             var reportRequest = new CreateReportRequestDTO
@@ -148,18 +169,28 @@ namespace FamilyFarm.API.Controllers
         /// - If the update fails, returns a 400 Bad Request with a message "Invalid".
         /// </returns>
         [HttpPut("accept/{id}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Accept(string id)
         {
             var account = _authenticationService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (account.RoleName?.ToUpper() != "ADMIN")
+                return Forbid();
+
+            if (string.IsNullOrEmpty(id))
+                return BadRequest("Invalid report ID.");
+
             var existing = await _reportService.GetById(id);
-            if (existing == null)
-                return NotFound("Report Not Found");
+            if (existing == null || existing.Data == null)
+                return NotFound("Cannot found the report!");
 
             existing.Data.Report.Status = "accepted";
             existing.Data.Report.HandledById = account.AccId;
             var result = await _reportService.Update(id, existing.Data.Report);
             if (result == null)
-                return BadRequest("Invalid");
+                return BadRequest("Update report failed.");
 
             var postRequest = new DeletePostRequestDTO
             {
@@ -177,11 +208,11 @@ namespace FamilyFarm.API.Controllers
             };
 
             await _notificationService.SendNotificationAsync(notiRequest);
-
             await _postService.DeletePost(postRequest);
 
             return Ok(result);
         }
+
 
         /// <summary>
         /// Rejects a report and updates its status to "rejected".
@@ -195,8 +226,15 @@ namespace FamilyFarm.API.Controllers
         /// - If the update fails, returns a 400 Bad Request with a message "Invalid".
         /// </returns>
         [HttpPut("reject/{id}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Reject(string id)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+            {
+                return Unauthorized("Unauthorized");
+            }
+
             var existing = await _reportService.GetById(id);
             if (existing == null)
                 return NotFound("Report Not Found");
