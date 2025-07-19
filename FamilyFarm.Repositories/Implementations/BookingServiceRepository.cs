@@ -70,5 +70,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetAllBookingComplete();
         }
+
+        public async Task<BookingService?> GetLastestBookingByFarmer(string? farmerId)
+        {
+            return await _dao.GetLastestBookingByFarmerAsync(farmerId);
+        }
     }
 }
