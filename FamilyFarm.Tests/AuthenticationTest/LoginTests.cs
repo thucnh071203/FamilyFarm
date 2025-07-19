@@ -129,7 +129,7 @@ namespace FamilyFarm.Tests
             {
                 Assert.IsNotNull(result);
                 Assert.IsNotNull(statusResult);
-                Assert.AreEqual(423, statusResult?.StatusCode, "Expected status code 423 (Locked).");
+                Assert.AreEqual(423, statusResult?.StatusCode, "Exp ected status code 423 (Locked).");
                 Assert.AreEqual(lockedResponse, statusResult?.Value, "Returned value should match locked account response.");
             });
         }
