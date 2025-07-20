@@ -78,6 +78,9 @@ namespace FamilyFarm.Repositories.Implementations
             return await _dao.LeaveGroupAsync(groupId, accId);
         }
 
-
+        public async Task<GroupMember> GetMemberJoinedGroup(string groupId, string accId)
+        {
+            return await _dao.GetMemberJoinedGroupAsync(groupId, accId);
+        }
     }
 }

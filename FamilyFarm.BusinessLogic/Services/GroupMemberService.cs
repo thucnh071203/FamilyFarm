@@ -47,6 +47,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<long> DeleteGroupMember(string groupMemberId)
         {
+
             var result = await _groupMemberRepository.DeleteGroupMember(groupMemberId);
 
             if (result > 0)
@@ -57,12 +58,21 @@ namespace FamilyFarm.BusinessLogic.Services
             return result;
         }
 
-
-        public async Task<List<GroupMemberResponseDTO>> GetUsersInGroupAsync(string groupId)
-
+        public async Task<List<GroupMemberResponseDTO>> GetUsersInGroupAsync(string groupId, string accId)
         {
+            if (string.IsNullOrEmpty(groupId))
+                throw new ArgumentNullException(nameof(groupId), "GroupId is required");
+
+            var checkMemberJoinedGroup = await _groupMemberRepository.GetMemberJoinedGroup(groupId, accId);
+
+            if (checkMemberJoinedGroup == null)
+            {
+                throw new UnauthorizedAccessException("You are not a member of this group.");
+            }
+
             return await _groupMemberRepository.GetUsersInGroupAsync(groupId);
         }
+
         public async Task<List<Account>> SearchUsersInGroupAsync(string groupId, string keyword)
         {
             return await _groupMemberRepository.SearchUsersInGroupAsync(groupId, keyword);
