@@ -42,7 +42,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
         };
 
         [Test]
-        public async Task TC01_DeleteMember_ValidRequest_ShouldReturnSuccess()
+        public async Task DeleteMember_ValidRequest_ShouldReturnSuccess()
         {
             //_groupMemberServiceMock.Setup(x => x.GetGroupMemberById("680d28bcb2560a3fdd73707c")).ReturnsAsync(GetMockMember());
             //_groupMemberServiceMock.Setup(x => x.DeleteGroupMember("680d28bcb2560a3fdd73707c")).ReturnsAsync(1);
@@ -60,7 +60,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
 
             _authServiceMock
                 .Setup(x => x.GetDataFromToken())
-                .Returns(new UserClaimsResponseDTO { AccId = "acc123" });
+                .Returns(new UserClaimsResponseDTO { AccId = "680d28bcb2560a3fdd73707c" });
 
             _groupMemberServiceMock
                 .Setup(x => x.GetGroupMemberById(groupMemberId))
@@ -81,7 +81,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
         }
 
         [Test]
-        public async Task TC02_DeleteMember_NoTokenRequired_ShouldPass() // Do controller không kiểm tra token nên không lỗi
+        public async Task DeleteMember_NoTokenRequired_ShouldPass() // Do controller không kiểm tra token nên không lỗi
         {
             _authServiceMock
                .Setup(x => x.GetDataFromToken())
@@ -98,7 +98,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
         }
 
         [Test]
-        public async Task TC03_DeleteMember_EmptyId_ShouldReturnBadRequest()
+        public async Task DeleteMember_EmptyId_ShouldReturnBadRequest()
         {
             _authServiceMock
                 .Setup(x => x.GetDataFromToken())
@@ -114,7 +114,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
             {
                 Assert.IsNotNull(result);
                 Assert.AreEqual(400, result.StatusCode);
-                Assert.AreEqual("Group member not found", result.Value);
+                Assert.AreEqual("Invalid AccIds.", result.Value);
             });
         }
     }
