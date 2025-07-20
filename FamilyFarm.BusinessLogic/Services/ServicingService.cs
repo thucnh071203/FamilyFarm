@@ -189,6 +189,15 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            if (item.Price <= 0)
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Price must greater than 0"
+                };
+            }
+
             var imageURL = await _uploadFileService.UploadImage(item.ImageUrl);
 
             var addNewService = new Service 
@@ -328,6 +337,15 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<ServiceResponseDTO> DeleteService(string serviceId)
         {
+            if (string.IsNullOrEmpty(serviceId))
+            {
+                return new ServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "Service not found"
+                };
+            }
+
             var process = await _processRepository.GetProcessByServiceId(serviceId);
 
             if (process != null)
