@@ -113,16 +113,30 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
-            var bgURL = await _uploadFileService.UploadImage(item.GroupBackground);
+            //var bgURL = await _uploadFileService.UploadImage(item.GroupBackground);
 
-            var avtURL = await _uploadFileService.UploadImage(item.GroupAvatar);
+            //var avtURL = await _uploadFileService.UploadImage(item.GroupAvatar);
+
+            string backgroundUrl = "";
+            if (item.GroupBackground != null)
+            {
+                var bgURL = await _uploadFileService.UploadImage(item.GroupBackground);
+                backgroundUrl = bgURL?.UrlFile ?? "";
+            }
+
+            string avatarUrl = "";
+            if (item.GroupAvatar != null)
+            {
+                var avtURL = await _uploadFileService.UploadImage(item.GroupAvatar);
+                avatarUrl = avtURL?.UrlFile ?? "";
+            }
 
             var addNewGroup = new Group
             {
                 GroupId = null,
                 GroupName = item.GroupName,
-                GroupAvatar = avtURL.UrlFile ?? "",
-                GroupBackground = bgURL.UrlFile ?? "",
+                GroupAvatar = avatarUrl,
+                GroupBackground = backgroundUrl,
                 PrivacyType = item.PrivacyType,
                 OwnerId = item.AccountId,
                 CreatedAt = DateTime.Now,
@@ -302,6 +316,17 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<GroupResponseDTO> DeleteGroup(string groupId)
         {
+            var group = await _groupRepository.GetGroupById(groupId);
+            if (group == null)
+            {
+                return new GroupResponseDTO
+                {
+                    Success = false,
+                    Message = "Group not found"
+                };
+            }
+                //return BadRequest("Group not found");
+
             var deletedCount = await _groupRepository.DeleteGroup(groupId);
 
 
