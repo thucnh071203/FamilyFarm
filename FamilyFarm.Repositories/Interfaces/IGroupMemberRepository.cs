@@ -29,6 +29,6 @@ namespace FamilyFarm.Repositories.Interfaces
 
         Task<bool> UpdateMemberRoleAsync(string groupMemberId, string newGroupRoleId);
         Task<bool> LeaveGroupAsync(string groupId, string accId);
-
+        Task<GroupMember> GetMemberJoinedGroup(string groupId, string accId);
     }
 }

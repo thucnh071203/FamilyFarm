@@ -85,7 +85,7 @@ namespace FamilyFarm.API.Controllers
             if (userClaims == null)
                 return Unauthorized("Invalid token or user not found.");
 
-            if (!ObjectId.TryParse(account.AccId, out _))
+            if (!ObjectId.TryParse(userClaims.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
             var group = await _groupMemberService.GetGroupMemberById(groupMemberId);
@@ -103,7 +103,8 @@ namespace FamilyFarm.API.Controllers
             var userClaims = _authenService.GetDataFromToken();
             if (userClaims == null)
                 return Unauthorized("Invalid token or user not found.");
-            var users = await _groupMemberService.GetUsersInGroupAsync(groupId);
+
+            var users = await _groupMemberService.GetUsersInGroupAsync(groupId, userClaims.AccId);
             if (users == null || users.Count == 0)
                 return NotFound("No users found in this group.");
 
