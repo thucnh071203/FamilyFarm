@@ -53,6 +53,10 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetProcessByProcessId(string processId)
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Not permission");
+
             var result = await _processService.GetProcessByProcessId(processId);
             return result.Success ? Ok(result) : NotFound(result);
         }
