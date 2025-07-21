@@ -156,9 +156,6 @@ namespace FamilyFarm.API.Controllers
         //    }
         //}
 
-
-
-
         [HttpPost("send-friend-request")]
         [Authorize]
         public async Task<IActionResult> SendFriendRequest([FromBody] CreateFriendRequestDTO request)
@@ -206,11 +203,6 @@ namespace FamilyFarm.API.Controllers
                 });
             }
         }
-
-
-
-
-
 
         [HttpGet("list-friend")]
         [Authorize]
