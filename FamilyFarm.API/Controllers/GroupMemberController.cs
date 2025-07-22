@@ -167,6 +167,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
+            if (accId == null) return Unauthorized();
             var result = await _groupMemberService.RequestToJoinGroupAsync(accId, groupId);
             if (result == null)
                 return BadRequest(new { Success = false, Message = "You send already or you are member." });
@@ -187,8 +188,12 @@ namespace FamilyFarm.API.Controllers
             return Ok(new { message = $"Join request has been {status.ToLower()}ed successfully" });
         }
         [HttpPut("update-role")]
+        [Authorize]
         public async Task<IActionResult> UpdateMemberRole([FromQuery] string groupMemberId, [FromQuery] string newGroupRoleId)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            if (accId == null) return Unauthorized();
             var result = await _groupMemberService.UpdateMemberRoleAsync(groupMemberId, newGroupRoleId);
             if (result)
                 return Ok("Role updated successfully.");

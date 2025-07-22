@@ -24,6 +24,7 @@ namespace FamilyFarm.API.Controllers
         public async Task<ActionResult> GetListSearchHistory() {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
+            if (accId == null)  return Unauthorized();
             var result = await _searchHistoryService.GetListByAccId(accId);
 
             if (result.Success==false)
