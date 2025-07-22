@@ -32,11 +32,19 @@ namespace FamilyFarm.Tests.ProcessTest
             _controller = new ProcessController(_processServiceMock.Object, _authServiceMock.Object, _uploadFileServiceMock.Object);
         }
 
+
         [Test]
         public async Task GetProcessByProcessId_WithValidLoginAndExistingProcess_ReturnsOk()
         {
             var processId = "6865ffa6451aa0996bb18c14";
             var expectedResponse = new ProcessOriginResponseDTO { Success = true };
+            _authServiceMock.Setup(x => x.GetDataFromToken())
+                .Returns(new UserClaimsResponseDTO
+                {
+                    AccId = "test-user-123",
+                    RoleId = "some-role-id" // Nếu bạn có logic check Role thì set đúng
+                });
+
             _processServiceMock.Setup(x => x.GetProcessByProcessId(processId)).ReturnsAsync(expectedResponse);
 
             var result = await _controller.GetProcessByProcessId(processId);
