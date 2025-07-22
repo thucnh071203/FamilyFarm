@@ -89,6 +89,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
+            if(accId == null) return Unauthorized();
             var result = await _bookingService.GetRequestBookingOfExpert(accId);
 
             if (result.Success == false)
