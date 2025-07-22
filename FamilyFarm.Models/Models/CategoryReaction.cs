@@ -12,13 +12,13 @@ namespace FamilyFarm.Models.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string CategoryReactionId { get; set; }
+        public string CategoryReactionId { get; set; }
         [BsonRequired]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string AccId { get; set; }
+        public string AccId { get; set; }
         [BsonRequired]
-        public required string ReactionName { get; set; }
-        public required string IconUrl { get; set; }
+        public string ReactionName { get; set; }
+        public string IconUrl { get; set; }
         public bool? IsDeleted { get; set; }
     }
 }

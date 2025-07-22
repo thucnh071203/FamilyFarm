@@ -312,6 +312,19 @@ namespace FamilyFarm.DataAccess.DAOs
             return result.DeletedCount > 0;
         }
 
+        public async Task<GroupMember> GetMemberJoinedGroupAsync(string groupId, string accId)
+        {
+            if (!ObjectId.TryParse(groupId, out _) || !ObjectId.TryParse(accId, out _))
+                return null;
 
+            // Tìm GroupMember hợp lệ
+            var filter = Builders<GroupMember>.Filter.And(
+                Builders<GroupMember>.Filter.Eq(g => g.GroupId, groupId),
+                Builders<GroupMember>.Filter.Eq(g => g.AccId, accId),
+                Builders<GroupMember>.Filter.Eq(g => g.MemberStatus, "Accept")
+            );
+
+            return await _GroupMembers.Find(filter).FirstOrDefaultAsync();
+        }
     }
 }

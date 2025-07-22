@@ -27,8 +27,12 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("all")]
+        [Authorize]
         public async Task<IActionResult> GetAllGroup()
         {
+            var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return Unauthorized("Invalid token or user not found.");
             var groups = await _groupService.GetAllGroup();
             return Ok(groups);
         }
@@ -38,6 +42,8 @@ namespace FamilyFarm.API.Controllers
         public async Task<IActionResult> GetAllByUserid()
         {
             var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return Unauthorized("Invalid token or user not found.");
             var accId = userClaims?.AccId;
             var groups = await _groupService.GetAllByUserId(accId);
             return Ok(groups);
@@ -97,6 +103,9 @@ namespace FamilyFarm.API.Controllers
             if (account == null)
                 return Unauthorized("Invalid token or user not found.");
 
+            if (string.IsNullOrWhiteSpace(updateGroup.GroupName) || string.IsNullOrWhiteSpace(updateGroup.PrivacyType))
+                return BadRequest("GroupName and PrivacyType must not be empty.");
+
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
@@ -120,14 +129,9 @@ namespace FamilyFarm.API.Controllers
             if (!ObjectId.TryParse(account.AccId, out _))
                 return BadRequest("Invalid AccIds.");
 
-            var group = await _groupService.GetGroupById(groupId);
-            if (group == null)
-                return BadRequest("Group not found");
-
             var result = await _groupService.DeleteGroup(groupId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
-
 
         [HttpGet("group-suggestion")]//get suggestion group in home and service
         [Authorize]

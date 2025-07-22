@@ -24,8 +24,13 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("all")]
+        [Authorize]
         public async Task<IActionResult> GetAllServices()
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
             var result = await _servicingService.GetAllService();
             return result.Success ? Ok(result) : BadRequest(result);
         }

@@ -81,25 +81,89 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            // 🚫 Check trùng email (nếu thay đổi)
+            if (!string.IsNullOrEmpty(request.Email) && request.Email != account.Email)
+            {
+                var existedEmailAcc = await _accountRepository.GetAccountByEmail(request.Email);
+                if (existedEmailAcc != null && existedEmailAcc.AccId != id)
+                {
+                    return new UpdateProfileResponseDTO
+                    {
+                        IsSuccess = false,
+                        MessageError = "Email already in use."
+                    };
+                }
+            }
+
+            // 🚫 Check trùng số điện thoại (nếu thay đổi)
+            if (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != account.PhoneNumber)
+            {
+                var existedPhoneAcc = await _accountRepository.GetAccountByPhone(request.PhoneNumber);
+                if (existedPhoneAcc != null && existedPhoneAcc.AccId != id)
+                {
+                    return new UpdateProfileResponseDTO
+                    {
+                        IsSuccess = false,
+                        MessageError = "Phone number already in use."
+                    };
+                }
+            }
+
             string finalBgUrl = account.Background;
+
+            //if (request.Background != null)
+            //{
+            //    var imageURL = await _uploadFileService.UploadImage(request.Background);
+            //    if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+            //    {
+            //        finalBgUrl = imageURL.UrlFile;
+            //    }
+            //}
 
             if (request.Background != null)
             {
-                var imageURL = await _uploadFileService.UploadImage(request.Background);
-                if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                try
                 {
-                    finalBgUrl = imageURL.UrlFile;
+                    var imageURL = await _uploadFileService.UploadImage(request.Background);
+                    if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                    {
+                        finalBgUrl = imageURL.UrlFile;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Logging tùy ý
+                    Console.WriteLine($"Upload avatar failed: {ex.Message}");
+                    // fallback: dùng avatar cũ
                 }
             }
 
             string finalAvtUrl = account.Avatar;
 
+            //if (request.Avatar != null)
+            //{
+            //    var imageURL = await _uploadFileService.UploadImage(request.Avatar);
+            //    if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+            //    {
+            //        finalAvtUrl = imageURL.UrlFile;
+            //    }
+            //}
+
             if (request.Avatar != null)
             {
-                var imageURL = await _uploadFileService.UploadImage(request.Avatar);
-                if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                try
                 {
-                    finalAvtUrl = imageURL.UrlFile;
+                    var imageURL = await _uploadFileService.UploadImage(request.Avatar);
+                    if (!string.IsNullOrEmpty(imageURL?.UrlFile))
+                    {
+                        finalAvtUrl = imageURL.UrlFile;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Logging tùy ý
+                    Console.WriteLine($"Upload avatar failed: {ex.Message}");
+                    // fallback: dùng avatar cũ
                 }
             }
 
@@ -310,6 +374,16 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = getAccByEmail
             };
 
+        }
+
+        public async Task<Account?> CheckAccountByEmail(string? email)
+        {
+            return await _accountRepository.GetAccountByEmail(email);
+        }
+
+        public async Task<Account?> CheckAccountByPhone(string? phone)
+        {
+            return await _accountRepository.GetAccountByPhone(phone);
         }
     }
 }

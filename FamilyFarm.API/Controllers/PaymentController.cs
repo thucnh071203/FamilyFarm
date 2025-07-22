@@ -42,6 +42,12 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<IActionResult> ListPayments()
         {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+            if (user.RoleName != "Admin")
+                return Forbid();
+
             var result = await _paymentService.GetListPayment();
             return result.Success ? Ok(result) : BadRequest(result);
         }

@@ -21,5 +21,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<BookingService> UpdateBookingPayment(string bookingId, BookingService booking);
         Task<BookingService> UpdateBooking(string bookingId, BookingService booking);
         Task<List<BookingService>?> GetAllBookingCompleted();
+        Task<BookingService?> GetLastestBookingByFarmer(string? farmerId);
     }
 }

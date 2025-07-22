@@ -36,7 +36,7 @@ namespace FamilyFarm.API.Controllers
         /// </returns>
         [Authorize]
         [HttpGet("all-by-post/{postId}")]
-        public async Task<ActionResult<CommentResponseDTO>> GetListCommentOfPost(string? postId)
+        public async Task<IActionResult> GetListCommentOfPost(string? postId)
         {
             if (postId == null)
                 return BadRequest();
@@ -109,7 +109,11 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest(new CommentResponseDTO { Success = false, Message = "Please Login!" });
 
             var response = await _commentService.Update(id, request, account.AccId);
-            return response.Success.GetValueOrDefault() ? Ok(response) : NotFound(response);
+            if (response.Success.GetValueOrDefault())
+                return Ok(response);
+            if (response.Message == "Invalid comment data")
+                return BadRequest(response);
+            return NotFound(response);
         }
 
         /// <summary>
@@ -130,7 +134,11 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest(new CommentResponseDTO { Success = false, Message = "Please Login!" });
 
             var response = await _commentService.Delete(id, account.AccId);
-            return response.Success.GetValueOrDefault() ? Ok(response) : NotFound(response);
+            if (response.Success.GetValueOrDefault())
+                return Ok(response);
+            if (response.Message == "Invalid Comment ID")
+                return BadRequest(response);
+            return NotFound(response);
         }
     }
 }

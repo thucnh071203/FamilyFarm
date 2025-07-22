@@ -115,13 +115,6 @@ namespace FamilyFarm.API.Controllers
 
             if (account.RoleId.Equals("68007b2a87b41211f0af1d57"))
             {
-                //if (updateProfile.Certificate == null ||
-                //    string.IsNullOrEmpty(updateProfile.WorkAt) ||
-                //    string.IsNullOrEmpty(updateProfile.StudyAt))
-                //{
-                //    return BadRequest("Expert information not be blank");
-                //}
-
                 var result = await _accountService.UpdateProfileAsync(account.AccId, updateProfile);
 
                 Console.WriteLine("UpdateProfile Result:");
@@ -130,10 +123,6 @@ namespace FamilyFarm.API.Controllers
                 if (result == null)
                 {
                     return StatusCode(500);
-                }
-                else if (!result.IsSuccess)
-                {
-                    return StatusCode(400, result);
                 }
 
                 return Ok(result);
@@ -145,10 +134,6 @@ namespace FamilyFarm.API.Controllers
                 if (result == null)
                 {
                     return StatusCode(500);
-                }
-                else if (!result.IsSuccess)
-                {
-                    return StatusCode(400, result);
                 }
 
                 return Ok(result);

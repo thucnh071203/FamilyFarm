@@ -55,11 +55,11 @@ namespace FamilyFarm.API.Controllers
                 return Unauthorized("Invalid token or user not found.");
 
             var chats = await _chatService.GetUserChatsAsync(account.AccId);
-            if (chats == null)
-                return NotFound("No chats found!");
+            if (chats == null || !chats.Success)
+                return NotFound(chats ?? new ListChatResponseDTO { Success = false, Message = "No chats found!" });
 
             return Ok(chats);
-        }   
+        }
 
         /// <summary>
         /// Searches for chats by a user's full name.
@@ -82,8 +82,7 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("FullName is required.");
 
             var chats = await _chatService.SearchChatsByFullNameAsync(account.AccId, fullName);
-
-            if (chats == null)
+            if (chats == null || !chats.Any())
                 return NotFound("No chats found!");
 
             return Ok(chats);
@@ -200,11 +199,15 @@ namespace FamilyFarm.API.Controllers
         [HttpPut("recall-message/{chatDetailId}")]
         public async Task<IActionResult> RecallChatMessage(string chatDetailId)
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
             var revoked = await _chatService.RecallChatDetailByIdAsync(chatDetailId);
             if (revoked == null)
-                return NotFound("No message found!");  // If no message is found, return NotFound response.
+                return NotFound("No message found!");
 
-            return Ok(revoked);  // If the message is successfully revoked, return Ok with the updated message.
+            return Ok(revoked);
         }
 
         /// <summary>
@@ -215,6 +218,10 @@ namespace FamilyFarm.API.Controllers
         [HttpDelete("delete-history/{chatId}")]
         public async Task<IActionResult> DeleteChatHistory(string chatId)
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
             if (!ObjectId.TryParse(chatId, out _))
                 return NotFound("No chats found.");
 

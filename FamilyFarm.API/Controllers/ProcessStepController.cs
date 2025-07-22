@@ -25,6 +25,13 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<IActionResult> CreateProcessStepResult([FromForm] ProcessStepResultRequestDTO request)
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (account.RoleId != "68007b0387b41211f0af1d56")
+                return Forbid("Only Farmer role is allowed.");
+
             var result = await _processService.CreateProcessStepResult(request);
             return result.Success ? Ok(result) : BadRequest(result);
         }

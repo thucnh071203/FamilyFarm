@@ -1,11 +1,13 @@
 ﻿using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using MongoDB.Driver.Core.Servers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +24,10 @@ namespace FamilyFarm.BusinessLogic.Services
         //private readonly IHubContext<BookingHub> _bookingHub;
         private readonly IHubContext<NotificationHub> _notificationHub;
         private readonly IPaymentRepository _paymentRepository;
+        private readonly IHubContext<AllHub> _allHub;
+        private readonly INotificationService _notificationService;
 
-        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<NotificationHub> notificationHub, IPaymentRepository paymentRepository)
+        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<NotificationHub> notificationHub, IPaymentRepository paymentRepository, IHubContext<AllHub> allHub, INotificationService notificationService)
         {
             _repository = repository;
             _accountRepository = accountRepository;
@@ -31,6 +35,8 @@ namespace FamilyFarm.BusinessLogic.Services
             //_bookingHub = bookingHub;
             _notificationHub = notificationHub;
             _paymentRepository = paymentRepository;
+            _allHub = allHub;
+            _notificationService = notificationService;
         }
 
         public async Task<bool?> CancelBookingService(string bookingServiceId)
@@ -83,19 +89,43 @@ namespace FamilyFarm.BusinessLogic.Services
             try
             {
                 await _repository.UpdateStatus(bookingservice);
+
+                // Gửi SignalR đến Farmer
+                var accId = bookingservice.AccId;
+                if (!string.IsNullOrEmpty(accId))
+                {
+                    await _notificationHub.Clients.Group(accId).SendAsync("ReceiveBookingStatusChanged", bookingServiceId, "Rejected");
+                }
+
+                var service = await _serviceRepository.GetServiceById(bookingservice.ServiceId);
+
+                var expert = await _accountRepository.GetAccountByIdAsync(bookingservice.ExpertId);
+
+                var notiRequest = new SendNotificationRequestDTO
+                {
+                    ReceiverIds = new List<string> { bookingservice.AccId },
+                    SenderId = expert.AccId,
+                    CategoryNotiId = "685d3f6d1d2b7e9f45ae1c40",
+                    TargetId = bookingServiceId,
+                    TargetType = "Booking", //để link tới notifi gốc Post, Chat, Process, ...
+                    Content = "Rejected booking of " + service?.ServiceName + "."
+                };
+
+                var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);//send noti
+                if (!notiResponse.Success)
+                {
+                    Console.WriteLine($"Notification failed: {notiResponse.Message}");
+                }
+
                 return true;
             }
             catch (Exception ex)
             {
                 return false;
             }
-
-
-
         }
         public async Task<bool?> ExpertAcceptBookingService(string bookingServiceId)
         {
-
             if (string.IsNullOrEmpty(bookingServiceId)) return null;
             var bookingservice = await _repository.GetById(bookingServiceId);
             if (bookingservice == null) return null;
@@ -103,6 +133,34 @@ namespace FamilyFarm.BusinessLogic.Services
             try
             {
                 await _repository.UpdateStatus(bookingservice);
+
+                // Gửi SignalR đến Farmer
+                var accId = bookingservice.AccId;
+                if (!string.IsNullOrEmpty(accId))
+                {
+                    await _notificationHub.Clients.Group(accId).SendAsync("ReceiveBookingStatusChanged", bookingServiceId, "Accepted");
+                }
+
+                var service = await _serviceRepository.GetServiceById(bookingservice.ServiceId);
+
+                var expert = await _accountRepository.GetAccountByIdAsync(bookingservice.ExpertId);
+
+                var notiRequest = new SendNotificationRequestDTO
+                {
+                    ReceiverIds = new List<string> { bookingservice.AccId },
+                    SenderId = expert.AccId,
+                    CategoryNotiId = "685d3f6d1d2b7e9f45ae1c40",
+                    TargetId = bookingServiceId,
+                    TargetType = "Booking", //để link tới notifi gốc Post, Chat, Process, ...
+                    Content = "Accepted booking of " + service?.ServiceName + "."
+                };
+
+                var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);//send noti
+                if (!notiResponse.Success)
+                {
+                    Console.WriteLine($"Notification failed: {notiResponse.Message}");
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -261,6 +319,11 @@ namespace FamilyFarm.BusinessLogic.Services
                 var service = await _repository.GetListRequestBookingByServiceId(item.ServiceId);
                 listBooking.AddRange(service);
             }
+
+            listBooking = listBooking
+            .OrderByDescending(x => x.BookingServiceAt)
+            .ToList();
+
             if (listBooking == null) return new BookingServiceResponseDTO
             {
                 Success = false,
@@ -383,6 +446,41 @@ namespace FamilyFarm.BusinessLogic.Services
             bookingService.IsPaidToExpert = false;
 
             var isRequestSuccess = await _repository.Create(bookingService);
+
+            var expertId = service.ProviderId; // lấy từ Service tương ứng
+
+            var lastTestBookingByFarmer = await _repository.GetLastestBookingByFarmer(accId);
+
+            var farmer = await _accountRepository.GetAccountByAccId(accId);
+
+            await _notificationHub.Clients.Group(expertId).SendAsync("ReceiveNewBookingRequest", new
+            {
+                BookingServiceId = lastTestBookingByFarmer.BookingServiceId,
+                ServiceName = service.ServiceName,
+                FarmerName = farmer.FullName, // nếu có
+                FarmerAvatar = farmer.Avatar, // ✅ bổ sung avatar
+                BookingServiceAt = lastTestBookingByFarmer.BookingServiceAt?.ToString("o"),
+                Status = lastTestBookingByFarmer.BookingServiceStatus
+            });
+
+            var account = await _accountRepository.GetAccountByIdAsync(accId);
+
+            var notiRequest = new SendNotificationRequestDTO
+            {
+                ReceiverIds = new List<string> { service.ProviderId },
+                SenderId = accId,
+                CategoryNotiId = "685d3f6d1d2b7e9f45ae1c40",
+                TargetId = lastTestBookingByFarmer.BookingServiceId,
+                TargetType = "Booking", //để link tới notifi gốc Post, Chat, Process, ...
+                Content = "Send you a request booking " + service?.ServiceName + "."
+            };
+
+            var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);//send noti
+            if (!notiResponse.Success)
+            {
+                Console.WriteLine($"Notification failed: {notiResponse.Message}");
+            }
+
             return isRequestSuccess;
         }
 
