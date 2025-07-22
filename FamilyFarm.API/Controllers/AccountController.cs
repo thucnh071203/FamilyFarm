@@ -221,16 +221,24 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("list-censor/{role_id}")]
+        [Authorize]
         public async Task<IActionResult> GetAllAccountByRoleId(string role_id)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var accountId = userClaims?.AccId;
+
+            if (accountId == null)
+                return Unauthorized("Not permission for this action.");
             var list = await _accountService.GetAllAccountByRoleId(role_id);
 
-            if (list == null)
+            if (list == null || !list.Any())
+            {
                 return NotFound(new
                 {
                     message = "list not found",
                     success = false
                 });
+            }
 
             return Ok(list);
         }
@@ -260,8 +268,14 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [Authorize]
         public async Task<IActionResult> GetAllAccount()
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var accountId = userClaims?.AccId;
+
+            if (accountId == null)
+                return Unauthorized("Not permission for this action.");
             var update = await _accountService.GetAllAccountExceptAdmin();
             if (update == null)
             {
