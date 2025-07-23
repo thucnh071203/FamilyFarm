@@ -442,6 +442,7 @@ namespace FamilyFarm.BusinessLogic.Services
             bookingService.PaymentDueDate = DateTime.Now.AddDays(3);
             bookingService.BookingServiceStatus = "Pending";
             bookingService.IsDeleted = false;
+            bookingService.IsCompletedFinal = false;
             bookingService.IsPaidByFarmer = false;
             bookingService.IsPaidToExpert = false;
 

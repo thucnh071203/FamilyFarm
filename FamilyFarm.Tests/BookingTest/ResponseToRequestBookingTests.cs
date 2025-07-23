@@ -15,6 +15,7 @@ using Moq;
 using NUnit.Framework;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.BusinessLogic;
+using FamilyFarm.BusinessLogic.Interfaces;
 
 namespace FamilyFarm.Tests.BookingTest
 {
@@ -31,6 +32,7 @@ namespace FamilyFarm.Tests.BookingTest
         private Mock<IPaymentRepository> _paymentRepoMock;
         private Mock<IHubContext<AllHub>> _allHubMock;
         private BookingServiceController _controller;
+        private Mock<INotificationService> _mockNotificationService;
 
         [SetUp]
         public void Setup()
@@ -44,6 +46,7 @@ namespace FamilyFarm.Tests.BookingTest
             _paymentRepoMock = new Mock<IPaymentRepository>();
             _allHubMock = new Mock<IHubContext<AllHub>>();
             _authServiceMock = new Mock<IAuthenticationService>();
+            _mockNotificationService = new Mock<INotificationService>();
 
             _notificationHubMock.Setup(h => h.Clients).Returns(_hubClientsMock.Object);
             _hubClientsMock.Setup(c => c.Group(It.IsAny<string>())).Returns(_clientProxyMock.Object);
@@ -54,7 +57,8 @@ namespace FamilyFarm.Tests.BookingTest
                 _serviceRepoMock.Object,
                 _notificationHubMock.Object,
                 _paymentRepoMock.Object,
-                _allHubMock.Object
+                _allHubMock.Object,
+                _mockNotificationService.Object
             );
 
             _controller = new BookingServiceController(bookingService, _authServiceMock.Object);

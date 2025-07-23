@@ -21,7 +21,6 @@ namespace FamilyFarm.Repositories.Interfaces
         //Task<List<Process>> FilterProcessByStatus(string? status, string accountId, string roleId);
         Task<Process?> GetProcessByServiceId(string? serviceId);
         Task<bool?> HardDeleteByService(string? serviceId);
-        Task<bool?> UpdateContinueStep(string? subprocessId, int stepNumber);
 
         //SUBPROCESS
         Task<List<SubProcess>?> GetAllSubprocessByExpert(string? expertId);
@@ -30,5 +29,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<SubProcess?> GetSubProcessBySubProcessId(string? subProcessId);
         Task<SubProcess?> UpdateSubProcess(string? subProcessId, SubProcess subProcess);
         Task<List<SubProcess>?> GetAllSubProcessCompleted();
+        Task UpdateStatusSubprocess(string? subprocessId, string? status);
+        Task<bool?> UpdateContinueStep(string? subprocessId, int stepNumber);
     }
 }

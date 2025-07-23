@@ -141,7 +141,15 @@ namespace FamilyFarm.DataAccess.DAOs
                       
                 await _bookingService.UpdateOneAsync(filter, update);
             }
-            
+            else if (bookingService.BookingServiceStatus.Equals("Completed"))
+            {
+                var update = Builders<BookingService>.Update
+                      .Set(a => a.BookingServiceStatus, bookingService.BookingServiceStatus)
+                      .Set(a => a.IsCompletedFinal, bookingService.IsCompletedFinal);
+
+                await _bookingService.UpdateOneAsync(filter, update);
+            }
+
         }
 
         public async Task<bool?> UpdateStatus(string? bookingId, string? status)
@@ -155,7 +163,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var result = await _bookingService.UpdateOneAsync(filter, update);
 
-            return result.ModifiedCount > 0;
+            return result.MatchedCount > 0;
         }
 
         public async Task<List<BookingService>?> GetBookingByExpert(string? expertId, string? status)

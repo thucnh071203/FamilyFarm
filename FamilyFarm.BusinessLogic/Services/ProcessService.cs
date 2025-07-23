@@ -533,8 +533,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 Title = request.Title,
                 NumberOfSteps = request.NumberOfSteps,
                 ProcessId = request.ProcessId,
-                ContinueStep = 1, //Mặc định đang ở bước 1
-                SubProcessStatus = "Created", //Đã tạo sub process
+                ContinueStep = 0, //Mặc định đang ở bước 1
+                SubProcessStatus = "Not Started", //Đã tạo sub process
                 CreatedAt = DateTime.UtcNow,
                 IsCompletedByFarmer = false,
                 IsDeleted = false
@@ -890,6 +890,12 @@ namespace FamilyFarm.BusinessLogic.Services
                     //NẾU CONTINUE STEP NHỎ HƠN THÌ CẬP NHẬT
                     await _processRepository.UpdateContinueStep(subprocess.SubprocessId, processStep.StepNumber);
                 }
+
+                //KIỂM TRA XEM STEP NUMBER CÓ PHẢI LÀ Bước 1 hay không
+                if(subprocess != null && processStep.StepNumber == 1)
+                {
+                    await _processRepository.UpdateStatusSubprocess(subprocess.SubprocessId, "On Process");
+                }
             }
 
             return new ProcessStepResultResponseDTO
@@ -945,6 +951,45 @@ namespace FamilyFarm.BusinessLogic.Services
                 Message = "Retrieved process step results successfully",
                 Data = resultMappers
             };
+        }
+
+        public async Task<bool?> IsCompletedSubprocess(string? subprocessId)
+        {
+            //LẤY DANH SÁCH step bằng subprocess id
+            var listStep = await _processStepRepository.GetStepsBySubprocess(subprocessId);
+
+            var isCompletedSteps = true;
+
+            if (listStep == null)
+                return null;
+
+            if (listStep.Count == 0)
+                return false;
+
+            foreach (var step in listStep)
+            {
+                var listResult = await _processStepRepository.GetProcessStepResultsByStepId(step.StepId);
+
+                if(listResult == null || listResult.Count <= 0)
+                {
+                    isCompletedSteps = false;
+                }
+            }
+
+            return isCompletedSteps;
+        }
+
+        public async Task<bool?> ConfirmSubprocess(string? subprocessId, string? bookingServiceId)
+        {
+            if (string.IsNullOrEmpty(subprocessId) || string.IsNullOrEmpty(bookingServiceId))
+                return null;
+
+            //UPDATE STATUS CỦA SUBPROCESS THÀNH COMPLETED
+            await _processRepository.UpdateStatusSubprocess(subprocessId, "Completed");
+
+            var result = await _bookingServiceRepository.UpdateStatus(bookingServiceId, "Completed");
+
+            return result;
         }
     }
 }

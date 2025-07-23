@@ -298,5 +298,16 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return result.ModifiedCount > 0;
         }
+
+        public async Task UpdateStatusSubprocess(string? subprocessId, string? status)
+        {
+            if (string.IsNullOrEmpty(subprocessId) || string.IsNullOrEmpty(status))
+                return;
+
+            var filter = Builders<SubProcess>.Filter.Eq(x => x.SubprocessId, subprocessId);
+            var update = Builders<SubProcess>.Update.Set(x => x.SubProcessStatus, status);
+
+            await _Subprocesses.UpdateOneAsync(filter, update);
+        }
     }
 }
