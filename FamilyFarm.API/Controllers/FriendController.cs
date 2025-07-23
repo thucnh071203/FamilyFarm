@@ -68,6 +68,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var username = userClaims?.Username;
+            if(username == null) return Unauthorized();
 
             var result = await _friendService.GetAllReceiveFriendRequests(username);
 
@@ -81,10 +82,12 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpPost("accept/{otherId}")]
+        [Authorize]
         public async Task<IActionResult> AcceptFriendRequest(string otherId)
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
+            if(accId == null) return Unauthorized();
             var result = await _friendService.AcceptFriendRequestAsync(accId, otherId);
             if (result)
             {
@@ -101,6 +104,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
+            if (accId == null) return Unauthorized();
             var result = await _friendService.RejectFriendRequestAsync(accId, otherId);
             if (result)
             {
@@ -152,9 +156,6 @@ namespace FamilyFarm.API.Controllers
         //    }
         //}
 
-
-
-
         [HttpPost("send-friend-request")]
         [Authorize]
         public async Task<IActionResult> SendFriendRequest([FromBody] CreateFriendRequestDTO request)
@@ -163,6 +164,7 @@ namespace FamilyFarm.API.Controllers
 
             var userClaims = _authenService.GetDataFromToken();
             var username = userClaims?.Username;
+            if(username == null) return Unauthorized();
 
             var user = await _accountService.GetAccountByUsername(username); // Truy vấn người dùng theo username
 
@@ -202,17 +204,13 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
-
-
-
-
-
         [HttpGet("list-friend")]
         [Authorize]
         public async Task<ActionResult<FriendResponseDTO>> GetListFriends()
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
+            if (accId == null) return Unauthorized();
 
             var result = await _serviceOfFriend.GetListFriends(accId);
 
@@ -286,6 +284,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var accountId = userClaims?.AccId;
+            if (accountId == null) return Unauthorized();
 
             var result = await _serviceOfFriend.Unfriend(accountId, accId);
 

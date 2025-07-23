@@ -63,10 +63,23 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult> ExpertAcceptBooking(string bookingId)
         {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized("Missing or invalid token");
+
+            if (user.RoleId != "68007b2a87b41211f0af1d57")
+                return BadRequest("User is not expert");
+
             var result = await _bookingService.ExpertAcceptBookingService(bookingId);
 
             if (result == false)
                 return BadRequest();
+
+            //if (result == null)
+            //    return BadRequest("Booking not found or invalid.");
+
+            //if (result == false)
+            //    return BadRequest("An error occurred during acceptance.");
 
             return Ok(result);
         }
@@ -89,6 +102,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
+            if(accId == null) return Unauthorized();
             var result = await _bookingService.GetRequestBookingOfExpert(accId);
 
             if (result.Success == false)
@@ -116,7 +130,12 @@ namespace FamilyFarm.API.Controllers
         public async Task<ActionResult> ListRequestBookingOfFarmer()
         {
             var userClaims = _authenService.GetDataFromToken();
+
+            if (userClaims == null || string.IsNullOrEmpty(userClaims.AccId))
+                return Unauthorized("Invalid token or missing user info");
+
             var accId = userClaims?.AccId;
+
             var result = await _bookingService.GetRequestBookingOfFarmer(accId);
 
             if (result.Success == false)
@@ -124,6 +143,7 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
         [HttpGet("farmer-all-booking")]
         [Authorize]
         public async Task<ActionResult> ListBookingOfFarmer()

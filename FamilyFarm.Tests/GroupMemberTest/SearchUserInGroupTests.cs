@@ -39,7 +39,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
 
         // ✅ TC01: Search exact name "Tran Phuong Nam"
         [Test]
-        public async Task TC01_SearchExactMatch_ShouldReturnMatchedUser()
+        public async Task SearchExactMatch_ShouldReturnMatchedUser()
         {
             var user = new UserClaimsResponseDTO { AccId = "6808482a0849665c281db8b8" };
             _authServiceMock.Setup(x => x.GetDataFromToken()).Returns(user);
@@ -59,7 +59,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
 
         // ✅ TC02: Search with partial match "Tran Phu"
         [Test]
-        public async Task TC02_SearchPartialName_ShouldReturnMatchedUser()
+        public async Task SearchPartialName_ShouldReturnMatchedUser()
         {
             var user = new UserClaimsResponseDTO { AccId = "6808482a0849665c281db8b8" };
             _authServiceMock.Setup(x => x.GetDataFromToken()).Returns(user);
@@ -78,7 +78,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
 
         // ✅ TC03: Search with empty keyword
         [Test]
-        public async Task TC03_EmptyKeyword_ShouldReturnBadRequest()
+        public async Task EmptyKeyword_ShouldReturnBadRequest()
         {
             var user = new UserClaimsResponseDTO { AccId = "6808482a0849665c281db8b8" };
             _authServiceMock.Setup(x => x.GetDataFromToken()).Returns(user);
@@ -95,7 +95,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
 
         // ✅ TC04: No token provided
         [Test]
-        public async Task TC04_NoToken_ShouldReturnOkIfKeywordProvided()
+        public async Task NoToken_ShouldReturnOkIfKeywordProvided()
         {
             _authServiceMock.Setup(x => x.GetDataFromToken()).Returns((UserClaimsResponseDTO?)null);
             _groupMemberServiceMock.Setup(x => x.SearchUsersInGroupAsync("gid123", "Tran Phu")).ReturnsAsync(new List<Account>());
@@ -113,7 +113,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
 
         // ✅ TC05: No members found
         [Test]
-        public async Task TC05_SearchNotFound_ShouldReturnNotFound()
+        public async Task SearchNotFound_ShouldReturnNotFound()
         {
             var user = new UserClaimsResponseDTO { AccId = "6808482a0849665c281db8b8" };
             _authServiceMock.Setup(x => x.GetDataFromToken()).Returns(user);
@@ -132,7 +132,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
 
         // ✅ TC06: Keyword with only spaces
         [Test]
-        public async Task TC06_KeywordWithSpaces_ShouldReturnBadRequest()
+        public async Task KeywordWithSpaces_ShouldReturnBadRequest()
         {
             var user = new UserClaimsResponseDTO { AccId = "acc001" };
             _authServiceMock.Setup(x => x.GetDataFromToken()).Returns(user);

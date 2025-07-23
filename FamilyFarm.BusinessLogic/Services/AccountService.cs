@@ -319,8 +319,9 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
-        public async Task<List<Account>> GetAllAccountByRoleId(string role_id)
+        public async Task<List<Account>?> GetAllAccountByRoleId(string role_id)
         {
+           // if (role_id == null) return null;
             return await _accountRepository.GetAllAccountByRoleId(role_id);
         }
         public async Task<bool> UpdateAccountStatus(string accId, int status)

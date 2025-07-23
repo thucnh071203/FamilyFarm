@@ -53,6 +53,10 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetProcessByProcessId(string processId)
         {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Not permission");
+
             var result = await _processService.GetProcessByProcessId(processId);
             return result.Success ? Ok(result) : NotFound(result);
         }
@@ -226,6 +230,46 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("Cannot get list completed sub process!");
 
             return Ok(result);
+        }
+
+        [HttpGet("subprocess/check-completed/{subprocessId}")]
+        [Authorize]
+        public async Task<ActionResult> CheckCompletedSubprocess([FromRoute] string? subprocessId)
+        {
+            if (string.IsNullOrEmpty(subprocessId))
+                return BadRequest("Request is invalid.");
+
+            var result = await _processService.IsCompletedSubprocess(subprocessId);
+
+            if (result == null)
+                return BadRequest("Cannot checked completed.");
+
+            if(result == false) 
+                return NotFound("Uncompleted");
+
+            return Ok("Subprocess is completed.");
+        }
+
+        [HttpPut("confirm-subprocess")]
+        [Authorize]
+        public async Task<ActionResult> ConfirmSubprocess([FromBody] ConfirmSubprocessRequestDTO request)
+        {
+            if (request == null)
+                return BadRequest("Data invalid.");
+
+            var user = _authenService.GetDataFromToken();
+            if(user == null)
+                return Unauthorized();
+
+            var result = await _processService.ConfirmSubprocess(request.SubprocessId, request.BookingServiceid);
+
+            if (result == null)
+                return BadRequest("Server cannot process request.");
+
+            if (result == false)
+                return Conflict("Confirm fail.");
+
+            return Ok("Confirm successfully");
         }
     }
 }

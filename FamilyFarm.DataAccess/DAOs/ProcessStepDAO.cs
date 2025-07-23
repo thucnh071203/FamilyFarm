@@ -23,10 +23,19 @@ namespace FamilyFarm.DataAccess.DAOs
             _StepResultImages = database.GetCollection<StepResultImages>("StepResultImages");
         }
 
-        public async Task<List<ProcessStep>> GetStepsByProcessId(string processId)
+        public async Task<List<ProcessStep>?> GetStepsByProcessId(string processId)
         {
             if (!ObjectId.TryParse(processId, out _)) return null;
             return await _ProcessSteps.Find(p => p.ProcessId == processId).ToListAsync();
+        }
+
+        public async Task<ProcessStep?> GetStepById(string? stepId)
+        {
+            if (string.IsNullOrEmpty(stepId))
+                return null;
+
+            var filter = Builders<ProcessStep>.Filter.Eq(s => s.StepId, stepId);
+            return await _ProcessSteps.Find(filter).FirstOrDefaultAsync();
         }
 
         public async Task<ProcessStep?> CreateStep(ProcessStep? request)

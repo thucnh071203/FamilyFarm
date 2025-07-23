@@ -234,6 +234,9 @@ namespace FamilyFarm.API.Controllers
             };
 
             var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return Unauthorized("Not permission");
+
             var acc_id = userClaims?.AccId;
 
             var isDeletedSuccess = await _postService.TempDeleted(acc_id, request);
@@ -260,6 +263,9 @@ namespace FamilyFarm.API.Controllers
             };
 
             var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return Unauthorized("Not permission");
+
             var acc_id = userClaims?.AccId;
 
             var isDeletedSuccess = await _postService.RestorePostDeleted(acc_id, request);
@@ -420,9 +426,11 @@ namespace FamilyFarm.API.Controllers
         public async Task<ActionResult<bool>> UnsavedPost([FromRoute] string? postId)
         {
             var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return Unauthorized("Not permission.");
             var acc_id = userClaims?.AccId;
             if (acc_id == null)
-                return Unauthorized();
+                return Unauthorized("Not permission."); ;
 
             var result = await _savedPostService.UnsavedPost(acc_id, postId);
             return Ok(result);

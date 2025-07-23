@@ -29,5 +29,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<SubProcessResponseDTO?> GetListSubProcessCompleted();
         Task<ProcessStepResultResponseDTO> CreateProcessStepResult(ProcessStepResultRequestDTO request);
         Task<ProcessStepResultResponseDTO> GetProcessStepResultsByStepId(string stepId);
+        Task<bool?> IsCompletedSubprocess(string? subprocessId);
+        Task<bool?> ConfirmSubprocess(string? subprocessId, string? bookingServiceId);
     }
 }

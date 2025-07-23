@@ -20,11 +20,13 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IReviewRepository _reviewRepository;
         private readonly IAccountRepository _accountRepository;
         private readonly IMapper _mapper;
-        public ReviewService(IReviewRepository reviewRepository, IAccountRepository accountRepository, IMapper mapper)
+        private readonly IBookingServiceRepository _bookingServiceRepository;
+        public ReviewService(IReviewRepository reviewRepository, IAccountRepository accountRepository, IMapper mapper, IBookingServiceRepository bookingServiceRepository)
         {
             _reviewRepository = reviewRepository;
             _accountRepository = accountRepository;
             _mapper = mapper;
+            _bookingServiceRepository = bookingServiceRepository;
         }
 
         public async Task<ListReviewResponseDTO> GetByServiceIdAsync(string serviceId)
@@ -167,6 +169,18 @@ namespace FamilyFarm.BusinessLogic.Services
             // Load reviewer profile
             var account = await _accountRepository.GetAccountByAccId(accId);
             var reviewer = _mapper.Map<MyProfileDTO>(account);
+
+            //SAU KHI REVIEW THÀNH CÔNG THÌ SET trường completed của boooking
+            if(request.BookingServiceId != null)
+            {
+                var booking = await _bookingServiceRepository.GetById(request.BookingServiceId);
+
+                booking.CompleteServiceAt = DateTime.UtcNow;
+                booking.IsCompletedFinal = true;
+
+                await _bookingServiceRepository.UpdateStatus(booking);
+            }
+            
 
             return new ReviewResponseDTO
             {
