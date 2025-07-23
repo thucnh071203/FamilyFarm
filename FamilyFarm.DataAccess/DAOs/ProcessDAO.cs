@@ -285,5 +285,29 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return await _Subprocesses.Find(filter).ToListAsync();
         }
+
+        public async Task<bool?> UpdateContinueStep(string? subprocessId, int stepNumber)
+        {
+            if (string.IsNullOrEmpty(subprocessId))
+                return null;
+
+            var filter = Builders<SubProcess>.Filter.Eq(s => s.SubprocessId, subprocessId);
+            var update = Builders<SubProcess>.Update.Set(s => s.ContinueStep, stepNumber);
+
+            var result = await _Subprocesses.UpdateOneAsync(filter, update);
+
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task UpdateStatusSubprocess(string? subprocessId, string? status)
+        {
+            if (string.IsNullOrEmpty(subprocessId) || string.IsNullOrEmpty(status))
+                return;
+
+            var filter = Builders<SubProcess>.Filter.Eq(x => x.SubprocessId, subprocessId);
+            var update = Builders<SubProcess>.Update.Set(x => x.SubProcessStatus, status);
+
+            await _Subprocesses.UpdateOneAsync(filter, update);
+        }
     }
 }

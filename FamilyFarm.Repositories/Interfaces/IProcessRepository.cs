@@ -29,5 +29,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<SubProcess?> GetSubProcessBySubProcessId(string? subProcessId);
         Task<SubProcess?> UpdateSubProcess(string? subProcessId, SubProcess subProcess);
         Task<List<SubProcess>?> GetAllSubProcessCompleted();
+        Task UpdateStatusSubprocess(string? subprocessId, string? status);
+        Task<bool?> UpdateContinueStep(string? subprocessId, int stepNumber);
     }
 }

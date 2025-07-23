@@ -8,7 +8,8 @@ namespace FamilyFarm.Models.DTOs.Request
 {
     public class ReviewRequestDTO
     {
-        public string ServiceId { get; set; }
+        public string? ServiceId { get; set; }
+        public string? BookingServiceId { get; set; }
         public int Rating { get; set; }
         public string? Comment { get; set; }
     }

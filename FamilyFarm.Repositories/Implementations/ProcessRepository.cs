@@ -103,5 +103,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetAllSubProcessComplete();
         }
+
+        public async Task<bool?> UpdateContinueStep(string? subprocessId, int stepNumber)
+        {
+            return await _dao.UpdateContinueStep(subprocessId, stepNumber);
+        }
+
+        public async Task UpdateStatusSubprocess(string? subprocessId, string? status)
+        {
+            await _dao.UpdateStatusSubprocess(subprocessId, status);
+        }
     }
 }

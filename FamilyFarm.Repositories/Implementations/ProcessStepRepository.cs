@@ -79,5 +79,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _stepDao.GetStepResultImagesByStepResultIdAsync(stepResultId);
         }
+
+        public async Task<ProcessStep?> GetStepById(string? stepId)
+        {
+            return await _stepDao.GetStepById(stepId);
+        }
     }
 }

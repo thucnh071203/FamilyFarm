@@ -35,6 +35,7 @@ namespace FamilyFarm.Tests.BookingTest
         private Mock<IHubContext<AllHub>> _allHubMock;
         private Mock<INotificationService> _notificationServiceMock;
         private BookingServiceController _controller;
+        private Mock<INotificationService> _mockNotificationService;
 
         [SetUp]
         public void Setup()
@@ -48,8 +49,8 @@ namespace FamilyFarm.Tests.BookingTest
             _paymentRepoMock = new Mock<IPaymentRepository>();
             _allHubMock = new Mock<IHubContext<AllHub>>();
             _authServiceMock = new Mock<IAuthenticationService>();
-            _notificationServiceMock = new Mock<INotificationService>();
-            
+            _mockNotificationService = new Mock<INotificationService>();
+
 
             _notificationHubMock.Setup(h => h.Clients).Returns(_hubClientsMock.Object);
             _hubClientsMock.Setup(c => c.Group(It.IsAny<string>())).Returns(_clientProxyMock.Object);
@@ -61,7 +62,8 @@ namespace FamilyFarm.Tests.BookingTest
                 _notificationHubMock.Object,
                 _paymentRepoMock.Object,
                 _allHubMock.Object,
-                _notificationServiceMock.Object
+                _mockNotificationService.Object
+
             );
 
             _controller = new BookingServiceController(bookingService, _authServiceMock.Object);
