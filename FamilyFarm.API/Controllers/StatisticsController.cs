@@ -472,6 +472,21 @@ namespace FamilyFarm.API.Controllers
             });
         }
 
+        [Authorize]
+        [HttpGet("expertRevenue")]
+        public async Task<IActionResult> GetRevenueByExpert([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        {
 
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+
+
+
+            if (string.IsNullOrEmpty(accId))
+                return BadRequest("accId is required.");
+
+            var result = await _statisticService.GetRevenueByExpertAsync(accId, from, to);
+            return Ok(result);
+        }
     }
 }

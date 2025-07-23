@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
@@ -75,6 +76,11 @@ namespace FamilyFarm.Repositories.Implementations
         public async Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId)
         {
             return await _statisticDAO.GetMostBookedServicesByExpertAsync(accId);
+        }
+
+        public async Task<ExpertRevenueDTO> GetExpertRevenueAsync(string expertId, DateTime? from = null, DateTime? to = null)
+        {
+            return await _statisticDAO.GetExpertRevenueAsync(expertId, from, to);
         }
     }
 }

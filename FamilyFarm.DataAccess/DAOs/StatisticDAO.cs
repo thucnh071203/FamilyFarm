@@ -1,4 +1,5 @@
-﻿using FamilyFarm.Models.DTOs.Request;
+﻿using FamilyFarm.Models.DTOs.EntityDTO;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using MongoDB.Bson;
@@ -26,6 +27,7 @@ namespace FamilyFarm.DataAccess.DAOs
         private readonly IMongoCollection<Comment> Comments;
         private readonly IMongoCollection<Service> Services;
         private readonly IMongoCollection<CategoryService> CategoryServices;
+        private readonly IMongoCollection<PaymentTransaction> PaymentTransactions;
 
 
 
@@ -40,8 +42,109 @@ namespace FamilyFarm.DataAccess.DAOs
             Comments = database.GetCollection<Comment>("Comment");
             Services = database.GetCollection<Service>("Service");
             CategoryServices = database.GetCollection<CategoryService>("CategoryService");
+            PaymentTransactions = database.GetCollection<PaymentTransaction>("Payment");
             _Role = database.GetCollection<Role>("Role");
         }
+
+
+
+        public async Task<ExpertRevenueDTO> GetExpertRevenueAsync(string expertId, DateTime? from = null, DateTime? to = null)
+        {
+            var filterBuilder = Builders<BookingService>.Filter;
+            var filter = filterBuilder.And(
+                filterBuilder.Eq(bs => bs.ExpertId, expertId),
+                filterBuilder.Eq(bs => bs.IsPaidByFarmer, true),
+                filterBuilder.Ne(bs => bs.IsDeleted, false)
+            );
+
+            var services = await BookingServices.Find(filter).ToListAsync();
+
+            // Lấy tất cả payment theo BookingServiceId
+            var bookingIds = services.Select(bs => bs.BookingServiceId).ToList();
+            var paymentFilter = Builders<PaymentTransaction>.Filter.In(p => p.BookingServiceId, bookingIds);
+            var payments = await PaymentTransactions.Find(paymentFilter).ToListAsync();
+
+            // Mapping BookingId -> PayAt
+            var payAtDict = payments
+                .Where(p => p.PayAt.HasValue)
+                .ToDictionary(p => p.BookingServiceId!, p => p.PayAt!.Value);
+
+            // Bắt đầu xử lý
+            decimal totalRevenue = 0;
+            decimal commissionRevenue = 0;
+            int serviceCount = 0;
+            var monthlyRevenue = new Dictionary<string, decimal>();
+            var monthlyCommission = new Dictionary<string, decimal>();
+            var dailyRevenue = new Dictionary<string, decimal>();
+            var dailyCommission = new Dictionary<string, decimal>();
+            var serviceNameStats = new Dictionary<string, int>();
+
+            foreach (var service in services)
+            {
+                if (service.BookingServiceId == null || !payAtDict.ContainsKey(service.BookingServiceId)) continue;
+
+                var payAt = payAtDict[service.BookingServiceId];
+
+                // Kiểm tra khoảng thời gian
+                if ((from.HasValue && payAt < from.Value) || (to.HasValue && payAt > to.Value)) continue;
+
+                var price = service.Price ?? 0;
+                var commissionRate = (service.CommissionRate ?? 0) / 100m;
+                var commission = price * commissionRate;
+                totalRevenue += price;
+                commissionRevenue += commission;
+                serviceCount++;
+
+                var monthKey = payAt.ToString("yyyy-MM");
+                if (!monthlyRevenue.ContainsKey(monthKey))
+                {
+                    monthlyRevenue[monthKey] = 0;
+                    monthlyCommission[monthKey] = 0;
+                }
+                monthlyRevenue[monthKey] += price;
+                monthlyCommission[monthKey] += commission;
+
+                var dateKey = payAt.ToString("yyyy-MM-dd");
+                if (!dailyRevenue.ContainsKey(dateKey))
+                {
+                    dailyRevenue[dateKey] = 0;
+                    dailyCommission[dateKey] = 0;
+                }
+                dailyRevenue[dateKey] += price;
+                dailyCommission[dateKey] += commission;
+
+                if (!string.IsNullOrEmpty(service.ServiceName))
+                {
+                    if (!serviceNameStats.ContainsKey(service.ServiceName))
+                        serviceNameStats[service.ServiceName] = 0;
+                    serviceNameStats[service.ServiceName]++;
+                }
+            }
+
+            var topServiceNames = serviceNameStats
+                .OrderByDescending(kvp => kvp.Value)
+                .Take(3)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            return new ExpertRevenueDTO
+            {
+                ExpertId = expertId,
+                TotalRevenue = totalRevenue,
+                CommissionRevenue = commissionRevenue,
+                TotalServicesProvided = serviceCount,
+                MonthlyRevenue = monthlyRevenue,
+                MonthlyCommission = monthlyCommission,
+                DailyRevenue = dailyRevenue,
+                DailyCommission = dailyCommission,
+                TopServiceNames = topServiceNames
+            };
+        }
+
+
+
+
+
 
         public async Task<List<EngagedPostResponseDTO>> GetTopEngagedPostsAsync(
    int topN, ReactionDAO reactionDAO, CommentDAO commentDAO)
