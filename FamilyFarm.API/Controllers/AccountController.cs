@@ -221,16 +221,24 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("list-censor/{role_id}")]
+        [Authorize]
         public async Task<IActionResult> GetAllAccountByRoleId(string role_id)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var accountId = userClaims?.AccId;
+
+            if (accountId == null)
+                return Unauthorized("Not permission for this action.");
             var list = await _accountService.GetAllAccountByRoleId(role_id);
 
-            if (list == null)
+            if (list == null || !list.Any())
+            {
                 return NotFound(new
                 {
                     message = "list not found",
                     success = false
                 });
+            }
 
             return Ok(list);
         }
@@ -238,6 +246,11 @@ namespace FamilyFarm.API.Controllers
         [HttpPut("update-censor/{accId}/{status}")]
         public async Task<IActionResult> UpdateAccountStatus(string accId, int status)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var accountId = userClaims?.AccId;
+
+            if (accountId == null)
+                return Unauthorized("Not permission for this action.");
             var update = await _accountService.UpdateAccountStatus(accId, status);
             if (update != true)
             {
@@ -248,8 +261,14 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("get-by-accId/{accId}")]
+        [Authorize]
         public async Task<IActionResult> GetAccountByAccId(string accId)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var accountId = userClaims?.AccId;
+
+            if (accountId == null)
+                return Unauthorized("Not permission for this action.");
             var update = await _accountService.GetAccountByAccId(accId);
             if (update == null)
             {
@@ -260,8 +279,14 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [Authorize]
         public async Task<IActionResult> GetAllAccount()
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var accountId = userClaims?.AccId;
+
+            if (accountId == null)
+                return Unauthorized("Not permission for this action.");
             var update = await _accountService.GetAllAccountExceptAdmin();
             if (update == null)
             {

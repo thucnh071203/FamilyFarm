@@ -16,6 +16,8 @@ using NUnit.Framework;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.Mapper;
 
 namespace FamilyFarm.Tests.BookingTest
 {
@@ -31,6 +33,7 @@ namespace FamilyFarm.Tests.BookingTest
         private Mock<IClientProxy> _clientProxyMock;
         private Mock<IPaymentRepository> _paymentRepoMock;
         private Mock<IHubContext<AllHub>> _allHubMock;
+        private Mock<INotificationService> _notificationServiceMock;
         private BookingServiceController _controller;
         private Mock<INotificationService> _mockNotificationService;
 
@@ -48,6 +51,7 @@ namespace FamilyFarm.Tests.BookingTest
             _authServiceMock = new Mock<IAuthenticationService>();
             _mockNotificationService = new Mock<INotificationService>();
 
+
             _notificationHubMock.Setup(h => h.Clients).Returns(_hubClientsMock.Object);
             _hubClientsMock.Setup(c => c.Group(It.IsAny<string>())).Returns(_clientProxyMock.Object);
 
@@ -59,6 +63,7 @@ namespace FamilyFarm.Tests.BookingTest
                 _paymentRepoMock.Object,
                 _allHubMock.Object,
                 _mockNotificationService.Object
+
             );
 
             _controller = new BookingServiceController(bookingService, _authServiceMock.Object);
@@ -76,17 +81,54 @@ namespace FamilyFarm.Tests.BookingTest
         {
             SetExpertUser();
             var bookingId = "685d63b7306140451dd63af8";
+
             _bookingRepoMock.Setup(x => x.GetById(bookingId)).ReturnsAsync(new BookingService
             {
                 BookingServiceId = bookingId,
                 BookingServiceStatus = "Pending",
-                AccId = "farmer001"
+                AccId = "farmer001",
+                ExpertId = "expert123",
+                ServiceId = "service123"
             });
             _bookingRepoMock.Setup(x => x.UpdateStatus(It.IsAny<BookingService>())).Returns(Task.CompletedTask);
 
+            _serviceRepoMock.Setup(x => x.GetServiceById("service123"))
+                .ReturnsAsync(new Service
+                {
+                    ServiceId = "service123",
+                    CategoryServiceId = "category001",
+                    ProviderId = "provider001",
+                    ServiceDescription = "Mô tả dịch vụ test",
+                    Price = 100000,
+                    ServiceName = "Test Service"
+                });
+
+
+            _accountRepoMock.Setup(x => x.GetAccountByIdAsync("expert123"))
+                .ReturnsAsync(new Account { AccId = "expert123" });
+
+            //_notificationServiceMock.Setup(x => x.SendNotificationAsync(It.IsAny<SendNotificationRequestDTO>()))
+            //    .ReturnsAsync(new CommonResponseDTO { Success = true });
+
+            _notificationServiceMock.Setup(x => x.SendNotificationAsync(It.IsAny<SendNotificationRequestDTO>()))
+                .ReturnsAsync(new SendNotificationResponseDTO
+                {
+                    Success = true,
+                    Message = "Mocked success",
+                    Data = new Notification
+                    {
+                        CategoryNotifiId = "685d3f6d1d2b7e9f45ae1c40",
+                        Content = "Accepted booking of Test Service"
+                        // Bạn có thể thêm các trường khác nếu cần, ví dụ: SenderId, TargetId, ...
+                    }
+                });
+
+
             var result = await _controller.ExpertAcceptBooking(bookingId);
+
             Assert.IsInstanceOf<OkObjectResult>(result);
         }
+
 
         //[Test]
         //public async Task UTCID02_UserNotAuthenticated_ShouldReturnBadRequest()

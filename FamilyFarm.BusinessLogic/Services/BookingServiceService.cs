@@ -248,15 +248,18 @@ namespace FamilyFarm.BusinessLogic.Services
             List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
             foreach (var item in listBooking)
             {
-                // Cập nhật trạng thái khi quá hạn thanh toán
-                if (item.PaymentDueDate < DateTime.Today)
+                if (item.IsPaidByFarmer == false)
                 {
-                    item.BookingServiceStatus = "Rejected";
-                    item.RejectServiceAt = DateTime.Now;
+                    // Cập nhật trạng thái khi quá hạn thanh toán
+                    if (item.PaymentDueDate < DateTime.Today)
+                    {
+                        item.BookingServiceStatus = "Rejected";
+                        item.RejectServiceAt = DateTime.Now;
 
-                    await _repository.UpdateStatus(item);
+                        await _repository.UpdateStatus(item);
+                    }
                 }
-
+                
                 var service = await _serviceRepository.GetByIdOutDelete(item.ServiceId);
                 var expert = await _accountRepository.GetAccountById(service.ProviderId);
                 var mapper = new BookingServiceMapper

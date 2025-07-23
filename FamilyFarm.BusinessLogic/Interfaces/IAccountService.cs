@@ -24,7 +24,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<UpdateBackgroundResponseDTO?> ChangeOwnBackground(string? accountId, UpdateBackgroundRequestDTO? request);
         Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetTotalByRoleIdsAsync(List<string> roleIds);
         Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate);
-        Task<List<Account>> GetAllAccountByRoleId(string role_id);
+        Task<List<Account>?> GetAllAccountByRoleId(string role_id);
         Task<bool> UpdateAccountStatus(string accId, int status);
         Task<Account?> GetAccountByAccId(string accId);
         Task<List<Account>> GetAllAccountExceptAdmin();
