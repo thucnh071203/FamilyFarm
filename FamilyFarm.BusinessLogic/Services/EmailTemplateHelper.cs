@@ -86,7 +86,7 @@ namespace FamilyFarm.BusinessLogic.Services
                             <p>Litopia</p>                            
                         </div>
                         <div class='footer'>
-                            <p>&copy; 2025 tranthaitansang23122003@gmail.com. Litopia.</p>
+                            <p>&copy; 2025 familyfarm0425@gmail.com. Litopia.</p>
                         </div>
                     </div>
                 </body>
