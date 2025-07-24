@@ -27,6 +27,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<(List<Post> posts, bool hasMore)> GetPaginatedPosts(string? last_post_id, int page_size);
         Task<(List<BasePostItem> items, bool hasMore)> GetPaginatedPostsAndSharePosts(string? lastPostId, string? lastSharePostId, int pageSize);
         Task<List<Post>?> GetListPostCheckedByAI();
+        Task<List<Post>?> GetAllPostsForAdmin();
         Task<List<Post>?> GetListPostByAccId(string? accId, string? privacy);
         Task<(List<Post>, bool)> GetListPostInYourGroup(string? lastPostId, int pageSize, List<string> groupIds);
         Task<(List<Post>, bool)> GetListPostInYourGroupDetail(string? lastPostId, int pageSize, string groupId);

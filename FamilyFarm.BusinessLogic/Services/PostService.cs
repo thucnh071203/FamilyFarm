@@ -72,9 +72,9 @@ namespace FamilyFarm.BusinessLogic.Services
             var ownAccount = await _accountRepository.GetAccountByUsername(username);
             if (ownAccount == null)
                 return null;
-            //bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.PostContent);
+            bool AICheck = await _cohereService.IsAgricultureRelatedAsync(request.PostContent);
 
-            bool AICheck = true;
+           // bool AICheck = true;
 
             var postRequest = new Post();
             postRequest.PostContent = request.PostContent;
@@ -246,6 +246,8 @@ namespace FamilyFarm.BusinessLogic.Services
             var reactions = await _reactionRepository.GetAllByEntityAsync(postId, "Post");
             var comments = await _commentRepository.GetAllByPost(postId);
             var shares = await _sharePostRepository.GetByPost(postId);
+            var account = await _accountRepository.GetAccountById(post.AccId);
+            var ownerPost = _mapper.Map<MyProfileDTO>(account);
 
             PostMapper postData = new PostMapper
             {
@@ -256,7 +258,9 @@ namespace FamilyFarm.BusinessLogic.Services
                 PostCategories = await _postCategoryRepository.GetCategoryByPost(postId),
                 PostImages = await _postImageRepository.GetPostImageByPost(postId),
                 HashTags = await _hashTagRepository.GetHashTagByPost(postId),
-                PostTags = await _postTagRepository.GetPostTagByPost(postId)
+                PostTags = await _postTagRepository.GetPostTagByPost(postId),
+                OwnerPost = ownerPost,
+                
             };
 
             return new PostResponseDTO
@@ -1407,9 +1411,86 @@ namespace FamilyFarm.BusinessLogic.Services
 
                 //2.4 Lấy list tag friend
                 var listTagFriend = await _postTagRepository.GetPostTagByPost(post.PostId);
+
+               
                 if (listTagFriend != null)
                 {
                     postMapper.PostTags = listTagFriend;
+                }
+                var owner = await _accountRepository.GetAccountByAccId(post.AccId);
+                var ownerSharePost = _mapper.Map<MyProfileDTO>(owner);
+                if (owner != null) {
+                    postMapper.OwnerPost = ownerSharePost;
+                }
+
+                //Add post mappaer vào List post mapper
+                data.Add(postMapper);
+            }
+
+            return new ListPostResponseDTO
+            {
+                Message = "Get list post valid is success.",
+                Success = true,
+                Data = data
+            };
+        }
+        public async Task<ListPostResponseDTO?> GetAllPostsForAdmin()
+        {
+            //1. Lấy list post valid
+            var listPostValid = await _postRepository.GetAllPostsForAdmin();
+
+            if (listPostValid == null)
+                return null;
+
+            if (listPostValid.Count <= 0)
+                return new ListPostResponseDTO
+                {
+                    Message = "List post is empty.",
+                    Success = false
+                };
+
+            //2. Lấy các thành phần cho từng post
+            List<PostMapper> data = new List<PostMapper>();
+
+            foreach (var post in listPostValid)
+            {
+                var postMapper = new PostMapper();
+                postMapper.Post = post;
+
+                //2.1 Lấy list images cho từng post
+                var listImage = await _postImageRepository.GetPostImageByPost(post.PostId);
+                if (listImage != null)
+                {
+                    postMapper.PostImages = listImage;
+                }
+
+                //2.2 Lấy list hashtag
+                var listHashtag = await _hashTagRepository.GetHashTagByPost(post.PostId);
+                if (listHashtag != null)
+                {
+                    postMapper.HashTags = listHashtag;
+                }
+
+                //2.3 Lấy list category
+                var listPostCategory = await _postCategoryRepository.GetCategoryByPost(post.PostId);
+                if (listPostCategory != null)
+                {
+                    postMapper.PostCategories = listPostCategory;
+                }
+
+                //2.4 Lấy list tag friend
+                var listTagFriend = await _postTagRepository.GetPostTagByPost(post.PostId);
+
+
+                if (listTagFriend != null)
+                {
+                    postMapper.PostTags = listTagFriend;
+                }
+                var owner = await _accountRepository.GetAccountByAccId(post.AccId);
+                var ownerSharePost = _mapper.Map<MyProfileDTO>(owner);
+                if (owner != null)
+                {
+                    postMapper.OwnerPost = ownerSharePost;
                 }
 
                 //Add post mappaer vào List post mapper
@@ -1429,19 +1510,21 @@ namespace FamilyFarm.BusinessLogic.Services
             if (string.IsNullOrEmpty(postId)) return null;
             var post = await _postRepository.GetPostById(postId);
 
-            var check = await _cohereService.IsAgricultureRelatedAsync(post.PostContent);
-            if (check == false)
-            {
-                post.Status = 1;
-                var update = await _postRepository.UpdatePost(post);
-                return false;
-            }
-            else
-            {
+            //var check = await _cohereService.IsAgricultureRelatedAsync(post.PostContent);
+            
+            //if (check == false)
+            //{
+            //    post.Status = 1;
+            //    var update = await _postRepository.UpdatePost(post);
+            //    return false;
+            //}
+            //else
+            //{
                 post.Status = 0;
                 var update = await _postRepository.UpdatePost(post);
-                return true;
-            }
+            return update != null;
+
+            //}
 
         }
 

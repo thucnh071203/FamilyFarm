@@ -45,7 +45,7 @@ namespace FamilyFarm.API.Controllers
             var user = _authenService.GetDataFromToken();
             if (user == null)
                 return Unauthorized();
-            if (user.RoleName != "Admin")
+            if (user.RoleName != "ADMIN")
                 return Forbid();
 
             var result = await _paymentService.GetListPayment();

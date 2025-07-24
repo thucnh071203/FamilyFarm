@@ -152,6 +152,7 @@ namespace FamilyFarm.DataAccess.DAOs
                 var update = Builders<Post>.Update
                     .Set(x => x.PostContent, request.PostContent)
                     .Set(x => x.PostScope, request.PostScope)
+                    .Set(x => x.Status, request.Status)
                     .Set(x => x.UpdatedAt, DateTime.UtcNow);
                 // Thêm các field khác bạn muốn update ở đây
 
@@ -480,6 +481,20 @@ namespace FamilyFarm.DataAccess.DAOs
             try
             {
                 var filter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false); // chỉ lấy những post chưa bị xóa
+                return await _post.Find(filter).SortByDescending(p => p.CreatedAt).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting all posts: {ex.Message}");
+                return new List<Post>();
+            }
+        }
+
+        public async Task<List<Post>> GetAllPostsForAdmin()
+        {
+            try
+            {
+                var filter = Builders<Post>.Filter.Empty;
                 return await _post.Find(filter).SortByDescending(p => p.CreatedAt).ToListAsync();
             }
             catch (Exception ex)
