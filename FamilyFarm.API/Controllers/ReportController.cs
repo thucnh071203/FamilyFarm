@@ -39,15 +39,15 @@ namespace FamilyFarm.API.Controllers
         /// If no reports exist, it returns an empty list with a 200 OK status.
         /// </returns>
         [HttpGet("all")]
-        [Authorize(Roles = "ADMIN")]
+        //[Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetAllReport()
         {
             var user = _authenService.GetDataFromToken();
             if (user == null)
                 return Unauthorized();
 
-            if (user.RoleName != "Admin")
-                return Forbid();
+            //if (user.RoleName != "Admin")
+            //    return Forbid();
 
             var reports = await _reportService.GetAll();
             return Ok(reports);
@@ -169,15 +169,15 @@ namespace FamilyFarm.API.Controllers
         /// - If the update fails, returns a 400 Bad Request with a message "Invalid".
         /// </returns>
         [HttpPut("accept/{id}")]
-        [Authorize(Roles = "ADMIN")]
+        //[Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Accept(string id)
         {
             var account = _authenticationService.GetDataFromToken();
             if (account == null)
                 return Unauthorized("Invalid token or user not found.");
 
-            if (account.RoleName?.ToUpper() != "ADMIN")
-                return Forbid();
+            //if (account.RoleName?.ToUpper() != "ADMIN")
+            //    return Forbid();
 
             if (string.IsNullOrEmpty(id))
                 return BadRequest("Invalid report ID.");
@@ -226,7 +226,7 @@ namespace FamilyFarm.API.Controllers
         /// - If the update fails, returns a 400 Bad Request with a message "Invalid".
         /// </returns>
         [HttpPut("reject/{id}")]
-        [Authorize(Roles = "ADMIN")]
+        //[Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Reject(string id)
         {
             var userClaims = _authenService.GetDataFromToken();
