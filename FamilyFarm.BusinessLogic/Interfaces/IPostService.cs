@@ -30,6 +30,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ListPostResponseDTO?> GetListInfinitePost(string? last_post_id, int page_size);
         Task<ListPostResponseDTO?> GetListInfinitePostAndSharePost(string? lastPostId, string? lastSharePostId, int pageSize);
         Task<ListPostResponseDTO?> GetListPostCheckedAI();
+        Task<ListPostResponseDTO?> GetAllPostsForAdmin();
         Task<bool?> CheckPostByAI(string postId);
         Task<ListPostResponseDTO?> GetListDeletedPostByAccount(string? accId);
         Task<ListPostResponseDTO?> GetPostsOwner(string? accId);

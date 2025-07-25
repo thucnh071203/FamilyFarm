@@ -379,9 +379,22 @@ namespace FamilyFarm.API.Controllers
         }
 
         [HttpGet("list-checked-by-ai")]
+        [Authorize]
         public async Task<ActionResult<ListPostResponseDTO?>> GetListPostCheckedAI()
         {
             var result = await _postService.GetListPostCheckedAI();
+
+            if (result == null || result.Success == false)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("list-post-for-admin")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO?>> GetAllPostsForAdmin()
+        {
+            var result = await _postService.GetAllPostsForAdmin();
 
             if (result == null || result.Success == false)
                 return BadRequest(result);
@@ -457,7 +470,7 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("moderation-post/{postId}")]
+        [HttpPut("moderation-post/{postId}")]
         [Authorize]
         public async Task<ActionResult<bool?>> ModerationPostByAI(string postId)
         {
