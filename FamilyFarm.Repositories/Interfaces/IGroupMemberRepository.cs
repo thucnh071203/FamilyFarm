@@ -30,5 +30,10 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool> UpdateMemberRoleAsync(string groupMemberId, string newGroupRoleId);
         Task<bool> LeaveGroupAsync(string groupId, string accId);
         Task<GroupMember> GetMemberJoinedGroup(string groupId, string accId);
+        Task<GroupMember> InviteMember(string groupId, string accountId, string inviterId);
+        Task<bool> RespondToInviteRequestAsync(string groupMemberId, string responseStatus);
+        Task<GroupMember> GetMemberInvitedGroup(string groupId, string accId);
+        Task<GroupMember> GetMemberInvitedOrJoinedGroup(string groupId, string accId);
+        Task<GroupMember> GetGroupMemberInviteById(string groupMemberId);
     }
 }

@@ -54,21 +54,6 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<SendNotificationResponseDTO> SendNotificationAsync(SendNotificationRequestDTO request)
         {
-            // Validate input request data
-            //if (request == null
-            //    || request.ReceiverIds == null || !request.ReceiverIds.Any()
-            //    || string.IsNullOrEmpty(request.Content)
-            //    || string.IsNullOrEmpty(request.CategoryNotiId)
-            //    || !ObjectId.TryParse(request.CategoryNotiId, out _)
-            //    || !ObjectId.TryParse(request.TargetId, out _))
-            //{
-            //    return new SendNotificationResponseDTO
-            //    {
-            //        Success = false,
-            //        Message = "Invalid notification input data."
-            //    };
-            //}
-
             // Validate ReceiverIds
             foreach (var receiverId in request.ReceiverIds)
             {
