@@ -226,5 +226,85 @@ namespace FamilyFarm.API.Controllers
            
             return Ok(check);
         }
+        [HttpPost("invite/{groupId}/{accountId}")]
+        [Authorize]
+        public async Task<IActionResult> InviteGroupMember(string groupId, string accountId)
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            if (!ObjectId.TryParse(account.AccId, out _))
+                return BadRequest("Invalid AccIds.");
+
+            string inviterId = account.AccId;
+
+            if (string.IsNullOrEmpty(groupId) || string.IsNullOrEmpty(accountId))
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "GroupId or AccountId is null",
+                });
+            }
+
+            var result = await _groupMemberService.InviteGroupMember(groupId, accountId, inviterId);
+
+            if (result == null)
+            {
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = "Invite member failed."
+                });
+            }
+
+            return Ok(new
+            {
+                Success = true,
+                Message = "Invite member successfully.",
+                Data = result
+            });
+        }
+
+        [HttpPut("response-to-invite-group/{groupMemberId}")]
+        public async Task<IActionResult> RespondToInviteRequest(string groupMemberId, [FromQuery] string status)
+        {
+            var success = await _groupMemberService.RespondToInviteRequestAsync(groupMemberId, status);
+
+            if (!success)
+            {
+                return BadRequest(new { message = "Invalid request or status" });
+            }
+
+            return Ok(new { message = $"Invite request has been {status.ToLower()}ed successfully" });
+        }
+
+        [HttpGet("get-by-groupid-accid/{groupId}/{accountId}")]
+        [Authorize]
+        public async Task<IActionResult> GetMemberInvitedOrJoinedGroupAsync(string groupId, string accountId)
+        {
+            var account = _authenService.GetDataFromToken();
+            if (account == null)
+                return Unauthorized("Invalid token or user not found.");
+
+            var groupMember = await _groupMemberService.GetMemberInvitedOrJoinedGroup(groupId, accountId);
+
+            if (groupMember == null)
+                return NotFound("Group member not found or not invited/accepted.");
+
+            return Ok(groupMember);
+        }
+
+        [HttpGet("get-member-invite-by-id/{groupMemberId}")]
+        public async Task<IActionResult> GetGroupMemberInviteById(string groupMemberId)
+        {
+            var groupMember = await _groupMemberService.GetGroupMemberInviteById(groupMemberId);
+
+            if (groupMember == null)
+                return NotFound("Không tìm thấy lời mời tham gia nhóm với ID đã cho.");
+
+            return Ok(groupMember);
+        }
     }
 }

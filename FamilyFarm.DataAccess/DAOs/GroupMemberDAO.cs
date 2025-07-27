@@ -47,7 +47,7 @@ namespace FamilyFarm.DataAccess.DAOs
                 GroupId = groupId,
                 AccId = accountId,
                 JointAt = DateTime.Now,
-                MemberStatus = "Pending",
+                MemberStatus = "Accept",
                 InviteByAccId = inviterId,
                 LeftAt = null
             };
@@ -325,6 +325,96 @@ namespace FamilyFarm.DataAccess.DAOs
             );
 
             return await _GroupMembers.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<GroupMember> InviteAsync(string groupId, string accountId, string inviterId)
+        {
+            if (!ObjectId.TryParse(groupId, out _)) return null;
+
+            if (!ObjectId.TryParse(accountId, out _)) return null;
+
+            if (!ObjectId.TryParse(accountId, out _)) return null;
+
+            var addGroupMember = new GroupMember
+            {
+                GroupMemberId = ObjectId.GenerateNewId().ToString(),
+                GroupRoleId = "680cebdfac700e1cb4c165b2", // mặc định là member
+                GroupId = groupId,
+                AccId = accountId,
+                JointAt = DateTime.Now,
+                MemberStatus = "Invite",
+                InviteByAccId = inviterId,
+                LeftAt = null
+            };
+
+
+            await _GroupMembers.InsertOneAsync(addGroupMember);
+
+            return addGroupMember;
+        }
+
+        public async Task<bool> RespondToInviteRequestAsync(string groupMemberId, string responseStatus)
+        {
+            if (!ObjectId.TryParse(groupMemberId, out _)) return false;
+
+            var validStatuses = new[] { "Accept", "Pending", "Reject" };
+            if (!validStatuses.Contains(responseStatus)) return false;
+
+            var filter = Builders<GroupMember>.Filter.Eq(gm => gm.GroupMemberId, groupMemberId) &
+                         Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Invite");
+            if (responseStatus.Equals(validStatuses[0]))
+            {
+                var update = Builders<GroupMember>.Update
+                    .Set(gm => gm.GroupRoleId, "680cebdfac700e1cb4c165b2")
+                .Set(gm => gm.MemberStatus, responseStatus)
+                .Set(gm => gm.JointAt, DateTime.UtcNow);
+                var result = await _GroupMembers.UpdateOneAsync(filter, update);
+                return result.ModifiedCount > 0;
+            }
+            else
+            {
+                var deleteResult = await _GroupMembers.DeleteOneAsync(filter);
+                return deleteResult.DeletedCount > 0;
+            }
+
+
+        }
+
+        public async Task<GroupMember> GetMemberInvitedGroupAsync(string groupId, string accId)
+        {
+            if (!ObjectId.TryParse(groupId, out _) || !ObjectId.TryParse(accId, out _))
+                return null;
+
+            // Tìm GroupMember hợp lệ
+            var filter = Builders<GroupMember>.Filter.And(
+                Builders<GroupMember>.Filter.Eq(g => g.GroupId, groupId),
+                Builders<GroupMember>.Filter.Eq(g => g.AccId, accId),
+                Builders<GroupMember>.Filter.Eq(g => g.MemberStatus, "Invite")
+            );
+
+            return await _GroupMembers.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<GroupMember> GetMemberInvitedOrJoinedGroupAsync(string groupId, string accId)
+        {
+            if (!ObjectId.TryParse(groupId, out _) || !ObjectId.TryParse(accId, out _))
+                return null;
+
+            // Tìm GroupMember hợp lệ
+            var filter = Builders<GroupMember>.Filter.And(
+                Builders<GroupMember>.Filter.Eq(g => g.GroupId, groupId),
+                Builders<GroupMember>.Filter.Eq(g => g.AccId, accId),
+                Builders<GroupMember>.Filter.In(g => g.MemberStatus, new[] { "Invite", "Accept", "Pending" })
+            );
+
+            return await _GroupMembers.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<GroupMember> GetMemberInviteByIdAsync(string groupMemberId)
+        {
+            if (!ObjectId.TryParse(groupMemberId, out _)) return null;
+
+            return await _GroupMembers.Find(g => g.GroupMemberId == groupMemberId && g.MemberStatus.Equals("Invite")).FirstOrDefaultAsync();
         }
     }
 }
