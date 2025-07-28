@@ -1,9 +1,12 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.DataAccess.DAOs;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,6 +72,23 @@ namespace FamilyFarm.BusinessLogic.Services
         public async Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId)
         {
             return await _statisticRepository.GetMostBookedServicesByExpertAsync(accId);
+        }
+        public async Task<ExpertRevenueDTO> GetRevenueByExpertAsync(string expertId, DateTime? from = null, DateTime? to = null)
+        {
+            return await _statisticRepository.GetExpertRevenueAsync(expertId, from, to);
+        }
+        public async Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null)
+   
+         {
+            return await _statisticRepository.GetSystemRevenueAsync(from, to);
+    }
+        public async Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status)
+        {
+            return await _statisticRepository.GetBookingsByStatusAsync(accId, status);
+        }
+        public async Task<long> GetTotalPostCountAsync()
+        {
+            return await _statisticRepository.CountPostsAsync();
         }
     }
 }

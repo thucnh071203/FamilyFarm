@@ -25,6 +25,12 @@ namespace FamilyFarm.API.Controllers
             _authenService = authenService;
         }
 
+        [HttpGet("totalPost")]
+        public async Task<IActionResult> GetTotalPosts()
+        {
+            var count = await _statisticService.GetTotalPostCountAsync();
+            return Ok(new { totalPosts = count });
+        }
 
         //[HttpGet("count-by-role")]
         //public async Task<IActionResult> CountByRole()
@@ -128,7 +134,7 @@ namespace FamilyFarm.API.Controllers
         //        data
         //    });
         //}
-    
+
         [HttpGet("user-growth")]
         public async Task<IActionResult> GetUserGrowth(DateTime? fromDate, DateTime? toDate)
         {
@@ -249,8 +255,19 @@ namespace FamilyFarm.API.Controllers
 
         //++++++++++++++++++
 
+        [Authorize]
+        [HttpGet("by-status")]
+        public async Task<IActionResult> GetByStatus([FromQuery] string status)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
 
+            if (string.IsNullOrEmpty(accId))
+                        return BadRequest("thiếu accId");
 
+            var result = await _statisticService.GetBookingsByStatusAsync(accId, status);
+            return Ok(result);
+        }
         //[Authorize]
         //[HttpGet("bookingService/status")]
         //public async Task<ActionResult<Dictionary<string, int>>> GetStatisticByStatus()
@@ -472,6 +489,29 @@ namespace FamilyFarm.API.Controllers
             });
         }
 
+        [Authorize]
+        [HttpGet("expertRevenue")]
+        public async Task<IActionResult> GetRevenueByExpert([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        {
 
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+
+
+
+            if (string.IsNullOrEmpty(accId))
+                return BadRequest("accId is required.");
+
+            var result = await _statisticService.GetRevenueByExpertAsync(accId, from, to);
+            return Ok(result);
+        }
+
+
+        [HttpGet("system")]
+        public async Task<IActionResult> GetSystemRevenue([FromQuery] DateTime? from, [FromQuery] DateTime? to)
+        {
+            var dto = await _statisticService.GetSystemRevenueAsync(from, to);
+            return Ok(dto);
+        }
     }
 }
