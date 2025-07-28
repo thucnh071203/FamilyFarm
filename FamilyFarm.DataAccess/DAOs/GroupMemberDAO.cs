@@ -362,7 +362,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var filter = Builders<GroupMember>.Filter.Eq(gm => gm.GroupMemberId, groupMemberId) &
                          Builders<GroupMember>.Filter.Eq(gm => gm.MemberStatus, "Invite");
-            if (responseStatus.Equals(validStatuses[0]))
+            if (responseStatus.Equals(validStatuses[0]) || responseStatus.Equals(validStatuses[1]))
             {
                 var update = Builders<GroupMember>.Update
                     .Set(gm => gm.GroupRoleId, "680cebdfac700e1cb4c165b2")
@@ -376,8 +376,6 @@ namespace FamilyFarm.DataAccess.DAOs
                 var deleteResult = await _GroupMembers.DeleteOneAsync(filter);
                 return deleteResult.DeletedCount > 0;
             }
-
-
         }
 
         public async Task<GroupMember> GetMemberInvitedGroupAsync(string groupId, string accId)
