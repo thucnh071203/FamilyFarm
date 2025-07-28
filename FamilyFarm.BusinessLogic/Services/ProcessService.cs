@@ -1,4 +1,5 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
@@ -25,8 +26,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IUploadFileService _uploadFileService;
         private readonly IProcessStepRepository _processStepRepository;
         private readonly IPaymentRepository _paymenRepository;
+        private readonly IMapper _mapper;
 
-        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository, IUploadFileService uploadFileService, IProcessStepRepository processStepRepository, IPaymentRepository paymenRepository)
+        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository, IUploadFileService uploadFileService, IProcessStepRepository processStepRepository, IPaymentRepository paymenRepository, IMapper mapper)
         {
             _processRepository = processRepository;
             _accountRepository = accountRepository;
@@ -35,6 +37,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _uploadFileService = uploadFileService;
             _processStepRepository = processStepRepository;
             _paymenRepository = paymenRepository;
+            _mapper = mapper;
         }
 
         public async Task<ProcessResponseDTO> GetAllProcess()
@@ -622,10 +625,24 @@ namespace FamilyFarm.BusinessLogic.Services
                     listProcessStepEntityDTO.Add(processStep);
                 }
 
+                //LẤY THÔNG TIN SERVICE
+                var bookingService = await _bookingServiceRepository.GetById(subprocess.BookingServiceId);
+                var service = await _serviceRepository.GetServiceById(bookingService.ServiceId);
+
+                //Lấy thông tin farmer
+                var accountFarmer = await _accountRepository.GetAccountByAccId(subprocess.FarmerId);
+                var farmerProfile = _mapper.Map<MyProfileDTO>(accountFarmer);
+
+                //Lấy thông tin expert
+                var accountExpert = await _accountRepository.GetAccountByAccId(subprocess.ExpertId);
+                var expertProfile = _mapper.Map<MyProfileDTO>(accountExpert);
 
                 //ADD VÔ LIST SUBPROCESS
                 var subprocessData = new SubprocessEntityDTO
                 {
+                    Service = service,
+                    Expert = expertProfile,
+                    Farmer = farmerProfile,
                     SubProcess = subprocess,
                     ProcessSteps = listProcessStepEntityDTO
                 };
@@ -685,10 +702,24 @@ namespace FamilyFarm.BusinessLogic.Services
                     listProcessStepEntityDTO.Add(processStep);
                 }
 
+                //LẤY THÔNG TIN SERVICE
+                var bookingService = await _bookingServiceRepository.GetById(subprocess.BookingServiceId);
+                var service = await _serviceRepository.GetServiceById(bookingService.ServiceId);
+
+                //Lấy thông tin farmer
+                var accountFarmer = await _accountRepository.GetAccountByAccId(farmerId);
+                var farmerProfile = _mapper.Map<MyProfileDTO>(accountFarmer);
+
+                //Lấy thông tin expert
+                var accountExpert = await _accountRepository.GetAccountByAccId(subprocess.ExpertId);
+                var expertProfile = _mapper.Map<MyProfileDTO>(accountExpert);
 
                 //ADD VÔ LIST SUBPROCESS
                 var subprocessData = new SubprocessEntityDTO
                 {
+                    Service = service,
+                    Expert = expertProfile,
+                    Farmer = farmerProfile,
                     SubProcess = subprocess,
                     ProcessSteps = listProcessStepEntityDTO
                 };

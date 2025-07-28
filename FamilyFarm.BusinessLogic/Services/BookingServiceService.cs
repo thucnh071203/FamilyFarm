@@ -671,5 +671,30 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = listResponse,
             };
         }
+
+        public async Task<bool?> RequestExtraProcessByBooking(CreateExtraProcessRequestDTO request)
+        {
+            if (request == null)
+                return null;
+
+            if (request.BookingId == null || request.ExtraDescription == null)
+                return null;
+
+            var currentBooking = await _repository.GetById(request.BookingId);
+
+            if (currentBooking == null)
+                return null;
+
+            //CẬP NHẬT STATUS AND EXTRA DESCRIPTION
+            currentBooking.BookingServiceStatus = "Extra Request";
+            currentBooking.ExtraDescription = request.ExtraDescription;
+
+            var updatedBooking = await _repository.UpdateBooking(request.BookingId, currentBooking);
+
+            if (updatedBooking == null)
+                return false;
+
+            return true;
+        }
     }
 }
