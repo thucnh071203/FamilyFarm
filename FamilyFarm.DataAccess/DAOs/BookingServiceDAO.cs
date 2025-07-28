@@ -236,7 +236,8 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Set(b => b.RejectServiceAt, updatedBookingService.RejectServiceAt)
                 .Set(b => b.IsDeleted, updatedBookingService.IsDeleted)
                 .Set(b => b.ExpertId, updatedBookingService.ExpertId)
-                .Set(b => b.ServiceId, updatedBookingService.ServiceId);
+                .Set(b => b.ServiceId, updatedBookingService.ServiceId)
+                .Set(b => b.ExtraDescription, updatedBookingService.ExtraDescription);
 
             // Thực hiện cập nhật
             var result = await _bookingService.UpdateOneAsync(filter, update);

@@ -1,4 +1,5 @@
-﻿using FamilyFarm.Models.DTOs.Response;
+﻿using FamilyFarm.Models.DTOs.Request;
+using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using System;
 using System.Collections.Generic;
@@ -23,5 +24,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<BookingServiceResponseDTO?> GetListBookingPaid(string? expertId);
         Task<BookingServiceResponseDTO?> GetListBookingUnpaid(string? expertId);
         Task<BookingServiceResponseDTO?> GetListBookingCompleted();
+        Task<bool?> RequestExtraProcessByBooking(CreateExtraProcessRequestDTO request);
     }
 }

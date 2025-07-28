@@ -1,5 +1,6 @@
 ﻿using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -249,6 +250,23 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("Cannot get list unpaid booking of expert!");
 
             return Ok(result);
+        }
+
+        [HttpPut("request-extra")]
+        [Authorize]
+        public async Task<ActionResult> SendRequestExtraProcessByBooking([FromBody] CreateExtraProcessRequestDTO request)
+        {
+            if(request == null)
+              return BadRequest();
+
+            var result = await _bookingService.RequestExtraProcessByBooking(request);
+            if (result == null)
+                return BadRequest();
+
+            if (result == false)
+                return Conflict();
+
+            return Ok();
         }
     }
 }
