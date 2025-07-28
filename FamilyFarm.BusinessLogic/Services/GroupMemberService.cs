@@ -218,7 +218,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 if (getGroup.PrivacyType.Equals("Public"))
                 {
                     result = await _groupMemberRepository.RespondToInviteRequestAsync(groupMemberId, "Accept");
-                } else {
+                } else if (getGroup.PrivacyType.Equals("Private"))
+                {
                     result = await _groupMemberRepository.RespondToInviteRequestAsync(groupMemberId, "Pending");
                 }
             } else

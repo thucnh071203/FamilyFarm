@@ -1,4 +1,5 @@
-﻿using FamilyFarm.Models.DTOs.Request;
+﻿using FamilyFarm.Models.DTOs.EntityDTO;
+using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using System;
@@ -24,5 +25,12 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<Dictionary<string, int>> GetCountByDayAllMonthsAsync(string accId, int year);
         Task<Dictionary<string, int>> GetPopularServiceCategoriesAsync(string accId);
         Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId);
-        }
+
+        Task<ExpertRevenueDTO> GetExpertRevenueAsync(string expertId, DateTime? from = null, DateTime? to = null);
+        Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null);
+
+        Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status);
+        Task<long> CountPostsAsync();
+
+    }
 }
