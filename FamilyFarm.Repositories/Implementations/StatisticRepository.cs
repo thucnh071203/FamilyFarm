@@ -4,6 +4,7 @@ using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Interfaces;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,6 +82,36 @@ namespace FamilyFarm.Repositories.Implementations
         public async Task<ExpertRevenueDTO> GetExpertRevenueAsync(string expertId, DateTime? from = null, DateTime? to = null)
         {
             return await _statisticDAO.GetExpertRevenueAsync(expertId, from, to);
+        }
+        public async Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null)
+        {
+            var bookings = await _statisticDAO.FindPaidBookingsAsync(from, to);
+
+            var totalRev = bookings.Sum(b => b.Price ?? 0);
+            var totalBk = bookings.Count;
+
+            var revByMonth = bookings
+                .Where(b => b.BookingServiceAt.HasValue)
+                .GroupBy(b => b.BookingServiceAt!.Value.ToString("yyyy-MM"))
+                .ToDictionary(g => g.Key, g => g.Sum(b => b.Price ?? 0));
+
+            return new RevenueSystemDTO
+            {
+                TotalRevenue = totalRev,
+                TotalBookings = totalBk,
+                TotalCommission = totalRev * 0.9m, // Lấy 90% của tổng doanh thu
+                RevenueByMonth = revByMonth
+            };
+        }
+
+        public async Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status)
+        {
+            return await _statisticDAO.GetBookingsByStatusAsync(accId, status);
+        }
+
+        public async Task<long> CountPostsAsync()
+        {
+            return await _statisticDAO.CountPostsAsync();
         }
     }
 }

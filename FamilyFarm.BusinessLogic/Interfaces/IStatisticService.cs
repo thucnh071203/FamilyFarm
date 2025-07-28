@@ -24,5 +24,9 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<Dictionary<string, int>> GetPopularServiceCategoriesAsync(string accId);
         Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId);
         Task<ExpertRevenueDTO> GetRevenueByExpertAsync(string expertId, DateTime? from = null, DateTime? to = null);
+        Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null);
+        Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status);
+        Task<long> GetTotalPostCountAsync();
+
     }
 }

@@ -27,7 +27,6 @@ namespace FamilyFarm.DataAccess.DAOs
         private readonly IMongoCollection<Comment> Comments;
         private readonly IMongoCollection<Service> Services;
         private readonly IMongoCollection<CategoryService> CategoryServices;
-        private readonly IMongoCollection<PaymentTransaction> PaymentTransactions;
 
 
 
@@ -38,55 +37,72 @@ namespace FamilyFarm.DataAccess.DAOs
             _Account = database.GetCollection<Account>("Account");
             _postDAO = postDAO;
             BookingServices = database.GetCollection<BookingService>("BookingService");
-            PaymentTransaction = database.GetCollection<PaymentTransaction>("PaymentTransaction");
+            PaymentTransaction = database.GetCollection<PaymentTransaction>("Payment");
             Comments = database.GetCollection<Comment>("Comment");
             Services = database.GetCollection<Service>("Service");
             CategoryServices = database.GetCollection<CategoryService>("CategoryService");
-            PaymentTransactions = database.GetCollection<PaymentTransaction>("Payment");
             _Role = database.GetCollection<Role>("Role");
         }
 
 
+        public async Task<long> CountPostsAsync()
+        {
+            var filter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false);
+            return await Posts.CountDocumentsAsync(filter);
+        }
 
         public async Task<ExpertRevenueDTO> GetExpertRevenueAsync(string expertId, DateTime? from = null, DateTime? to = null)
         {
-            var filterBuilder = Builders<BookingService>.Filter;
-            var filter = filterBuilder.And(
-                filterBuilder.Eq(bs => bs.ExpertId, expertId),
-                filterBuilder.Eq(bs => bs.IsPaidByFarmer, true),
-                filterBuilder.Ne(bs => bs.IsDeleted, false)
+            // B1: Lấy danh sách booking services của expert
+            var bookingFilter = Builders<BookingService>.Filter.And(
+                Builders<BookingService>.Filter.Eq(bs => bs.ExpertId, expertId),
+                Builders<BookingService>.Filter.Eq(bs => bs.IsPaidByFarmer, true),
+                Builders<BookingService>.Filter.Ne(bs => bs.IsDeleted, true)
             );
 
-            var services = await BookingServices.Find(filter).ToListAsync();
+            var bookingServices = await BookingServices.Find(bookingFilter).ToListAsync();
 
-            // Lấy tất cả payment theo BookingServiceId
-            var bookingIds = services.Select(bs => bs.BookingServiceId).ToList();
-            var paymentFilter = Builders<PaymentTransaction>.Filter.In(p => p.BookingServiceId, bookingIds);
-            var payments = await PaymentTransactions.Find(paymentFilter).ToListAsync();
+            if (!bookingServices.Any())
+                return new ExpertRevenueDTO(); // Không có booking → return rỗng
 
-            // Mapping BookingId -> PayAt
-            var payAtDict = payments
-                .Where(p => p.PayAt.HasValue)
-                .ToDictionary(p => p.BookingServiceId!, p => p.PayAt!.Value);
+            // B2: Tạo dictionary cho nhanh
+            var bookingServiceDict = bookingServices
+                .Where(bs => bs.BookingServiceId != null)
+                .ToDictionary(bs => bs.BookingServiceId, bs => bs);
 
-            // Bắt đầu xử lý
+            var bookingServiceIds = bookingServiceDict.Keys.ToList(); // List<ObjectId>
+
+            // B3: Truy vấn payment transaction dựa theo BookingServiceId
+            var paymentFilter = Builders<PaymentTransaction>.Filter.In(
+                pt => pt.BookingServiceId, bookingServiceIds
+            );
+
+            var paymentTransactions = await PaymentTransaction.Find(paymentFilter).ToListAsync();
+
+            // B4: Filter theo PayAt nếu có
+            if (from.HasValue || to.HasValue)
+            {
+                paymentTransactions = paymentTransactions
+                    .Where(pt => pt.PayAt.HasValue &&
+                                 (!from.HasValue || pt.PayAt.Value >= from.Value) &&
+                                 (!to.HasValue || pt.PayAt.Value <= to.Value))
+                    .ToList();
+            }
+
+            // B5: Thống kê
             decimal totalRevenue = 0;
             decimal commissionRevenue = 0;
             int serviceCount = 0;
             var monthlyRevenue = new Dictionary<string, decimal>();
             var monthlyCommission = new Dictionary<string, decimal>();
+            var serviceNameStats = new Dictionary<string, int>();
             var dailyRevenue = new Dictionary<string, decimal>();
             var dailyCommission = new Dictionary<string, decimal>();
-            var serviceNameStats = new Dictionary<string, int>();
 
-            foreach (var service in services)
+            foreach (var payment in paymentTransactions)
             {
-                if (service.BookingServiceId == null || !payAtDict.ContainsKey(service.BookingServiceId)) continue;
-
-                var payAt = payAtDict[service.BookingServiceId];
-
-                // Kiểm tra khoảng thời gian
-                if ((from.HasValue && payAt < from.Value) || (to.HasValue && payAt > to.Value)) continue;
+                if (!payment.PayAt.HasValue) continue;
+                if (!bookingServiceDict.TryGetValue(payment.BookingServiceId, out var service)) continue;
 
                 var price = service.Price ?? 0;
                 var commissionRate = (service.CommissionRate ?? 0) / 100m;
@@ -95,7 +111,8 @@ namespace FamilyFarm.DataAccess.DAOs
                 commissionRevenue += commission;
                 serviceCount++;
 
-                var monthKey = payAt.ToString("yyyy-MM");
+                // Theo tháng
+                var monthKey = payment.PayAt.Value.ToString("yyyy-MM");
                 if (!monthlyRevenue.ContainsKey(monthKey))
                 {
                     monthlyRevenue[monthKey] = 0;
@@ -104,15 +121,17 @@ namespace FamilyFarm.DataAccess.DAOs
                 monthlyRevenue[monthKey] += price;
                 monthlyCommission[monthKey] += commission;
 
-                var dateKey = payAt.ToString("yyyy-MM-dd");
-                if (!dailyRevenue.ContainsKey(dateKey))
+                // Theo ngày
+                var dayKey = payment.PayAt.Value.ToString("yyyy-MM-dd");
+                if (!dailyRevenue.ContainsKey(dayKey))
                 {
-                    dailyRevenue[dateKey] = 0;
-                    dailyCommission[dateKey] = 0;
+                    dailyRevenue[dayKey] = 0;
+                    dailyCommission[dayKey] = 0;
                 }
-                dailyRevenue[dateKey] += price;
-                dailyCommission[dateKey] += commission;
+                dailyRevenue[dayKey] += price;
+                dailyCommission[dayKey] += commission;
 
+                // Thống kê top dịch vụ
                 if (!string.IsNullOrEmpty(service.ServiceName))
                 {
                     if (!serviceNameStats.ContainsKey(service.ServiceName))
@@ -122,9 +141,9 @@ namespace FamilyFarm.DataAccess.DAOs
             }
 
             var topServiceNames = serviceNameStats
-                .OrderByDescending(kvp => kvp.Value)
+                .OrderByDescending(x => x.Value)
                 .Take(3)
-                .Select(kvp => kvp.Key)
+                .Select(x => x.Key)
                 .ToList();
 
             return new ExpertRevenueDTO
@@ -135,15 +154,23 @@ namespace FamilyFarm.DataAccess.DAOs
                 TotalServicesProvided = serviceCount,
                 MonthlyRevenue = monthlyRevenue,
                 MonthlyCommission = monthlyCommission,
+                TopServiceNames = topServiceNames,
                 DailyRevenue = dailyRevenue,
-                DailyCommission = dailyCommission,
-                TopServiceNames = topServiceNames
+                DailyCommission = dailyCommission
             };
         }
+        public async Task<List<BookingService>> FindPaidBookingsAsync(DateTime? from = null, DateTime? to = null)
+        {
+            var fb = Builders<BookingService>.Filter;
+            var filter = fb.Eq(bs => bs.IsPaidByFarmer, true);
 
+            if (from.HasValue)
+                filter &= fb.Gte(bs => bs.BookingServiceAt, from.Value);
+            if (to.HasValue)
+                filter &= fb.Lte(bs => bs.BookingServiceAt, to.Value);
 
-
-
+            return await BookingServices.Find(filter).ToListAsync();
+        }
 
 
         public async Task<List<EngagedPostResponseDTO>> GetTopEngagedPostsAsync(
@@ -214,98 +241,6 @@ namespace FamilyFarm.DataAccess.DAOs
         }
 
 
-        //    public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
-        //    {
-
-        //        var posts = await Posts
-        //  .Find(p => p.CreatedAt >= startDate && p.CreatedAt <= endDate && !p.IsDeleted)
-        //  .ToListAsync();
-
-        //        var comments = await Comments
-        //            .Find(c => c.CreateAt >= startDate && c.CreateAt <= endDate && (c.IsDeleted == null || c.IsDeleted == false))
-        //            .ToListAsync();
-
-        //        var bookings = await BookingServices
-        //            .Find(b => b.BookingServiceAt >= startDate && b.BookingServiceAt <= endDate && b.IsDeleted != true)
-        //            .ToListAsync();
-
-
-        //        // tạo danh sách các thành viên với thông tin hoạt động
-        //        var memberActivity = new List<MemberActivityResponseDTO>();
-
-        //        // lấy các bài viết của từng thành viên
-        //        var postGroupedByAccount = posts
-        //            .GroupBy(p => p.AccId)
-        //            .ToDictionary(g => g.Key, g => g.Count());
-
-        //        // lấy các bình luận của từng thành viên
-        //        var commentGroupedByAccount = comments
-        //            .GroupBy(c => c.AccId)
-        //            .ToDictionary(g => g.Key, g => g.Count());
-
-        //        // lấy các dịch vụ đã đặt của từng thành viên
-        //        var bookingGroupedByAccount = bookings
-        //            .GroupBy(b => b.AccId)
-        //            .ToDictionary(g => g.Key, g => g.Count());
-
-        //        // tính số lần thanh toán của mỗi thành viên
-        //        var paymentGroupedByAccount = bookings
-        //            .Where(b => b.FirstPaymentAt != null || b.SecondPaymentAt != null)
-        //            .GroupBy(b => b.AccId)
-        //            .ToDictionary(g => g.Key, g => g.Count());
-
-
-        //        var accountIds = postGroupedByAccount.Keys
-        // .Concat(commentGroupedByAccount.Keys)
-        // .Concat(bookingGroupedByAccount.Keys)
-        // .Distinct()
-        // .ToList();
-
-        //        var accounts = await _Account
-        //            .Find(a => accountIds.Contains(a.AccId))
-        //            .ToListAsync();
-
-        //        var roleIds = accounts
-        //.Where(a => !string.IsNullOrEmpty(a.RoleId))
-        //.Select(a => a.RoleId)
-        //.Distinct()
-        //        .ToList();
-
-        //        var roles = await _Role
-        //            .Find(r => roleIds.Contains(r.RoleId))
-        //            .ToListAsync();
-
-
-        //        foreach (var account in postGroupedByAccount)
-        //        {
-        //            var accountId = account.Key;
-        //            var totalPosts = account.Value;
-        //            var totalComments = commentGroupedByAccount.ContainsKey(accountId) ? commentGroupedByAccount[accountId] : 0;
-        //            var totalBookings = bookingGroupedByAccount.ContainsKey(accountId) ? bookingGroupedByAccount[accountId] : 0;
-        //            var totalPayments = paymentGroupedByAccount.ContainsKey(accountId) ? paymentGroupedByAccount[accountId] : 0;
-        //            var accountInfo = accounts.FirstOrDefault(a => a.AccId == accountId);
-        //            var roleInfo = roles.FirstOrDefault(r => r.RoleId == accountInfo?.RoleId);
-
-
-        //            var memberDTO = new MemberActivityResponseDTO
-        //            {
-        //                AccId = accountId,
-        //                AccountName = accountInfo?.FullName,
-        //                AccountAddress = accountInfo?.Address,
-        //                RoleName = roleInfo?.RoleName,
-        //                TotalPosts = totalPosts,
-        //                TotalComments = totalComments,
-        //                TotalBookings = totalBookings,
-        //                TotalPayments = totalPayments,
-        //                TotalActivity = totalPosts + totalComments + totalBookings + totalPayments // Tổng hoạt động
-        //            };
-
-        //            memberActivity.Add(memberDTO);
-        //        }
-
-        //        return memberActivity.OrderByDescending(m => m.TotalActivity).Take(10).ToList();
-
-        //    }
 
 
         public async Task<List<MemberActivityResponseDTO>> GetMostActiveMembersAsync(DateTime startDate, DateTime endDate)
@@ -474,6 +409,16 @@ namespace FamilyFarm.DataAccess.DAOs
 
         //    return grouped;
         //}
+        public async Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status)
+        {
+            var fb = Builders<BookingService>.Filter;
+            var filter = fb.Eq(x => x.ExpertId, accId) &
+                         fb.Eq(x => x.BookingServiceStatus, status) &
+                         fb.Ne(x => x.IsDeleted, true);
+
+            return await BookingServices.Find(filter).ToListAsync();
+        }
+
 
         public async Task<Dictionary<string, int>> CountByDateAsync(string accId, string time)
         {
@@ -515,7 +460,7 @@ namespace FamilyFarm.DataAccess.DAOs
             return bookings
                 .GroupBy(b => b.BookingServiceAt.Value.Month)
                 .OrderBy(g => g.Key)
-                .ToDictionary(g => $"Tháng {g.Key}", g => g.Count());
+                .ToDictionary(g => $"Month {g.Key}", g => g.Count());
         }
 
         public async Task<Dictionary<string, int>> GetCountByDayAllMonthsAsync(string accId, int year)
@@ -559,39 +504,6 @@ namespace FamilyFarm.DataAccess.DAOs
                     g => g.Count());
         }
 
-
-        //public async Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId)
-        //{
-        //    //Lấy tất cả các service của Expert
-        //    var expertServiceFilter = Builders<Service>.Filter.Eq(s => s.ProviderId, accId);
-        //    var expertServices = await Services.Find(expertServiceFilter).ToListAsync();
-
-        //    var expertServiceObjectIds = expertServices.Select(s => new ObjectId(s.ServiceId)).ToList();
-
-
-        //    var serviceIdNameDict = expertServices.ToDictionary(s => s.ServiceId, s => s.ServiceName);
-
-
-        //    var expertServiceIds = serviceIdNameDict.Keys.ToList();
-
-        //    //Lọc BookingService có ServiceId thuộc danh sách trên và Status là Accepted
-        //    var bookingFilter = Builders<BookingService>.Filter.And(
-        //        Builders<BookingService>.Filter.In(b => b.ServiceId, expertServiceIds),
-        //        Builders<BookingService>.Filter.Eq(b => b.BookingServiceStatus, "Accept") 
-        //    );
-
-        //    var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
-
-        //    //Nhóm theo ServiceId và đếm
-        //    var result = bookings
-        //        .GroupBy(b => b.ServiceId)
-        //        .ToDictionary(
-        //            g => serviceIdNameDict.TryGetValue(g.Key, out var name) ? name : "Unknown",
-        //            g => g.Count()
-        //        );
-
-        //    return result;
-        //}
         public async Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId)
         {
             // 1. Lấy danh sách service của expert

@@ -27,7 +27,10 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<Dictionary<string, int>> GetMostBookedServicesByExpertAsync(string accId);
 
         Task<ExpertRevenueDTO> GetExpertRevenueAsync(string expertId, DateTime? from = null, DateTime? to = null);
+        Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null);
 
+        Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status);
+        Task<long> CountPostsAsync();
 
     }
 }
