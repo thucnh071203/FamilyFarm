@@ -525,6 +525,8 @@ namespace FamilyFarm.BusinessLogic.Services
             if (request == null || expertId == null)
                 return null;
 
+            var IsExtraProcess = request.IsExtraProcess == null ? false : request.IsExtraProcess;
+
             //THEM SUBPROCESS MỚI
             var requestSubproccess = new SubProcess
             {
@@ -540,7 +542,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 SubProcessStatus = "Not Started", //Đã tạo sub process
                 CreatedAt = DateTime.UtcNow,
                 IsCompletedByFarmer = false,
-                IsDeleted = false
+                IsDeleted = false,
+                IsExtraProcess = IsExtraProcess
             };
 
             var created = await _processRepository.CreateSubprocess(requestSubproccess);
@@ -578,7 +581,12 @@ namespace FamilyFarm.BusinessLogic.Services
             }
 
             //KHI TẠO THÀNH CÔNG RỒI UPDATE TRẠNG THÁI BOOKING LẠI
-            await _bookingServiceRepository.UpdateStatus(request.BookingServiceId, "On Process");
+            var currentBooking = await _bookingServiceRepository.GetById(request.BookingServiceId);
+            currentBooking.BookingServiceStatus = "On Process";
+            currentBooking.HasExtraProcess = true;
+
+            var updatedBooking = await _bookingServiceRepository.UpdateBooking(request.BookingServiceId, currentBooking);
+
             return true;
 
         }

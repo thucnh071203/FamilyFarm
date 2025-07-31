@@ -189,6 +189,21 @@ namespace FamilyFarm.DataAccess.DAOs
             return results;
         }
 
+        public async Task<List<BookingService>> GetListExtraRequest(string? expertId)
+        {
+            if (string.IsNullOrEmpty(expertId))
+                return new List<BookingService>();
+
+            var filter = Builders<BookingService>.Filter.And(
+                Builders<BookingService>.Filter.Eq(b => b.ExpertId, expertId),
+                Builders<BookingService>.Filter.Eq(b => b.BookingServiceStatus, "Extra Request"),
+                Builders<BookingService>.Filter.Eq(b => b.HasExtraProcess, false)
+            );
+
+            var result = await _bookingService.Find(filter).ToListAsync();
+            return result;
+        }
+
         public async Task<BookingService> UpdateBookingPaymentAsync(string bookingId, BookingService booking)
         {
             if (!ObjectId.TryParse(bookingId, out _)) return null;
@@ -237,7 +252,8 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Set(b => b.IsDeleted, updatedBookingService.IsDeleted)
                 .Set(b => b.ExpertId, updatedBookingService.ExpertId)
                 .Set(b => b.ServiceId, updatedBookingService.ServiceId)
-                .Set(b => b.ExtraDescription, updatedBookingService.ExtraDescription);
+                .Set(b => b.ExtraDescription, updatedBookingService.ExtraDescription)
+                .Set(b => b.HasExtraProcess, updatedBookingService.HasExtraProcess);
 
             // Thực hiện cập nhật
             var result = await _bookingService.UpdateOneAsync(filter, update);

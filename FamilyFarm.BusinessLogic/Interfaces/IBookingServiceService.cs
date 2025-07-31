@@ -25,5 +25,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<BookingServiceResponseDTO?> GetListBookingUnpaid(string? expertId);
         Task<BookingServiceResponseDTO?> GetListBookingCompleted();
         Task<bool?> RequestExtraProcessByBooking(CreateExtraProcessRequestDTO request);
+        Task<BookingServiceResponseDTO?> GetListExtraRequest(string? expertId);
     }
 }

@@ -14,6 +14,7 @@ namespace FamilyFarm.Models.DTOs.Request
         public string? Description  { get; set; }
         public string? Title { get; set; }
         public int NumberOfSteps { get; set; }
+        public bool? IsExtraProcess { get; set; }
 
         //PHẦN NÀY LẤY THÔNG TIN PROCESS STEP
         public List<ProcessStepRequestDTO>? ProcessSteps { get; set; }
