@@ -268,5 +268,26 @@ namespace FamilyFarm.API.Controllers
 
             return Ok();
         }
+
+        [HttpGet("request-extra")]
+        [Authorize]
+        public async Task<ActionResult> GetListReuqestExtraProcess()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            if(userClaims == null)
+                return Unauthorized();
+
+            var accId = userClaims.AccId;
+
+            var result = await _bookingService.GetListExtraRequest(accId);
+
+            if (result == null)
+                return BadRequest();
+
+            if(result.Success == false) 
+                return Conflict();
+
+            return Ok(result);
+        }
     }
 }

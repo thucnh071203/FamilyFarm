@@ -35,6 +35,7 @@ namespace FamilyFarm.Models.Models
         public bool? IsPaidToExpert { get; set; }
 
         //EXTRA PROCESS
+        public bool HasExtraProcess { get; set; }
         public string? ExtraDescription { get; set; }
     }
 }
