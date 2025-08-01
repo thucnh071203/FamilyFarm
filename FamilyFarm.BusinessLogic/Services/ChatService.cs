@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Config;
 using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.DataAccess.DAOs;
@@ -9,14 +10,19 @@ using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using Google.Cloud.AIPlatform.V1;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Mscc.GenerativeAI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace FamilyFarm.BusinessLogic.Services
@@ -32,6 +38,12 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IAccountRepository _accountRepository;
         private readonly ICategoryNotificationRepository _categoryNotificationRepository;
         private readonly INotificationTemplateService _notificationTemplate;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _instructions;
+        private const string CohereApiKey = "oJW30Myk7DDQEglvMxyEZyI5gSTCyb7DcNTRVDLt";
+        private const string CohereEndpoint = "https://api.cohere.ai/v1/generate";
+        private readonly string _initializationError;
+
 
         /// <summary>
         /// Constructor to initialize the chat service with required repositories and SignalR context.
@@ -39,7 +51,7 @@ namespace FamilyFarm.BusinessLogic.Services
         /// <param name="chatRepository">The repository for managing chat data.</param>
         /// <param name="chatDetailRepository">The repository for managing chat messages (chat details).</param>
         /// <param name="chatHubContext">The SignalR hub context to send notifications to clients.</param>
-        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService, INotificationService notificationService, IAccountRepository accountRepository, ICategoryNotificationRepository categoryNotificationRepository, INotificationTemplateService notificationTemplate)
+        public ChatService(IChatRepository chatRepository, IChatDetailRepository chatDetailRepository, IHubContext<ChatHub> chatHubContext, IMapper mapper, IUploadFileService uploadFileService, INotificationService notificationService, IAccountRepository accountRepository, ICategoryNotificationRepository categoryNotificationRepository, INotificationTemplateService notificationTemplate, IHttpClientFactory httpClientFactory)
         {
             _chatRepository = chatRepository;
             _chatDetailRepository = chatDetailRepository;
@@ -50,6 +62,31 @@ namespace FamilyFarm.BusinessLogic.Services
             _accountRepository = accountRepository;
             _categoryNotificationRepository = categoryNotificationRepository;
             _notificationTemplate = notificationTemplate;
+            _httpClientFactory = httpClientFactory;
+
+            try
+            {
+                string basePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\..\\FamilyFarm.BusinessLogic\\Data"));
+                string filePath = Path.Combine(basePath, "Instruction.docx");
+
+                if (!File.Exists(filePath))
+                {
+                    _initializationError = "Instruction file not found. Please contact admin.";
+                }
+                else
+                {
+                    _instructions = InstructionReader.ReadInstructions(filePath);
+                }
+
+                if (string.IsNullOrEmpty(CohereApiKey))
+                {
+                    _initializationError = "AI service is not properly configured (missing API key).";
+                }
+            }
+            catch (Exception ex)
+            {
+                _initializationError = "Unexpected error during chat service initialization.";
+            }
         }
 
         /// <summary>
@@ -71,7 +108,6 @@ namespace FamilyFarm.BusinessLogic.Services
             // Create a new chat if it doesn't exist.
             var chat = new Chat
             {
-                ChatId = ObjectId.GenerateNewId().ToString(),  // Generate a new unique chat ID.
                 Acc1Id = accId1,
                 Acc2Id = accId2,
                 CreateAt = DateTime.UtcNow  // Set the creation timestamp.
@@ -97,7 +133,7 @@ namespace FamilyFarm.BusinessLogic.Services
 
             // Lấy danh sách cuộc trò chuyện
             var chats = await _chatRepository.GetChatsByUserAsync(accId);
-            if (chats == null || !chats.Any())
+            if (chats == null)
             {
                 response.Success = false;
                 response.Message = "No chats found for the user.";
@@ -285,7 +321,6 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 chat = new Chat
                 {
-                    ChatId = ObjectId.GenerateNewId().ToString(),
                     Acc1Id = senderId,
                     Acc2Id = request.ReceiverId
                 };
@@ -434,6 +469,70 @@ namespace FamilyFarm.BusinessLogic.Services
             }
 
             return recalledChatDetail;
+        }
+
+        public async Task<string> GetChatResponseAsync(string userInput)
+        {
+            if (string.IsNullOrEmpty(userInput))
+                return "Please provide a question.";
+
+            var prompt = $@"You are a helpful assistant guiding users on how to use a website.
+                Instructions: {_instructions}
+                User Input: {userInput}
+                Please provide a response based on the instructions above, using only the relevant section that matches the user's request. If no relevant section is found, politely inform the user.
+                Response:";
+            try
+            {
+
+                var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CohereApiKey);
+                client.Timeout = TimeSpan.FromSeconds(30); // Set timeout
+
+                var payload = new
+                {
+                    model = "command-r-plus", // Cohere's latest model
+                    prompt = prompt,
+                    max_tokens = 1000, // Adjust based on your needs
+                    temperature = 0.7, // Balance between creativity and consistency
+                    stop_sequences = new[] { "\n\nUser:", "Human:", "Assistant:" },
+                    truncate = "END"
+                };
+
+                var jsonPayload = JsonSerializer.Serialize(payload);
+                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync(CohereEndpoint, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return $"Sorry, I encountered an error while processing your request. Status: {response.StatusCode}";
+                }
+
+                var jsonDoc = JsonDocument.Parse(responseContent);
+                var result = jsonDoc.RootElement.GetProperty("generations")[0].GetProperty("text").GetString();
+
+                var cleanResult = result?.Trim() ?? "No response generated.";
+
+                return cleanResult;
+            }
+            catch (TaskCanceledException ex)
+            {
+                return "Request timed out. Please try again with a shorter message.";
+            }
+            catch (HttpRequestException ex)
+            {
+                return "Network error occurred. Please check your connection and try again.";
+            }
+            catch (JsonException ex)
+            {
+                return "Error parsing response. Please try again.";
+            }
+            catch (Exception ex)
+            {
+                return $"An unexpected error occurred: {ex.Message}";
+            }
         }
     }
 }
