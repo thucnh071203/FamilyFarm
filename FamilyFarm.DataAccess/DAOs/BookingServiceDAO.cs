@@ -37,7 +37,8 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             var filter = Builders<BookingService>.Filter.And(
                 Builders<BookingService>.Filter.Eq(c => c.IsDeleted, false),
-                Builders<BookingService>.Filter.Eq(c => c.BookingServiceStatus, "Completed")
+                Builders<BookingService>.Filter.Eq(c => c.IsCompletedFinal, true)
+            //Builders<BookingService>.Filter.Eq(c => c.BookingServiceStatus, "Completed")
             );
 
             return await _bookingService.Find(filter).ToListAsync();
@@ -247,6 +248,7 @@ namespace FamilyFarm.DataAccess.DAOs
                 .Set(b => b.BookingServiceStatus, updatedBookingService.BookingServiceStatus)
                 .Set(b => b.IsPaidByFarmer, updatedBookingService.IsPaidByFarmer)
                 .Set(b => b.IsPaidToExpert, updatedBookingService.IsPaidToExpert)
+                .Set(b => b.IsCompletedFinal, updatedBookingService.IsCompletedFinal)
                 .Set(b => b.CancelServiceAt, updatedBookingService.CancelServiceAt)
                 .Set(b => b.RejectServiceAt, updatedBookingService.RejectServiceAt)
                 .Set(b => b.IsDeleted, updatedBookingService.IsDeleted)
