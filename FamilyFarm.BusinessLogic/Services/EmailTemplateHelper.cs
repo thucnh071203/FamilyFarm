@@ -83,10 +83,10 @@ namespace FamilyFarm.BusinessLogic.Services
                             {content}
                             <p>If you have any questions or require further assistance, please do not hesitate to contact our support team.</p>
                             <p>Best regards,</p>
-                            <p>Litopia</p>                            
+                            <p>Family Farm</p>                            
                         </div>
                         <div class='footer'>
-                            <p>&copy; 2025 tranthaitansang23122003@gmail.com. Litopia.</p>
+                            <p>&copy; 2025 familyfarm0425@gmail.com. Family Farm.</p>
                         </div>
                     </div>
                 </body>

@@ -685,5 +685,12 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = result
             };
         }
+
+        public async Task<PaymentTransaction> GetLatestPaymentOfPayerById(string fromAccId)
+        {
+            var result = await _paymentRepository.GetLatestPaymentOfPayerById(fromAccId);
+
+            return result;
+        }
     }
 }

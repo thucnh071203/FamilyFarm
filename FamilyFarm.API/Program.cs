@@ -19,6 +19,7 @@ using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.ModelsConfig;
 using Microsoft.AspNetCore.Mvc;
 using FamilyFarm.Models.Models;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -149,6 +150,10 @@ builder.Services.AddScoped<ISavedPostService, SavedPostService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IRepaymentCacheService, RepaymentCacheService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
+
+// ⚠️ Thêm dòng này để tránh lỗi license
+QuestPDF.Settings.License = LicenseType.Community;
 
 //builder.Services.AddScoped<FirebaseConnection>();
 

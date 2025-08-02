@@ -9,5 +9,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
     public interface IEmailSender
     {
         Task SendEmailAsync(string toEmail, string subject, string body);
+        Task SendEmailWithAttachmentAsync(string toEmail, string subject, string body, byte[] attachmentBytes, string fileName);
     }
 }
