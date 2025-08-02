@@ -188,5 +188,16 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
+        [HttpGet("bill-payment/{paymentId}")]
+        [Authorize]
+        public async Task<IActionResult> GetBillPayment(string paymentId)
+        {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            var result = await _paymentService.GetBillPayment(paymentId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }
