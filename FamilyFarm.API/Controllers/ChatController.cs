@@ -235,5 +235,16 @@ namespace FamilyFarm.API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpPost("bot")]
+        public async Task<IActionResult> GetChatResponse([FromBody] string userInput)
+        {
+            if (string.IsNullOrEmpty(userInput))
+                return BadRequest("Input is required.");
+
+            // Đảm bảo đang await đúng cách
+            var response = await _chatService.GetChatResponseAsync(userInput);
+            return Ok(new { reply = response });
+        }
     }
 }
