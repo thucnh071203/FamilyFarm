@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -35,8 +37,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IProcessRepository _processRepository;
         private readonly IRepaymentCacheService _repaymentCacheService;
         private readonly IAccountRepository _accountRepository;
+        private readonly ICategoryServiceRepository _categoryServiceRepository;
 
-        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config, IPaymentRepository paymentRepository, IRevenueRepository revenueRepository, IProcessRepository processRepository, IRepaymentCacheService repaymentCacheService, IAccountRepository accountRepository)
+        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config, IPaymentRepository paymentRepository, IRevenueRepository revenueRepository, IProcessRepository processRepository, IRepaymentCacheService repaymentCacheService, IAccountRepository accountRepository, ICategoryServiceRepository categoryServiceRepository)
         {
             _paymentDAO = paymentDAO;
             _bookingRepository = bookingRepository;
@@ -47,6 +50,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _processRepository = processRepository;
             _repaymentCacheService = repaymentCacheService;
             _accountRepository = accountRepository;
+            _categoryServiceRepository = categoryServiceRepository;
         }
 
         public async Task<PaymentResponseDTO> GetAllPayment()
@@ -624,5 +628,62 @@ namespace FamilyFarm.BusinessLogic.Services
         //        Data = payment
         //    };
         //}
+
+        public async Task<BillPaymentResponseDTO> GetBillPayment(string? paymentId)
+        {
+            var payment = await _paymentRepository.GetPayment(paymentId);
+
+            if (payment == null)
+            {
+                return new BillPaymentResponseDTO
+                {
+                    Success = false,
+                    Message = "Can not found payment."
+                };
+            }
+
+            var getBooking = await _bookingRepository.GetById(payment.BookingServiceId);
+            var getService = await _serviceRepository.GetByIdOutDelete(getBooking.ServiceId);
+            var getServiceCate = await _categoryServiceRepository.GetCategoryServiceById(getService.CategoryServiceId);
+            var getPayer = await _accountRepository.GetAccountByAccId(payment.FromAccId);
+            var getFarmer = await _accountRepository.GetAccountByAccId(getBooking.AccId);
+            var getExpert = await _accountRepository.GetAccountByAccId(getService.ProviderId);
+
+            decimal? finalPrice = 0;
+            if (payment.IsRepayment != null && payment.IsRepayment == true) {
+                finalPrice = getBooking.Price * 0.10m;
+            } else
+            {
+                finalPrice = getBooking?.Price;
+            }
+
+            var result = new BillPaymentMapper
+            {
+                PaymentId = payment.PaymentId,
+                BookingServiceId = payment.BookingServiceId,
+                SubProcessId = payment.SubProcessId,
+                FromAccId = payment.FromAccId,
+                ToAccId = payment.ToAccId,
+                IsRepayment = payment.IsRepayment,
+                PayAt = payment.PayAt,
+                Price = finalPrice,
+
+                ServiceName = getService?.ServiceName,
+                CategoryServiceName = getServiceCate?.CategoryName,
+
+                ExpertName = getExpert?.FullName,
+                FarmerName = getFarmer?.FullName,
+                PayerName = getPayer?.FullName,
+
+                BookingServiceAt = getBooking?.BookingServiceAt
+            };
+
+            return new BillPaymentResponseDTO
+            {
+                Success = true,
+                Message = "Get bill payment success",
+                Data = result
+            };
+        }
     }
 }
