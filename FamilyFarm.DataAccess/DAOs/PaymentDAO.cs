@@ -68,5 +68,17 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return await _Payments.Find(p => p.SubProcessId == subProcessId && p.IsRepayment == true).FirstOrDefaultAsync();
         }
+
+        public async Task<PaymentTransaction?> GetLatestOfPayerByIdAsync(string fromAccId)
+        {
+            if (string.IsNullOrWhiteSpace(fromAccId) || !ObjectId.TryParse(fromAccId, out _))
+                return null;
+
+            var filter = Builders<PaymentTransaction>.Filter.Eq(p => p.FromAccId, fromAccId);
+
+            return await _Payments.Find(filter)
+                                   .SortByDescending(p => p.PayAt) // nếu muốn lấy bản mới nhất
+                                   .FirstOrDefaultAsync();
+        }
     }
 }

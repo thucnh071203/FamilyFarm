@@ -26,5 +26,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<string> CreateRepaymentUrlAsync(CreateRepaymentRequestDTO request, HttpContext httpContext);
         Task<ListPaymentResponseDTO> GetListPayment();
         Task<BillPaymentResponseDTO> GetBillPayment(string? paymentId);
+        Task<PaymentTransaction> GetLatestPaymentOfPayerById(string fromAccId);
     }
 }

@@ -16,5 +16,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<PaymentTransaction> GetPaymentBySubProcess(string subProcessId);
         Task<PaymentTransaction> GetRepaymentByBookingId(string bookingId);
         Task<PaymentTransaction> GetRepaymentBySubProcessId(string subProcessId);
+        Task<PaymentTransaction> GetLatestPaymentOfPayerById(string fromAccId);
     }
 }
