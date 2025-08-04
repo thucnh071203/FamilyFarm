@@ -162,7 +162,12 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult> CreateBookingService([FromBody] string? description, [FromRoute] string? serviceId)
         {
-            if(serviceId == null || description == null)
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+            if (serviceId == null || description == null)
             {
                 return BadRequest("Data unvalid!");
             }
