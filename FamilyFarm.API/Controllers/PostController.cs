@@ -382,6 +382,10 @@ namespace FamilyFarm.API.Controllers
         [Authorize]
         public async Task<ActionResult<ListPostResponseDTO?>> GetListPostCheckedAI()
         {
+            var userClaims = _authenService.GetDataFromToken();
+            var acc_id = userClaims?.AccId;
+            if (acc_id == null)
+                return Unauthorized();
             var result = await _postService.GetListPostCheckedAI();
 
             if (result == null || result.Success == false)
