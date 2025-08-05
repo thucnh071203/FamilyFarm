@@ -200,8 +200,6 @@ namespace FamilyFarm.API.Controllers
             });
         }
 
-
-
         [HttpPost("request-to-join/{groupId}")]
         [Authorize]
         public async Task<IActionResult> RequestToJoinGroup(string groupId)
@@ -210,10 +208,14 @@ namespace FamilyFarm.API.Controllers
             var accId = userClaims?.AccId;
             if (accId == null) return Unauthorized();
             var result = await _groupMemberService.RequestToJoinGroupAsync(accId, groupId);
+            //if (result == null)
+            //    return BadRequest(new { Success = false, Message = "You send already or you are member." });
+
+            //return Ok(new { Success = true, Message = "Send request to group successfuly", Data = result });
             if (result == null)
                 return BadRequest(new { Success = false, Message = "You send already or you are member." });
 
-            return Ok(new { Success = true, Message = "Send request to group successfuly", Data = result });
+            return Ok(new { Success = true, Message = "Send request to group successfully", Data = result });
         }
 
         [HttpPut("response-to-join-group/{groupMemberId}")]

@@ -33,7 +33,7 @@ namespace FamilyFarm.Tests.BookingTest
         private Mock<IClientProxy> _clientProxyMock;
         private Mock<IPaymentRepository> _paymentRepoMock;
         private Mock<IHubContext<AllHub>> _allHubMock;
-        private Mock<INotificationService> _notificationServiceMock;
+        //private Mock<INotificationService> _notificationServiceMock;
         private BookingServiceController _controller;
         private Mock<INotificationService> _mockNotificationService;
 
@@ -55,6 +55,18 @@ namespace FamilyFarm.Tests.BookingTest
             _notificationHubMock.Setup(h => h.Clients).Returns(_hubClientsMock.Object);
             _hubClientsMock.Setup(c => c.Group(It.IsAny<string>())).Returns(_clientProxyMock.Object);
 
+            _mockNotificationService.Setup(x => x.SendNotificationAsync(It.IsAny<SendNotificationRequestDTO>()))
+            .ReturnsAsync(new SendNotificationResponseDTO
+            {
+                Success = true,
+                Message = "Notification sent successfully",
+                Data = new Notification
+                {
+                    CategoryNotifiId = "685d3f6d1d2b7e9f45ae1c40",
+                    Content = "Test notification"
+                }
+            });
+
             var bookingService = new BookingServiceService(
                 _bookingRepoMock.Object,
                 _accountRepoMock.Object,
@@ -69,58 +81,52 @@ namespace FamilyFarm.Tests.BookingTest
             _controller = new BookingServiceController(bookingService, _authServiceMock.Object);
         }
 
-        private void SetExpertUser() =>
+        //private void SetExpertUser() =>
+        //_authServiceMock.Setup(x => x.GetDataFromToken()).Returns(new UserClaimsResponseDTO
+        //{
+        //    AccId = "46q284e68q4268qrq2r",
+        //    RoleId = "68007b2a87b41211f0af1d57"  // giả sử RoleId cho expert
+        //});
+        private void SetExpertUser()
+        {
             _authServiceMock.Setup(x => x.GetDataFromToken()).Returns(new UserClaimsResponseDTO
             {
-                AccId = "expert123",
-                RoleId = "68007b2a87b41211f0af1d57"
+                AccId = "6808482a0849665c281db8b8",
+                RoleId = "68007b2a87b41211f0af1d57"  // RoleId cho expert
             });
+        }
 
         [Test]
         public async Task ResponseBooking_ValidBooking_Pending_ShouldReturnOk()
         {
             SetExpertUser();
-            var bookingId = "685d63b7306140451dd63af8";
+            var bookingId = "685d641c306140451dd63af9";
 
-            //_bookingRepoMock.Setup(x => x.GetById(bookingId)).ReturnsAsync(new BookingService
-            //{
-            //    BookingServiceId = bookingId,
-            //    BookingServiceStatus = "Pending",
-            //    AccId = "farmer001",
-            //    ExpertId = "expert123",
-            //    ServiceId = "service123"
-            //});
             _bookingRepoMock.Setup(x => x.GetById(bookingId))
                 .ReturnsAsync(new BookingService
                 {
                     BookingServiceId = bookingId,
                     BookingServiceStatus = "Pending",
-                    AccId = "farmer001",
-                    ExpertId = "expert123",
+                    AccId = "46q284e68q4268qrq2r", // mock dữ liệu cho người dùng
+                    ExpertId = "6808482a0849665c281db8b8",
                     ServiceId = "service123"
                 });
-
-            _bookingRepoMock.Setup(x => x.UpdateStatus(It.IsAny<BookingService>())).Returns(Task.CompletedTask);
 
             _serviceRepoMock.Setup(x => x.GetServiceById("service123"))
                 .ReturnsAsync(new Service
                 {
                     ServiceId = "service123",
                     CategoryServiceId = "category001",
-                    ProviderId = "provider001",
+                    ProviderId = "65q412r65q46r4q8rq",
                     ServiceDescription = "Mô tả dịch vụ test",
                     Price = 100000,
                     ServiceName = "Test Service"
                 });
 
+                        _accountRepoMock.Setup(x => x.GetAccountByIdAsync("6808482a0849665c281db8b8"))
+                            .ReturnsAsync(new Account { AccId = "6808482a0849665c281db8b8" });
 
-            _accountRepoMock.Setup(x => x.GetAccountByIdAsync("expert123"))
-                .ReturnsAsync(new Account { AccId = "expert123" });
-
-            //_notificationServiceMock.Setup(x => x.SendNotificationAsync(It.IsAny<SendNotificationRequestDTO>()))
-            //    .ReturnsAsync(new CommonResponseDTO { Success = true });
-
-            _notificationServiceMock.Setup(x => x.SendNotificationAsync(It.IsAny<SendNotificationRequestDTO>()))
+            _mockNotificationService.Setup(x => x.SendNotificationAsync(It.IsAny<SendNotificationRequestDTO>()))
                 .ReturnsAsync(new SendNotificationResponseDTO
                 {
                     Success = true,
@@ -129,24 +135,14 @@ namespace FamilyFarm.Tests.BookingTest
                     {
                         CategoryNotifiId = "685d3f6d1d2b7e9f45ae1c40",
                         Content = "Accepted booking of Test Service"
-                        // Bạn có thể thêm các trường khác nếu cần, ví dụ: SenderId, TargetId, ...
                     }
                 });
-
 
             var result = await _controller.ExpertAcceptBooking(bookingId);
 
             Assert.IsInstanceOf<OkObjectResult>(result);
         }
 
-
-        //[Test]
-        //public async Task UTCID02_UserNotAuthenticated_ShouldReturnBadRequest()
-        //{
-        //    string bookingId = null!;
-        //    var result = await _controller.ExpertAcceptBooking(bookingId);
-        //    Assert.IsInstanceOf<BadRequestResult>(result);
-        //}
 
         [Test]
         public async Task ResponseBooking_UserNotAuthenticated_ShouldReturnOkNull()

@@ -28,13 +28,63 @@ namespace FamilyFarm.Tests.PaymentTest
         private PaymentController _controller;
 
         [SetUp]
+        //public void Setup()
+        //{
+        //    _paymentServiceMock = new Mock<IPaymentService>();
+        //    _bookingServiceMock = new Mock<IBookingServiceService>();
+        //    _authenServiceMock = new Mock<IAuthenticationService>();
+        //    _configurationMock = new Mock<IConfiguration>();
+        //    _vnPayConfigSectionMock = new Mock<IConfigurationSection>();
+
+        //    // Mock configuration section for "VNPay"
+        //    _configurationMock.Setup(c => c.GetSection("VNPay"))
+        //        .Returns(_vnPayConfigSectionMock.Object);
+
+        //    // Mock individual configuration values for VNPay section
+        //    _vnPayConfigSectionMock.Setup(s => s["TmnCode"]).Returns("D3KUKY9D");
+        //    _vnPayConfigSectionMock.Setup(s => s["HashSecret"]).Returns("9K18D9K0LKBBMO0HP36QN2TGF59ZJE3M");
+        //    _vnPayConfigSectionMock.Setup(s => s["PaymentUrl"]).Returns("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html");
+        //    _vnPayConfigSectionMock.Setup(s => s["ReturnUrl"]).Returns("http://localhost:3000/PaymentResult");
+        //    _vnPayConfigSectionMock.Setup(s => s["ReturnUrlRepayment"]).Returns("http://localhost:3000/RePaymentResult");
+
+        //    _controller = new PaymentController(_configurationMock.Object, _bookingServiceMock.Object, _paymentServiceMock.Object, _authenServiceMock.Object);
+        //}
+
+        //public void Setup()
+        //{
+        //    _paymentServiceMock = new Mock<IPaymentService>();
+        //    _bookingServiceMock = new Mock<IBookingServiceService>();
+        //    _authenServiceMock = new Mock<IAuthenticationService>();
+        //    _configurationMock = new Mock<IConfiguration>();
+        //    _vnPayConfigSectionMock = new Mock<IConfigurationSection>();
+        //    var pdfServiceMock = new Mock<IPdfService>();  // Thêm mock cho IPdfService
+
+        //    // Mock configuration section for "VNPay"
+        //    _configurationMock.Setup(c => c.GetSection("VNPay"))
+        //        .Returns(_vnPayConfigSectionMock.Object);
+
+        //    // Mock individual configuration values for VNPay section
+        //    _vnPayConfigSectionMock.Setup(s => s["TmnCode"]).Returns("D3KUKY9D");
+        //    _vnPayConfigSectionMock.Setup(s => s["HashSecret"]).Returns("9K18D9K0LKBBMO0HP36QN2TGF59ZJE3M");
+        //    _vnPayConfigSectionMock.Setup(s => s["PaymentUrl"]).Returns("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html");
+        //    _vnPayConfigSectionMock.Setup(s => s["ReturnUrl"]).Returns("http://localhost:3000/PaymentResult");
+        //    _vnPayConfigSectionMock.Setup(s => s["ReturnUrlRepayment"]).Returns("http://localhost:3000/RePaymentResult");
+
+        //    _controller = new PaymentController(_configurationMock.Object, _bookingServiceMock.Object, _paymentServiceMock.Object, _authenServiceMock.Object, pdfServiceMock.Object, _accountServiceMock.Object, _emailSenderMock.Object); // Thêm mock vào constructor
+        //}
+
         public void Setup()
         {
+            // Mock cho các service
             _paymentServiceMock = new Mock<IPaymentService>();
             _bookingServiceMock = new Mock<IBookingServiceService>();
             _authenServiceMock = new Mock<IAuthenticationService>();
             _configurationMock = new Mock<IConfiguration>();
             _vnPayConfigSectionMock = new Mock<IConfigurationSection>();
+
+            var pdfServiceMock = new Mock<IPdfService>();  // Mock cho IPdfService
+            var accountServiceMock = new Mock<IAccountService>();  // Mock cho IAccountService
+            var emailSenderMock = new Mock<IEmailSender>();  // Mock cho IEmailSender
 
             // Mock configuration section for "VNPay"
             _configurationMock.Setup(c => c.GetSection("VNPay"))
@@ -47,8 +97,18 @@ namespace FamilyFarm.Tests.PaymentTest
             _vnPayConfigSectionMock.Setup(s => s["ReturnUrl"]).Returns("http://localhost:3000/PaymentResult");
             _vnPayConfigSectionMock.Setup(s => s["ReturnUrlRepayment"]).Returns("http://localhost:3000/RePaymentResult");
 
-            _controller = new PaymentController(_configurationMock.Object, _bookingServiceMock.Object, _paymentServiceMock.Object, _authenServiceMock.Object);
+            // Khởi tạo PaymentController với tất cả mock đã tạo
+            _controller = new PaymentController(
+                _configurationMock.Object,
+                _bookingServiceMock.Object,
+                _paymentServiceMock.Object,
+                _authenServiceMock.Object,
+                pdfServiceMock.Object,
+                accountServiceMock.Object,
+                emailSenderMock.Object
+            );
         }
+
 
         [Test]
         public async Task CreatePayment_ValidBooking_ReturnsPaymentUrl()

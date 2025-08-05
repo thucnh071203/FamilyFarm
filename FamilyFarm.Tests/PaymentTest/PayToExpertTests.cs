@@ -24,18 +24,22 @@ namespace FamilyFarm.Tests.PaymentTest
         private Mock<IAuthenticationService> _authenServiceMock;
         private Mock<IConfiguration> _configurationMock;
         private Mock<IConfigurationSection> _vnPayConfigSectionMock;
-        private Mock<HttpContext> _httpContextMock;
+        private Mock<HttpContext> _httpContextMock; // Mock HttpContext
         private PaymentController _controller;
 
         [SetUp]
         public void Setup()
         {
+            // Mock cho các service
             _paymentServiceMock = new Mock<IPaymentService>();
             _bookingServiceMock = new Mock<IBookingServiceService>();
             _authenServiceMock = new Mock<IAuthenticationService>();
             _configurationMock = new Mock<IConfiguration>();
             _vnPayConfigSectionMock = new Mock<IConfigurationSection>();
-            _httpContextMock = new Mock<HttpContext>();
+
+            var pdfServiceMock = new Mock<IPdfService>();  // Mock cho IPdfService
+            var accountServiceMock = new Mock<IAccountService>();  // Mock cho IAccountService
+            var emailSenderMock = new Mock<IEmailSender>();  // Mock cho IEmailSender
 
             // Mock configuration section for "VNPay"
             _configurationMock.Setup(c => c.GetSection("VNPay"))
@@ -48,29 +52,43 @@ namespace FamilyFarm.Tests.PaymentTest
             _vnPayConfigSectionMock.Setup(s => s["ReturnUrl"]).Returns("http://localhost:3000/PaymentResult");
             _vnPayConfigSectionMock.Setup(s => s["ReturnUrlRepayment"]).Returns("http://localhost:3000/RePaymentResult");
 
-            // Mock HttpContext.Request to avoid NullReferenceException
-            var requestMock = new Mock<HttpRequest>();
-            _httpContextMock.Setup(c => c.Request).Returns(requestMock.Object);
+            // Khởi tạo PaymentController với tất cả mock đã tạo
+            _controller = new PaymentController(
+                _configurationMock.Object,
+                _bookingServiceMock.Object,
+                _paymentServiceMock.Object,
+                _authenServiceMock.Object,
+                pdfServiceMock.Object,
+                accountServiceMock.Object,
+                emailSenderMock.Object
+            );
 
-            _controller = new PaymentController(_configurationMock.Object, _bookingServiceMock.Object, _paymentServiceMock.Object, _authenServiceMock.Object);
-            _controller.ControllerContext = new ControllerContext { HttpContext = _httpContextMock.Object };
+            // Mock HttpContext và User
+            var accId = "686f1d49e010dac7cf1dbe9b";
+            var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, accId),
+            new Claim(ClaimTypes.Role, "67fd41dfba121b52bbc622c3")
+        };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var principal = new ClaimsPrincipal(identity);
+
+            // Mock HttpContext
+            _httpContextMock = new Mock<HttpContext>();
+            _httpContextMock.Setup(c => c.User).Returns(principal);
+
+            // Cập nhật ControllerContext để controller sử dụng HttpContext mock
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = _httpContextMock.Object
+            };
         }
 
         [Test]
         public async Task CreateRepayment_AdminAuthenticated_ValidData_ExpertExists_ReturnsSuccess()
         {
             // Arrange
-            var accId = "admin01";
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, accId),
-                new Claim(ClaimTypes.Role, "Admin")
-            };
-            var identity = new ClaimsIdentity(claims, "TestAuthType");
-            var principal = new ClaimsPrincipal(identity);
-            _httpContextMock.Setup(c => c.User).Returns(principal);
-            _authenServiceMock.Setup(s => s.GetDataFromToken()).Returns(new UserClaimsResponseDTO { AccId = accId, RoleName = "Admin" });
-
+            var accId = "686f1d49e010dac7cf1dbe9b";
             var request = new CreateRepaymentRequestDTO
             {
                 BookingServiceId = "685bcf25de5f40459858fa80",
@@ -213,11 +231,11 @@ namespace FamilyFarm.Tests.PaymentTest
         public async Task CreateRepayment_AdminAuthenticated_EmptyBookingServiceId_ReturnsBadRequest()
         {
             // Arrange
-            var accId = "admin01";
+            var accId = "686f1d49e010dac7cf1dbe9b";
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, accId),
-                new Claim(ClaimTypes.Role, "Admin")
+                new Claim(ClaimTypes.Role, "67fd41dfba121b52bbc622c3")
             };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             var principal = new ClaimsPrincipal(identity);

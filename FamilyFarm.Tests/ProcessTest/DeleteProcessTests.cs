@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using FamilyFarm.API.Controllers;
 using FamilyFarm.BusinessLogic;
 using FamilyFarm.BusinessLogic.Services;
@@ -22,22 +23,44 @@ namespace FamilyFarm.Tests.ProcessTest
         private ProcessController _controller;
 
         [SetUp]
+        //public void Setup()
+        //{
+        //    _processRepoMock = new Mock<IProcessRepository>();
+        //    _authServiceMock = new Mock<IAuthenticationService>();
+
+        //    var service = new ProcessService(
+        //        _processRepoMock.Object,
+        //        null,
+        //        null,
+        //        null,
+        //        null,
+        //        null,
+        //        null);
+
+        //    _controller = new ProcessController(service, _authServiceMock.Object, null);
+        //}
         public void Setup()
         {
             _processRepoMock = new Mock<IProcessRepository>();
             _authServiceMock = new Mock<IAuthenticationService>();
 
+            // Mock IMapper
+            var mapperMock = new Mock<IMapper>();
+
+            // Khởi tạo ProcessService với tất cả các mock, bao gồm mock của IMapper
             var service = new ProcessService(
                 _processRepoMock.Object,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
+                null, // Đối tượng IAccountRepository (có thể null trong unit test này)
+                null, // Đối tượng IServiceRepository (có thể null trong unit test này)
+                null, // Đối tượng IBookingServiceRepository (có thể null trong unit test này)
+                null, // Đối tượng IUploadFileService (có thể null trong unit test này)
+                null, // Đối tượng IProcessStepRepository (có thể null trong unit test này)
+                null, // Đối tượng IPaymentRepository (có thể null trong unit test này)
+                mapperMock.Object); // Thêm mock IMapper vào constructor
 
             _controller = new ProcessController(service, _authServiceMock.Object, null);
         }
+
 
         private void SetExpertUser() =>
             _authServiceMock.Setup(x => x.GetDataFromToken()).Returns(new UserClaimsResponseDTO
