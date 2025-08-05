@@ -31,5 +31,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ForgotPasswordResponseDTO> GetAccountByEmail(string email);
         Task<Account?> CheckAccountByEmail(string? email);
         Task<Account?> CheckAccountByPhone(string? phone);
+        Task<Account?> UpdateCreditCard(string id, CreditCardUpdateRequestDTO requestCredit);
     }
 }

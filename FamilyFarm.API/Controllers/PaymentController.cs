@@ -265,5 +265,30 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("bill-payment-by-booking/{bookingId}")]
+        [Authorize]
+        public async Task<IActionResult> GetBillPaymentByBookingId(string bookingId)
+        {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            var result = await _paymentService.GetPaymentByBooking(bookingId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("list-payment-user")]
+        [Authorize]
+        public async Task<IActionResult> ListPaymentsUser()
+        {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            var accountId = user.AccId;
+
+            var result = await _paymentService.GetListPaymentUser(accountId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

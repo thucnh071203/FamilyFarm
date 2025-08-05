@@ -386,5 +386,16 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await _accountRepository.GetAccountByPhone(phone);
         }
+
+        public async Task<Account?> UpdateCreditCard(string id, CreditCardUpdateRequestDTO request)
+        {
+            return await _accountRepository.UpdateCreditCard(
+                id,
+                true,
+                request.CreditNumber,
+                request.CreditName,
+                request.ExpiryDate
+            );
+        }
     }
 }

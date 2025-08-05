@@ -51,7 +51,10 @@ namespace FamilyFarm.Models.Models
         public string? FacebookId { get; set; }
         public bool IsFacebook { get; set; }
         public DateTime CreatedAt { get; set; }
-
-
+        // Credit card information
+        public bool HasCreditCard { get; set; }
+        public string? CreditNumber { get; set; }
+        public string? CreditName { get; set; }
+        public DateTime? ExpiryDate { get; set; }
     }
 }
