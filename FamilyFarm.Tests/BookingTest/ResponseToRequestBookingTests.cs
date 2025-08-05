@@ -82,14 +82,24 @@ namespace FamilyFarm.Tests.BookingTest
             SetExpertUser();
             var bookingId = "685d63b7306140451dd63af8";
 
-            _bookingRepoMock.Setup(x => x.GetById(bookingId)).ReturnsAsync(new BookingService
-            {
-                BookingServiceId = bookingId,
-                BookingServiceStatus = "Pending",
-                AccId = "farmer001",
-                ExpertId = "expert123",
-                ServiceId = "service123"
-            });
+            //_bookingRepoMock.Setup(x => x.GetById(bookingId)).ReturnsAsync(new BookingService
+            //{
+            //    BookingServiceId = bookingId,
+            //    BookingServiceStatus = "Pending",
+            //    AccId = "farmer001",
+            //    ExpertId = "expert123",
+            //    ServiceId = "service123"
+            //});
+            _bookingRepoMock.Setup(x => x.GetById(bookingId))
+                .ReturnsAsync(new BookingService
+                {
+                    BookingServiceId = bookingId,
+                    BookingServiceStatus = "Pending",
+                    AccId = "farmer001",
+                    ExpertId = "expert123",
+                    ServiceId = "service123"
+                });
+
             _bookingRepoMock.Setup(x => x.UpdateStatus(It.IsAny<BookingService>())).Returns(Task.CompletedTask);
 
             _serviceRepoMock.Setup(x => x.GetServiceById("service123"))
