@@ -68,7 +68,7 @@ namespace FamilyFarm.API.Controllers
             try
             {
                 var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
-                return Ok(result); // Trả về: { "Farmer": 1234, "Expert": 567 }
+                return Ok(result); 
             }
             catch (Exception)
             {
@@ -138,7 +138,9 @@ namespace FamilyFarm.API.Controllers
         [HttpGet("user-growth")]
         public async Task<IActionResult> GetUserGrowth(DateTime? fromDate, DateTime? toDate)
         {
-
+            var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return BadRequest();
             DateTime endDate = (toDate ?? DateTime.Today).AddDays(1);
             DateTime startDate = (fromDate ?? endDate.AddDays(-31)).ToUniversalTime();
 
@@ -164,13 +166,7 @@ namespace FamilyFarm.API.Controllers
         }
 
 
-        //[HttpGet("top-engaged")]
-
-        //public async Task<IActionResult> GetTopEngagedPosts([FromQuery] int top = 5)
-        //{
-        //    var result = await _statisticService.GetTopEngagedPostsAsync(top);
-        //    return Ok(result);
-        //}
+   
         [HttpGet("top-engaged")]
         public async Task<IActionResult> GetTopEngagedPosts([FromQuery] int top = 5)
         {
@@ -222,13 +218,7 @@ namespace FamilyFarm.API.Controllers
             return Ok(mostActiveMembers);
         }
 
-        //[HttpGet("users-by-province")]
-
-        //public async Task<ActionResult<List<UserByProvinceResponseDTO>>> GetUsersByProvince()
-        //{
-        //    var userStats = await _statisticService.GetUsersByProvinceAsync();
-        //    return Ok(userStats);
-        //}
+     
 
         [HttpGet("users-by-province")]
         public async Task<ActionResult<List<UserByProvinceResponseDTO>>> GetUsersByProvince()
@@ -268,114 +258,7 @@ namespace FamilyFarm.API.Controllers
             var result = await _statisticService.GetBookingsByStatusAsync(accId, status);
             return Ok(result);
         }
-        //[Authorize]
-        //[HttpGet("bookingService/status")]
-        //public async Task<ActionResult<Dictionary<string, int>>> GetStatisticByStatus()
-        //{
-        //    var userClaims = _authenService.GetDataFromToken();
-        //    var accId = userClaims?.AccId;
-
-        //    if (string.IsNullOrEmpty(accId))
-        //        return BadRequest("thiếu accId");
-
-        //    var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
-        //    return Ok(result);
-        //}
-        //[Authorize]
-        //[HttpGet("bookingService/status")]
-        //public async Task<IActionResult> GetStatisticByStatus()
-        //{
-        //    var userClaims = _authenService.GetDataFromToken();
-        //    var accId = userClaims?.AccId;
-
-        //    if (string.IsNullOrEmpty(accId))
-        //    {
-        //        return BadRequest(new
-        //        {
-        //            isSuccess = false,
-        //            message = "Missing account ID (accId).",
-        //            data = (object)null
-        //        });
-        //    }
-
-        //    var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
-
-        //    return Ok(new
-        //    {
-        //        isSuccess = true,
-        //        message = "Status counts retrieved successfully.",
-        //        data = result
-        //    });
-        //}
-
-        //[Authorize]
-        //[HttpGet("bookingService/status")]
-        //public async Task<IActionResult> GetBookingDetailsByStatus()
-        //{
-        //    var userClaims = _authenService.GetDataFromToken();
-        //    var accId = userClaims?.AccId;
-
-        //    if (string.IsNullOrEmpty(accId))
-        //    {
-        //        return BadRequest(new
-        //        {
-        //            isSuccess = false,
-        //            message = "Missing account ID (accId).",
-        //            data = (object)null
-        //        });
-        //    }
-
-        //    var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
-
-        //    return Ok(new
-        //    {
-        //        isSuccess = true,
-        //        message = "Chi tiết booking theo trạng thái.",
-        //        data = result
-        //    });
-        //}
-        //[Authorize]
-        //[HttpGet("bookingService/status")]
-        //public async Task<IActionResult> GetBookingDetailsByStatus()
-        //{
-        //    var userClaims = _authenService.GetDataFromToken();
-        //    var accId = userClaims?.AccId;
-
-        //    if (string.IsNullOrEmpty(accId))
-        //    {
-        //        return BadRequest(new
-        //        {
-        //            isSuccess = false,
-        //            message = "Missing account ID (accId).",
-        //            data = (object)null
-        //        });
-        //    }
-
-        //    var result = await _statisticService.GetCountByStatusAsync(accId.ToString());
-
-        //    return Ok(new
-        //    {
-        //        isSuccess = true,
-        //        message = "Booking with service name/description",
-        //        data = result
-        //    });
-        //}
-
-
-        //[Authorize]
-        //[HttpGet("bookingService/time")]
-        //public async Task<ActionResult<Dictionary<string, int>>> GetStatisticByDate([FromQuery] string time)
-        //{
-        //    var userClaims = _authenService.GetDataFromToken();
-        //    var accId = userClaims?.AccId;
-
-        //    if (string.IsNullOrEmpty(accId))
-        //        return BadRequest("thiếu accId");
-
-        //    var result = await _statisticService.GetCountByDateAsync(accId, time);
-        //    return Ok(result);
-        //}
-
+       
         [Authorize]
         [HttpGet("bookingService/time")]
         public async Task<IActionResult> GetStatisticByDate([FromQuery] string time)

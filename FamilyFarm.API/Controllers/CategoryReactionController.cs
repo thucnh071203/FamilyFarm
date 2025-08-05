@@ -56,12 +56,6 @@ namespace FamilyFarm.Controllers
         }
 
 
-        //[HttpGet("getAllCategoryReaction")]
-        //public async Task<IActionResult> GetAllCategoryReaction()
-        //{
-        //    var list = await _categoryReactionService.GetAllAsync();
-        //    return Ok(new CategoryReactionResponse<List<CategoryReaction>>(true, "Lấy danh sách reaction thành công", list));
-        //}
 
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetByIdCategoryReaction(string id)
@@ -76,24 +70,39 @@ namespace FamilyFarm.Controllers
 
         //[HttpPost("create")]
         //[Authorize]
-        //public async Task<IActionResult> Create([FromBody] CategoryReaction model)
+        //public async Task<IActionResult> Create([FromForm] CategoryReactionDTO request)
         //{
         //    var user = _authenService.GetDataFromToken();
 
-        //    model.AccId = user.AccId;
+        //    // Tạo model để lưu vào DB
+        //    var model = new CategoryReaction
+        //    {
+        //        CategoryReactionId = ObjectId.GenerateNewId().ToString(),
+        //        ReactionName = request.ReactionName,
+        //        AccId = user.AccId,
+        //        IconUrl = "",
+        //        IsDeleted = false,
+        //    };
 
-        //    var existing = await _categoryReactionService.GetByIdAsync(model.CategoryReactionId);
-        //    if (existing != null)
-        //        return BadRequest(new CategoryReactionResponse<CategoryReaction>(false, "ID đã tồn tại", null));
+        //    // Upload file ảnh nếu có
+        //    if (request.IconUrl != null)
+        //    {
+        //        var uploadResult = await _uploadFileService.UploadImage(request.IconUrl);
+        //        model.IconUrl = uploadResult?.UrlFile ?? "";
+        //    }
 
         //    await _categoryReactionService.CreateAsync(model);
-        //    return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Tạo reaction thành công", model));
+        //    return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Create reaction successfully!", model));
         //}
         [HttpPost("create")]
         [Authorize]
         public async Task<IActionResult> Create([FromForm] CategoryReactionDTO request)
         {
             var user = _authenService.GetDataFromToken();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
             // Tạo model để lưu vào DB
             var model = new CategoryReaction
@@ -108,22 +117,37 @@ namespace FamilyFarm.Controllers
             // Upload file ảnh nếu có
             if (request.IconUrl != null)
             {
-                var uploadResult = await _uploadFileService.UploadImage(request.IconUrl);
-                model.IconUrl = uploadResult?.UrlFile ?? "";
+                try
+                {
+                    var uploadResult = await _uploadFileService.UploadImage(request.IconUrl);
+                    model.IconUrl = uploadResult?.UrlFile ?? "";
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new CategoryReactionResponse<string>(
+                        false, ex.Message, null
+                    ));
+                }
             }
 
             await _categoryReactionService.CreateAsync(model);
-            return Ok(new CategoryReactionResponse<CategoryReaction>(true, "Create reaction successfully!", model));
+            return Ok(new CategoryReactionResponse<CategoryReaction>(
+                true, "Create reaction successfully!", model
+            ));
         }
-
 
 
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateCategoryReaction(string id, [FromForm] CategoryReactionDTO request)
         {
             var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
 
             var exsiting = await _categoryReactionService.GetByIdAsync(id);
+            if (exsiting == null)
+                return NotFound(new CategoryReactionResponse<CategoryReaction>(false, "Reaction not found", null));
+
 
             exsiting.ReactionName = request.ReactionName;
             
@@ -143,6 +167,9 @@ namespace FamilyFarm.Controllers
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteCategoryReaction(string id)
         {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
             var result = await _categoryReactionService.DeleteAsync(id);
             if (!result)
                 return NotFound(new CategoryReactionResponse<CategoryReaction>(false, "No reaction found to delete", null));
