@@ -30,19 +30,15 @@ namespace FamilyFarm.Tests.BookingTest
         [Test]
         public async Task ListRequestBookingOfExpert_ReturnsUnauthorized_WhenTokenIsMissing()
         {
-            // Arrange
             _authServiceMock.Setup(x => x.GetDataFromToken()).Returns((UserClaimsResponseDTO?)null);
 
-            // Act
             var result = await _controller.ListRequestBookingOfExpert();
 
-            // Assert
             Assert.IsInstanceOf<UnauthorizedResult>(result);
         }
         [Test]
         public async Task ListRequestBookingOfExpert_ReturnsBadRequest_WhenServiceFails()
         {
-            // Arrange
             var accId = "6810e3831b27b2917c58d77c";
             _authServiceMock.Setup(x => x.GetDataFromToken())
                 .Returns(new UserClaimsResponseDTO { AccId = accId });
@@ -54,10 +50,8 @@ namespace FamilyFarm.Tests.BookingTest
                     Message = "Something went wrong"
                 });
 
-            // Act
             var result = await _controller.ListRequestBookingOfExpert();
 
-            // Assert
             var badRequestResult = result as BadRequestObjectResult;
             Assert.IsNotNull(badRequestResult);
             Assert.AreEqual("Something went wrong", badRequestResult.Value);
@@ -65,13 +59,12 @@ namespace FamilyFarm.Tests.BookingTest
         [Test]
         public async Task ListRequestBookingOfExpert_ReturnsOk_WhenSuccessful()
         {
-            // Arrange
             var accId = "6810e3831b27b2917c58d77c";
             var response = new BookingServiceResponseDTO
             {
                 Success = true,
                 Message = "Success",
-                Data = new List<BookingServiceMapper>() // hoặc bất kỳ object nào bạn cần test
+                Data = new List<BookingServiceMapper>() 
             };
 
             _authServiceMock.Setup(x => x.GetDataFromToken())
@@ -80,10 +73,8 @@ namespace FamilyFarm.Tests.BookingTest
             _bookingService.Setup(x => x.GetRequestBookingOfExpert(accId))
                 .ReturnsAsync(response);
 
-            // Act
             var result = await _controller.ListRequestBookingOfExpert();
 
-            // Assert
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
