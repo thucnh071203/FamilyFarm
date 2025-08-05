@@ -27,5 +27,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ListPaymentResponseDTO> GetListPayment();
         Task<BillPaymentResponseDTO> GetBillPayment(string? paymentId);
         Task<PaymentTransaction> GetLatestPaymentOfPayerById(string fromAccId);
+        Task<BillPaymentResponseDTO> GetBillPaymentByBookingId(string? bookingId);
+        Task<ListPaymentResponseDTO> GetListPaymentUser(string accId);
     }
 }

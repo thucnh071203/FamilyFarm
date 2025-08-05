@@ -467,5 +467,21 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return await _Accounts.Find(filter).ToListAsync();
         }
+
+        public async Task<Account?> UpdateCreditCardInfoAsync(string id, bool hasCredit, string? creditNumber, string? creditName, DateTime? expiryDate)
+        {
+            var filter = Builders<Account>.Filter.Eq(a => a.AccId, id) & Builders<Account>.Filter.Eq(a => a.Status, 0);
+
+            var update = Builders<Account>.Update
+                .Set(a => a.HasCreditCard, hasCredit)
+                .Set(a => a.CreditNumber, creditNumber)
+                .Set(a => a.CreditName, creditName)
+                .Set(a => a.ExpiryDate, expiryDate);
+
+            var result = await _Accounts.UpdateOneAsync(filter, update);
+            if (result.MatchedCount == 0) return null;
+
+            return await _Accounts.Find(filter).FirstOrDefaultAsync();
+        }
     }
 }

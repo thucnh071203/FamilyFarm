@@ -27,5 +27,9 @@ namespace FamilyFarm.Models.DTOs.EntityDTO
         public int Status { get; set; }
         public int? Otp { get; set; }
         public bool IsFacebook { get; set; }
+        public bool HasCreditCard { get; set; }
+        public string? CreditNumber { get; set; }
+        public string? CreditName { get; set; }
+        public DateTime? ExpiryDate { get; set; }
     }
 }

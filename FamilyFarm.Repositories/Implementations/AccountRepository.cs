@@ -182,5 +182,9 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.GetAllAccountExceptAdmin();
         }
+        public async Task<Account?> UpdateCreditCard(string id, bool hasCredit, string? creditNumber, string? creditName, DateTime? expiryDate)
+        {
+            return await _dao.UpdateCreditCardInfoAsync(id, hasCredit, creditNumber, creditName, expiryDate);
+        }
     }
 }

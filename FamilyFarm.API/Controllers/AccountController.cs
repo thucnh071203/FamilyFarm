@@ -303,5 +303,38 @@ namespace FamilyFarm.API.Controllers
             return result.Success ? Ok(result) : NotFound(result);
         }
 
+        [HttpPut("update-credit-card")]
+        [Authorize]
+        public async Task<IActionResult> UpdateCreditCard([FromBody] CreditCardUpdateRequestDTO request)
+        {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            var id = user.AccId;
+
+            if (request == null)
+                return BadRequest("Request body is missing.");
+
+            if (string.IsNullOrWhiteSpace(request.CreditNumber) ||
+                string.IsNullOrWhiteSpace(request.CreditName) ||
+                request.ExpiryDate == null)
+            {
+                return BadRequest("All fields (CreditNumber, CreditName, ExpiryDate) are required.");
+            }
+
+            var updatedAccount = await _accountService.UpdateCreditCard(id, request);
+            if (updatedAccount == null)
+                return NotFound("Account not found or inactive.");
+
+            return Ok(new
+            {
+                message = "Credit card updated successfully",
+                hasCredit = updatedAccount.HasCreditCard,
+                creditName = updatedAccount.CreditName,
+                creditNumber = "**** **** **** " + updatedAccount.CreditNumber?.Substring(12), // Mask
+                expiryDate = updatedAccount.ExpiryDate?.ToString("MM/yy")
+            });
+        }
     }
 }

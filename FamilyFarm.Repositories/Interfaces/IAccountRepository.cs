@@ -71,11 +71,12 @@ namespace FamilyFarm.Repositories
         Task<Dictionary<string, int>> GetTotalByRoleIdsAsync(List<string> roleIds);
         Task<Dictionary<string, int>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate);
 
- Task<int> CountAccountsByRole(string roleId);
+        Task<int> CountAccountsByRole(string roleId);
         Task<List<Account>> GetAllAccountByRoleId(string role_id);
         Task<bool> UpdateAccountStatus(string accId, int status);
         Task<Account?> GetAccountByAccId(string accId);
         Task<List<Account>> GetAllAccountExceptAdmin();
 
+        Task<Account?> UpdateCreditCard(string id, bool hasCredit, string? creditNumber, string? creditName, DateTime? expiryDate);
     }
 }
