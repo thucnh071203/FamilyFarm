@@ -128,9 +128,48 @@ namespace FamilyFarm.API.Controllers
             return Ok(users);
         }
 
+        //[HttpGet("list-request-to-join/{groupId}")]
+        //public async Task<IActionResult> GetJoinRequests(string groupId)
+        //{
+        //    if (string.IsNullOrEmpty(groupId))
+        //    {
+        //        return BadRequest(new GroupMemberListResponse
+        //        {
+        //            Success = false,
+        //            Message = "GroupId is required",
+        //            Data = null
+        //        });
+        //    }
+
+        //    var data = await _groupMemberService.GetJoinRequestsAsync(groupId);
+
+
+        //    if (data == null || data.Count == 0)
+        //    {
+        //        return NotFound(new GroupMemberListResponse
+        //        {
+        //            Success = false,
+        //            Message = "No join requests found for this group.",
+        //            Data = null
+        //        });
+        //    }
+
+        //    return Ok(new GroupMemberListResponse
+        //    {
+        //        Success = true,
+        //        Message = "Get list join requests successfully.",
+        //        Data = data
+        //    });
+        //}
+
         [HttpGet("list-request-to-join/{groupId}")]
+        [Authorize]
         public async Task<IActionResult> GetJoinRequests(string groupId)
         {
+            var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return Unauthorized(); // 🟢 Giải quyết được lỗi test
+
             if (string.IsNullOrEmpty(groupId))
             {
                 return BadRequest(new GroupMemberListResponse
@@ -142,7 +181,6 @@ namespace FamilyFarm.API.Controllers
             }
 
             var data = await _groupMemberService.GetJoinRequestsAsync(groupId);
-
 
             if (data == null || data.Count == 0)
             {
@@ -161,6 +199,9 @@ namespace FamilyFarm.API.Controllers
                 Data = data
             });
         }
+
+
+
         [HttpPost("request-to-join/{groupId}")]
         [Authorize]
         public async Task<IActionResult> RequestToJoinGroup(string groupId)

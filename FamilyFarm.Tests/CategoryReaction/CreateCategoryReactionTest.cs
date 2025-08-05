@@ -19,167 +19,207 @@ namespace FamilyFarm.Tests.CategoryReaction
 {
     public class CreateCategoryReactionTest
     {
-        private Mock<ICategoryReactionService> _serviceMock;
-        private Mock<IAuthenticationService> _authMock;
-        private Mock<IUploadFileService> _fileMock;
+        private Mock<IAuthenticationService> _authServiceMock;
+        private Mock<ICategoryReactionService> _categoryReactionServiceMock;
+        private Mock<IUploadFileService> _uploadFileServiceMock;
         private CategoryReactionController _controller;
 
         [SetUp]
         public void Setup()
         {
-            _serviceMock = new Mock<ICategoryReactionService>();
-            _authMock = new Mock<IAuthenticationService>();
-            _fileMock = new Mock<IUploadFileService>();
-            _controller = new CategoryReactionController(_serviceMock.Object, _authMock.Object, _fileMock.Object);
-        }
+            _authServiceMock = new Mock<IAuthenticationService>();
+            _categoryReactionServiceMock = new Mock<ICategoryReactionService>();
+            _uploadFileServiceMock = new Mock<IUploadFileService>();
 
-        private IFormFile CreateMockImageFile(string fileName, string contentType = "image/png", int sizeInKb = 100)
-        {
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(new string('a', sizeInKb * 1024)));
-            return new FormFile(stream, 0, stream.Length, "IconUrl", fileName)
-            {
-                Headers = new HeaderDictionary(),
-                ContentType = contentType
-            };
+            var controller = new CategoryReactionController(_categoryReactionServiceMock.Object, _authServiceMock.Object, _uploadFileServiceMock.Object);
+
         }
 
         [Test]
-        public async Task CreateReaction_ValidInput_ReturnsSuccess()
+        public async Task NoToken_ShouldReturnUnauthorized()
         {
-            var mockUser = new UserClaimsResponseDTO { AccId = "123" };
-            _authMock.Setup(a => a.GetDataFromToken()).Returns(mockUser);
-
-            var file = CreateMockImageFile("like.png");
-            _fileMock.Setup(f => f.UploadImage(It.IsAny<IFormFile>()))
-                     .ReturnsAsync(new FileUploadResponseDTO { UrlFile = "http://mock.url/icon.png" });
+            // Arrange
+            _authServiceMock.Setup(x => x.GetDataFromToken())
+                .Returns((UserClaimsResponseDTO?)null);
 
             var request = new CategoryReactionDTO
+            {
+                ReactionName = "Happy"
+            };
+            var controller = new CategoryReactionController(
+    _categoryReactionServiceMock.Object,
+
+    _authServiceMock.Object,
+                    _uploadFileServiceMock.Object);
+            // Act
+
+            var result = await controller.Create(request);
+
+            // Assert
+            Assert.IsInstanceOf<UnauthorizedResult>(result);
+        }
+
+
+        [Test]
+        public async Task Create_ValidTokenAndValidData_ReturnsSuccess()
+        {
+            var accId = "acc001";
+            var user = new UserClaimsResponseDTO { AccId = accId };
+
+            _authServiceMock.Setup(s => s.GetDataFromToken()).Returns(user);
+
+            var mockFile = new Mock<IFormFile>();
+            var content = "fake image content";
+            var fileName = "icon.png";
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+            mockFile.Setup(f => f.FileName).Returns(fileName);
+            mockFile.Setup(f => f.OpenReadStream()).Returns(stream);
+            mockFile.Setup(f => f.Length).Returns(stream.Length);
+
+            _uploadFileServiceMock.Setup(s => s.UploadImage(It.IsAny<IFormFile>()))
+                              .ReturnsAsync(new FileUploadResponseDTO { UrlFile = "http://image.com/icon.png" });
+
+            var dto = new CategoryReactionDTO
             {
                 ReactionName = "Like",
-                IconUrl = file
+                IconUrl = mockFile.Object
             };
 
-            _serviceMock.Setup(s => s.CreateAsync(It.IsAny<CategoryReaction>())).Returns(Task.CompletedTask);
+            var controller = new CategoryReactionController(
+                _categoryReactionServiceMock.Object,
 
-            var result = await _controller.Create(request);
+                _authServiceMock.Object,
+                                _uploadFileServiceMock.Object);
 
-            var ok = result as OkObjectResult;
-            Assert.NotNull(ok);
-            Assert.AreEqual(200, ok.StatusCode);
-            Assert.That(((CategoryReactionResponse<CategoryReaction>)ok.Value).Success, Is.True);
+            var result = await controller.Create(dto) as OkObjectResult;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(200, result.StatusCode);
+
+            var response = result.Value as CategoryReactionResponse<FamilyFarm.Models.Models.CategoryReaction>;
+            Assert.IsTrue(response!.IsSuccess);
+            Assert.AreEqual("Create reaction successfully!", response.Message);
+            Assert.AreEqual("Like", response.Data.ReactionName);
         }
 
         [Test]
-        public async Task CreateReaction_UserNotLoggedIn_ReturnsNullTokenError()
+        public async Task Create_NoToken_ReturnsUnauthorized()
         {
-            _authMock.Setup(a => a.GetDataFromToken()).Returns(() => null);
+            _authServiceMock.Setup(s => s.GetDataFromToken()).Returns((UserClaimsResponseDTO)null!);
 
-            var request = new CategoryReactionDTO
+            var controller = new CategoryReactionController(
+                _categoryReactionServiceMock.Object,
+
+                _authServiceMock.Object,
+                                _uploadFileServiceMock.Object);
+
+            var dto = new CategoryReactionDTO
             {
                 ReactionName = "Like"
             };
 
-            var result = await _controller.Create(request);
+            var result = await controller.Create(dto);
 
-            // Vì controller không xử lý lỗi token null nên nó sẽ bị lỗi ở dòng `user.AccId`, ta không assert gì đặc biệt ở đây
-            Assert.ThrowsAsync<NullReferenceException>(() => _controller.Create(request));
+            Assert.IsInstanceOf<UnauthorizedResult>(result);
         }
-
         [Test]
-        public async Task CreateReaction_EmptyReactionName_ReturnsSuccessButEmptyName()
+        public async Task Create_InvalidFileFormat_ReturnsError()
         {
-            var mockUser = new UserClaimsResponseDTO { AccId = "123" };
-            _authMock.Setup(a => a.GetDataFromToken()).Returns(mockUser);
+            var accId = "acc001";
+            _authServiceMock.Setup(s => s.GetDataFromToken()).Returns(new UserClaimsResponseDTO { AccId = accId });
 
-            var file = CreateMockImageFile("icon.webp");
-            _fileMock.Setup(f => f.UploadImage(It.IsAny<IFormFile>()))
-                     .ReturnsAsync(new FileUploadResponseDTO { UrlFile = "http://mock.url/icon.png" });
+            var mockFile = new Mock<IFormFile>();
+            mockFile.Setup(f => f.FileName).Returns("malware.exe");
+            mockFile.Setup(f => f.Length).Returns(1024);
 
-            var request = new CategoryReactionDTO
+            _uploadFileServiceMock.Setup(s => s.UploadImage(It.IsAny<IFormFile>()))
+                                  .ThrowsAsync(new Exception("Invalid file format"));
+
+            var dto = new CategoryReactionDTO
             {
-                ReactionName = "",  // Case test tên rỗng
-                IconUrl = file
+                ReactionName = "Like",
+                IconUrl = mockFile.Object
             };
 
-            var result = await _controller.Create(request);
-            var ok = result as OkObjectResult;
+            var controller = new CategoryReactionController(
+                _categoryReactionServiceMock.Object,
+                _authServiceMock.Object,
+                _uploadFileServiceMock.Object);
 
-            Assert.NotNull(ok);
-            var response = (CategoryReactionResponse<CategoryReaction>)ok.Value;
-            Assert.IsTrue(response.Success);
-            Assert.AreEqual("", response.Data.ReactionName);
+            var result = await controller.Create(dto) as ObjectResult;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(500, result.StatusCode);
+
+            var response = result.Value as CategoryReactionResponse<string>;
+            Assert.IsFalse(response!.IsSuccess);
+            Assert.AreEqual("Invalid file format", response.Message);
+            Assert.IsNull(response.Data);
         }
 
-        [Test]
-        public async Task CreateReaction_NoFileAttached_StillReturnsSuccess()
-        {
-            var mockUser = new UserClaimsResponseDTO { AccId = "123" };
-            _authMock.Setup(a => a.GetDataFromToken()).Returns(mockUser);
 
-            var request = new CategoryReactionDTO
+
+        [Test]
+        public async Task Create_FileTooLarge_ReturnsError()
+        {
+            var accId = "acc001";
+            _authServiceMock.Setup(s => s.GetDataFromToken()).Returns(new UserClaimsResponseDTO { AccId = accId });
+
+            var mockFile = new Mock<IFormFile>();
+            mockFile.Setup(f => f.FileName).Returns("image.png");
+            mockFile.Setup(f => f.Length).Returns(6 * 1024 * 1024); // 6MB
+
+            _uploadFileServiceMock.Setup(s => s.UploadImage(It.IsAny<IFormFile>()))
+                              .ThrowsAsync(new Exception("File size exceeds limit"));
+
+            var dto = new CategoryReactionDTO
             {
-                ReactionName = "Love",
+                ReactionName = "Like",
+                IconUrl = mockFile.Object
+            };
+
+            var controller = new CategoryReactionController(
+                _categoryReactionServiceMock.Object,
+
+                _authServiceMock.Object,
+                                _uploadFileServiceMock.Object);
+
+            var result = await controller.Create(dto) as ObjectResult;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(500, result.StatusCode);
+        }
+        [Test]
+        public async Task Create_ValidData_NoImage_ReturnsSuccess()
+        {
+            var accId = "acc001";
+            _authServiceMock.Setup(s => s.GetDataFromToken()).Returns(new UserClaimsResponseDTO { AccId = accId });
+
+            var dto = new CategoryReactionDTO
+            {
+                ReactionName = "Like",
                 IconUrl = null
             };
 
-            _serviceMock.Setup(s => s.CreateAsync(It.IsAny<CategoryReaction>())).Returns(Task.CompletedTask);
+            var controller = new CategoryReactionController(
+                _categoryReactionServiceMock.Object,
 
-            var result = await _controller.Create(request);
-            var ok = result as OkObjectResult;
+                _authServiceMock.Object,
+                                _uploadFileServiceMock.Object);
 
-            Assert.NotNull(ok);
-            var response = (CategoryReactionResponse<CategoryReaction>)ok.Value;
-            Assert.IsTrue(response.Success);
-            Assert.AreEqual("", response.Data.IconUrl); // Vì không upload file nên IconUrl sẽ là ""
-        }
+            var result = await controller.Create(dto) as OkObjectResult;
 
-        [Test]
-        public async Task CreateReaction_InvalidFileFormat_ReturnsEmptyUrl()
-        {
-            var mockUser = new UserClaimsResponseDTO { AccId = "123" };
-            _authMock.Setup(a => a.GetDataFromToken()).Returns(mockUser);
+            Assert.IsNotNull(result);
+            var response = result.Value as CategoryReactionResponse<FamilyFarm.Models.Models.CategoryReaction>;
 
-            var file = CreateMockImageFile("bad.exe", "application/octet-stream");
-            _fileMock.Setup(f => f.UploadImage(It.IsAny<IFormFile>()))
-                     .ReturnsAsync(new FileUploadResponseDTO { UrlFile = "" }); // Không upload được
-
-            var request = new CategoryReactionDTO
-            {
-                ReactionName = "Dislike",
-                IconUrl = file
-            };
-
-            var result = await _controller.Create(request);
-            var ok = result as OkObjectResult;
-
-            Assert.NotNull(ok);
-            var response = (CategoryReactionResponse<CategoryReaction>)ok.Value;
+            Assert.IsTrue(response!.IsSuccess);
+            Assert.AreEqual("Create reaction successfully!", response.Message);
+            Assert.AreEqual("Like", response.Data.ReactionName);
             Assert.AreEqual("", response.Data.IconUrl);
         }
 
-        [Test]
-        public async Task CreateReaction_FileSizeExceeded_ReturnsSuccessButStillEmptyUrl()
-        {
-            var mockUser = new UserClaimsResponseDTO { AccId = "123" };
-            _authMock.Setup(a => a.GetDataFromToken()).Returns(mockUser);
 
-            var bigFile = CreateMockImageFile("big.png", "image/png", sizeInKb: 6000); // > 5MB
-            _fileMock.Setup(f => f.UploadImage(It.IsAny<IFormFile>()))
-                     .ReturnsAsync(new FileUploadResponseDTO { UrlFile = "" }); // Không xử lý upload trong test
 
-            var request = new CategoryReactionDTO
-            {
-                ReactionName = "Wow",
-                IconUrl = bigFile
-            };
-
-            var result = await _controller.Create(request);
-            var ok = result as OkObjectResult;
-
-            Assert.NotNull(ok);
-            var response = (CategoryReactionResponse<CategoryReaction>)ok.Value;
-            Assert.AreEqual("", response.Data.IconUrl);
-        }
 
     }
 }

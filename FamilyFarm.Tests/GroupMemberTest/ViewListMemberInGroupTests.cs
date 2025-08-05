@@ -57,7 +57,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
         };
 
 
-        // ✅ TC01: Valid request, user is in group, return member list
+        // Valid request, user is in group, return member list
         [Test]
         public async Task ViewMembers_ValidRequest_ReturnsList()
         {
@@ -78,7 +78,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
             });
         }
 
-        // ✅ TC02: Request without token
+        // Request without token
         [Test]
         public async Task ViewMembers_NoToken_ReturnsUnauthorized()
         {
@@ -91,7 +91,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
             Assert.AreEqual("Invalid token or user not found.", unauthorized?.Value);
         }
 
-        // ✅ TC03: User not in group, throw UnauthorizedAccessException
+        //  User not in group, throw UnauthorizedAccessException
         [Test]
         public void ViewMembers_UserNotInGroup_ShouldThrow()
         {
@@ -107,7 +107,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
             Assert.AreEqual("You are not a member of this group.", ex?.Message);
         }
 
-        // ✅ TC04: Group has no members (empty list)
+        //  Group has no members (empty list)
         [Test]
         public async Task ViewMembers_GroupHasNoMember_ShouldReturnNotFound()
         {
@@ -125,7 +125,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
         }
 
 
-        //✅ TC05: GroupId is empty string
+        // GroupId is empty string
         [Test]
         public void ViewMembers_EmptyGroupId_ShouldThrowException()
         {
