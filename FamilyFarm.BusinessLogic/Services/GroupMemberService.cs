@@ -110,6 +110,12 @@ namespace FamilyFarm.BusinessLogic.Services
 
         public async Task<GroupMember?> RequestToJoinGroupAsync(string accId, string groupId)
         {
+            var checkMember = await _groupMemberRepository.GetMemberInvitedOrJoinedGroup(accId, groupId);
+            if (checkMember != null)
+            {
+                return null;
+            }
+
             var result = await _groupMemberRepository.RequestToJoinGroupAsync(accId, groupId);
 
             if (result != null)

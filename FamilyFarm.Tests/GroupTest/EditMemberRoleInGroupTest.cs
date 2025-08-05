@@ -48,13 +48,13 @@ namespace FamilyFarm.Tests.GroupTest
         {
             // Arrange
             _authServiceMock.Setup(x => x.GetDataFromToken())
-                .Returns(new UserClaimsResponseDTO { AccId = "6810e3831b27b2917c58d77c" });
+                .Returns(new UserClaimsResponseDTO { AccId = "688f1d98644c68a24c3a1c14" });
 
-            _groupMemberServiceMock.Setup(x => x.UpdateMemberRoleAsync("686668bd4a453677a54f0a79", "680cebdfac700e1cb4c165b2"))
+            _groupMemberServiceMock.Setup(x => x.UpdateMemberRoleAsync("688f1d98644c68a24c3a1c14", "680ce8722b3eec497a30201e"))
                 .ReturnsAsync(true);
 
             // Act
-            var result = await _controller.UpdateMemberRole(null, "680cebdfac700e1cb4c165b2");
+            var result = await _controller.UpdateMemberRole("688f1d98644c68a24c3a1c14", "680ce8722b3eec497a30201e");
 
             // Assert
             var okResult = result as OkObjectResult;
