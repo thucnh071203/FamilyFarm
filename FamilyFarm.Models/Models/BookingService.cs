@@ -33,5 +33,9 @@ namespace FamilyFarm.Models.Models
         public bool? IsDeleted { get; set; }
         public bool? IsPaidByFarmer { get; set; }
         public bool? IsPaidToExpert { get; set; }
+
+        //EXTRA PROCESS
+        public bool HasExtraProcess { get; set; }
+        public string? ExtraDescription { get; set; }
     }
 }

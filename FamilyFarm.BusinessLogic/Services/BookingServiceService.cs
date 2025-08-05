@@ -448,6 +448,7 @@ namespace FamilyFarm.BusinessLogic.Services
             bookingService.IsCompletedFinal = false;
             bookingService.IsPaidByFarmer = false;
             bookingService.IsPaidToExpert = false;
+            bookingService.HasExtraProcess = false;
 
             var isRequestSuccess = await _repository.Create(bookingService);
 
@@ -599,6 +600,58 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        public async Task<BookingServiceResponseDTO?> GetListExtraRequest(string? expertId)
+        {
+            if (string.IsNullOrEmpty(expertId))
+                return null;
+
+            var listBooking = await _repository.GetListExtraRequest(expertId);
+            if (listBooking == null)
+                return new BookingServiceResponseDTO
+                {
+                    Success = false,
+                    Message = "List extra request booking of expert is invalid."
+                };
+
+            List<BookingServiceMapper> listResponse = new List<BookingServiceMapper>();
+
+            foreach (var item in listBooking)
+            {
+                var service = await _serviceRepository.GetServiceById(item.ServiceId);
+                var farmer = await _accountRepository.GetAccountById(item.AccId);
+                var mapper = new BookingServiceMapper
+                {
+                    Account = new FriendMapper
+                    {
+                        AccId = farmer.AccId,
+                        RoleId = farmer.RoleId,
+                        Username = farmer.Username,
+                        FullName = farmer.FullName,
+                        Birthday = farmer.Birthday,
+                        Gender = farmer.Gender,
+                        City = farmer.City,
+                        Country = farmer.Country,
+                        Address = farmer.Address,
+                        Avatar = farmer.Avatar,
+                        Background = farmer.Background,
+                        WorkAt = farmer.WorkAt,
+                        StudyAt = farmer.StudyAt,
+                        Status = farmer.Status,
+                    },
+                    Service = service,
+                    Booking = item,
+
+                };
+                listResponse.Add(mapper);
+
+            }
+            return new BookingServiceResponseDTO
+            {
+                Success = true,
+                Data = listResponse,
+            };
+        }
+
         public async Task<BookingServiceResponseDTO?> GetListBookingCompleted()
         {
             //var listBooking = (await _repository.GetAllBookingCompleted())
@@ -670,6 +723,32 @@ namespace FamilyFarm.BusinessLogic.Services
                 Success = true,
                 Data = listResponse,
             };
+        }
+
+        public async Task<bool?> RequestExtraProcessByBooking(CreateExtraProcessRequestDTO request)
+        {
+            if (request == null)
+                return null;
+
+            if (request.BookingId == null || request.ExtraDescription == null)
+                return null;
+
+            var currentBooking = await _repository.GetById(request.BookingId);
+
+            if (currentBooking == null)
+                return null;
+
+            //CẬP NHẬT STATUS AND EXTRA DESCRIPTION
+            currentBooking.BookingServiceStatus = "Extra Request";
+            currentBooking.ExtraDescription = request.ExtraDescription;
+            currentBooking.HasExtraProcess = true;
+
+            var updatedBooking = await _repository.UpdateBooking(request.BookingId, currentBooking);
+
+            if (updatedBooking == null)
+                return false;
+
+            return true;
         }
     }
 }

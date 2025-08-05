@@ -48,5 +48,9 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetRepaymentBySubProcessIdAsync(subProcessId);
         }
+        public async Task<PaymentTransaction> GetLatestPaymentOfPayerById(string fromAccId)
+        {
+            return await _dao.GetLatestOfPayerByIdAsync(fromAccId);
+        }
     }
 }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FamilyFarm.Repositories.Implementations
 {
-    public class BookingServiceRepository:IBookingServiceRepository
+    public class BookingServiceRepository : IBookingServiceRepository
     {
         private readonly BookingServiceDAO _dao;
         public BookingServiceRepository(BookingServiceDAO dao)
@@ -74,6 +74,11 @@ namespace FamilyFarm.Repositories.Implementations
         public async Task<BookingService?> GetLastestBookingByFarmer(string? farmerId)
         {
             return await _dao.GetLastestBookingByFarmerAsync(farmerId);
+        }
+
+        public async Task<List<BookingService>> GetListExtraRequest(string? expertId)
+        {
+            return await _dao.GetListExtraRequest(expertId);
         }
     }
 }

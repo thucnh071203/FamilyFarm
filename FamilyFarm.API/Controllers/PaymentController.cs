@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using Newtonsoft.Json;
 
 namespace FamilyFarm.API.Controllers
 {
@@ -22,13 +23,19 @@ namespace FamilyFarm.API.Controllers
         private readonly IBookingServiceService _bookingService;
         private readonly IPaymentService _paymentService;
         private readonly IAuthenticationService _authenService;
+        private readonly IPdfService _pdfService;
+        private readonly IAccountService _accountService;
+        private readonly IEmailSender _emailSender;
 
-        public PaymentController(IConfiguration configuration, IBookingServiceService bookingService, IPaymentService paymentService, IAuthenticationService authenService)
+        public PaymentController(IConfiguration configuration, IBookingServiceService bookingService, IPaymentService paymentService, IAuthenticationService authenService, IPdfService pdfService, IAccountService accountService, IEmailSender emailSender)
         {
             _vnPayConfig = configuration.GetSection("VNPay").Get<VNPayConfig>();
             _bookingService = bookingService;
             _paymentService = paymentService;
             _authenService = authenService;
+            _pdfService = pdfService;
+            _accountService = accountService;
+            _emailSender = emailSender;
         }
 
         [HttpGet("all-payment")]
@@ -187,5 +194,101 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
+        [HttpGet("bill-payment/{paymentId}")]
+        [Authorize]
+        public async Task<IActionResult> GetBillPayment(string paymentId)
+        {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            var result = await _paymentService.GetBillPayment(paymentId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("export-bill/{paymentId}")]
+        [Authorize]
+        public async Task<IActionResult> ExportBillPayment(string paymentId)
+        {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            var billData = await _paymentService.GetBillPayment(paymentId);
+            if (!billData.Success || billData.Data == null)
+                return NotFound("Invoice not found");
+
+            var pdfBytes = _pdfService.GenerateBillPdf(billData.Data); // bạn sẽ tạo service này
+
+            return File(pdfBytes, "application/pdf", $"Bill_{paymentId}.pdf");
+        }
+
+        [HttpPost("send-bill-email")]
+        public async Task<IActionResult> SendBillEmail([FromBody] EmailAttachmentRequestDTO request)
+        {
+            var bill = await _paymentService.GetBillPayment(request.PaymentId);
+            if (!bill.Success || bill.Data == null)
+                return NotFound(new { Success = false, Message = "Không tìm thấy hóa đơn." });
+
+            var toAccount = await _accountService.GetAccountByAccId(bill.Data.ToAccId);
+
+            var pdfBytes = _pdfService.GenerateBillPdf(bill.Data);
+
+            var html = EmailTemplateHelper.EmailConfirm(toAccount.Email, "<p>Please see invoice file in attachment.</p>");
+
+            await _emailSender.SendEmailWithAttachmentAsync(
+                toAccount.Email,
+                request.Subject ?? "Family Farm - Payment Invoice",
+                html,
+                pdfBytes,
+                $"Bill_{request.PaymentId}.pdf"
+            );
+
+            return Ok(new { Success = true, Message = "Đã gửi hóa đơn qua email." });
+        }
+
+        [HttpGet("latest-payment")]
+        [Authorize]
+        public async Task<IActionResult> GetLatestPaymentOfPayerById()
+        {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            var accountId = user.AccId;
+
+            var result = await _paymentService.GetLatestPaymentOfPayerById(accountId);
+
+            if (result == null)
+                return NotFound("No payment found for this account.");
+
+            return Ok(result);
+        }
+
+        [HttpGet("bill-payment-by-booking/{bookingId}")]
+        [Authorize]
+        public async Task<IActionResult> GetBillPaymentByBookingId(string bookingId)
+        {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            var result = await _paymentService.GetPaymentByBooking(bookingId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("list-payment-user")]
+        [Authorize]
+        public async Task<IActionResult> ListPaymentsUser()
+        {
+            var user = _authenService.GetDataFromToken();
+            if (user == null)
+                return Unauthorized();
+
+            var accountId = user.AccId;
+
+            var result = await _paymentService.GetListPaymentUser(accountId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

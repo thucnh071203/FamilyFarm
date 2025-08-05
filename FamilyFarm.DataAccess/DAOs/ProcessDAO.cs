@@ -280,6 +280,7 @@ namespace FamilyFarm.DataAccess.DAOs
         {
             var filter = Builders<SubProcess>.Filter.And(
                 Builders<SubProcess>.Filter.Eq(c => c.IsDeleted, false),
+                Builders<SubProcess>.Filter.Eq(c => c.IsExtraProcess, true),
                 Builders<SubProcess>.Filter.Eq(c => c.IsCompletedByFarmer, true)
             );
 

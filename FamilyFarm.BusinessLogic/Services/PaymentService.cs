@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -35,8 +37,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IProcessRepository _processRepository;
         private readonly IRepaymentCacheService _repaymentCacheService;
         private readonly IAccountRepository _accountRepository;
+        private readonly ICategoryServiceRepository _categoryServiceRepository;
 
-        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config, IPaymentRepository paymentRepository, IRevenueRepository revenueRepository, IProcessRepository processRepository, IRepaymentCacheService repaymentCacheService, IAccountRepository accountRepository)
+        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config, IPaymentRepository paymentRepository, IRevenueRepository revenueRepository, IProcessRepository processRepository, IRepaymentCacheService repaymentCacheService, IAccountRepository accountRepository, ICategoryServiceRepository categoryServiceRepository)
         {
             _paymentDAO = paymentDAO;
             _bookingRepository = bookingRepository;
@@ -47,6 +50,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _processRepository = processRepository;
             _repaymentCacheService = repaymentCacheService;
             _accountRepository = accountRepository;
+            _categoryServiceRepository = categoryServiceRepository;
         }
 
         public async Task<PaymentResponseDTO> GetAllPayment()
@@ -624,5 +628,218 @@ namespace FamilyFarm.BusinessLogic.Services
         //        Data = payment
         //    };
         //}
+
+        public async Task<BillPaymentResponseDTO> GetBillPayment(string? paymentId)
+        {
+            var payment = await _paymentRepository.GetPayment(paymentId);
+
+            if (payment == null)
+            {
+                return new BillPaymentResponseDTO
+                {
+                    Success = false,
+                    Message = "Can not found payment."
+                };
+            }
+
+            var getBooking = await _bookingRepository.GetById(payment.BookingServiceId);
+            var getService = await _serviceRepository.GetByIdOutDelete(getBooking.ServiceId);
+            var getServiceCate = await _categoryServiceRepository.GetCategoryServiceById(getService.CategoryServiceId);
+            var getPayer = await _accountRepository.GetAccountByAccId(payment.FromAccId);
+            var getFarmer = await _accountRepository.GetAccountByAccId(getBooking.AccId);
+            var getExpert = await _accountRepository.GetAccountByAccId(getService.ProviderId);
+
+            decimal? finalPrice = 0;
+            if (payment.IsRepayment != null && payment.IsRepayment == true) {
+                finalPrice = getBooking.Price * 0.10m;
+            } else
+            {
+                finalPrice = getBooking?.Price;
+            }
+
+            var result = new BillPaymentMapper
+            {
+                PaymentId = payment.PaymentId,
+                BookingServiceId = payment.BookingServiceId,
+                SubProcessId = payment.SubProcessId,
+                FromAccId = payment.FromAccId,
+                ToAccId = payment.ToAccId,
+                IsRepayment = payment.IsRepayment,
+                PayAt = payment.PayAt,
+                Price = finalPrice,
+
+                ServiceName = getService?.ServiceName,
+                CategoryServiceName = getServiceCate?.CategoryName,
+
+                ExpertName = getExpert?.FullName,
+                FarmerName = getFarmer?.FullName,
+                PayerName = getPayer?.FullName,
+
+                BookingServiceAt = getBooking?.BookingServiceAt
+            };
+
+            return new BillPaymentResponseDTO
+            {
+                Success = true,
+                Message = "Get bill payment success",
+                Data = result
+            };
+        }
+
+        public async Task<PaymentTransaction> GetLatestPaymentOfPayerById(string fromAccId)
+        {
+            var result = await _paymentRepository.GetLatestPaymentOfPayerById(fromAccId);
+
+            return result;
+        }
+
+        public async Task<BillPaymentResponseDTO> GetBillPaymentByBookingId(string? bookingId)
+        {
+            var payment = await _paymentRepository.GetPaymentByBooking(bookingId);
+
+            if (payment == null)
+            {
+                return new BillPaymentResponseDTO
+                {
+                    Success = false,
+                    Message = "Can not found payment."
+                };
+            }
+
+            var getBooking = await _bookingRepository.GetById(payment.BookingServiceId);
+            var getService = await _serviceRepository.GetByIdOutDelete(getBooking.ServiceId);
+            var getServiceCate = await _categoryServiceRepository.GetCategoryServiceById(getService.CategoryServiceId);
+            var getPayer = await _accountRepository.GetAccountByAccId(payment.FromAccId);
+            var getFarmer = await _accountRepository.GetAccountByAccId(getBooking.AccId);
+            var getExpert = await _accountRepository.GetAccountByAccId(getService.ProviderId);
+
+            decimal? finalPrice = 0;
+            if (payment.IsRepayment != null && payment.IsRepayment == true)
+            {
+                finalPrice = getBooking.Price * 0.10m;
+            }
+            else
+            {
+                finalPrice = getBooking?.Price;
+            }
+
+            var result = new BillPaymentMapper
+            {
+                PaymentId = payment.PaymentId,
+                BookingServiceId = payment.BookingServiceId,
+                SubProcessId = payment.SubProcessId,
+                FromAccId = payment.FromAccId,
+                ToAccId = payment.ToAccId,
+                IsRepayment = payment.IsRepayment,
+                PayAt = payment.PayAt,
+                Price = finalPrice,
+
+                ServiceName = getService?.ServiceName,
+                CategoryServiceName = getServiceCate?.CategoryName,
+
+                ExpertName = getExpert?.FullName,
+                FarmerName = getFarmer?.FullName,
+                PayerName = getPayer?.FullName,
+
+                BookingServiceAt = getBooking?.BookingServiceAt
+            };
+
+            return new BillPaymentResponseDTO
+            {
+                Success = true,
+                Message = "Get bill payment success",
+                Data = result
+            };
+        }
+
+        public async Task<ListPaymentResponseDTO> GetListPaymentUser(string accId)
+        {
+            var listPayment = await _paymentDAO.GetAllAsync();
+
+            if (listPayment == null || !listPayment.Any())
+            {
+                return new ListPaymentResponseDTO
+                {
+                    Success = false,
+                    Message = "List payment is empty"
+                };
+            }
+
+            // ✅ Lọc theo FromAccId
+            var filteredList = listPayment
+                .Where(p => p.FromAccId == accId)
+                .OrderByDescending(p => p.PayAt)
+                .ToList();
+
+            if (!filteredList.Any())
+            {
+                return new ListPaymentResponseDTO
+                {
+                    Success = false,
+                    Message = $"No payments found for FromAccId: {accId}"
+                };
+            }
+
+            var result = new List<PaymentDataMapper>();
+
+            foreach (var payment in filteredList)
+            {
+                string? serviceName = null;
+                string? farmerName = null;
+                string? expertName = null;
+                decimal? price = null;
+
+                if (!string.IsNullOrEmpty(payment.SubProcessId))
+                {
+                    //var getPaymentBySubProcess = await _paymentRepository.GetPaymentBySubProcess(payment.SubProcessId);
+                    var getPayment = await _paymentRepository.GetPayment(payment.PaymentId);
+                    var subProcess = await _processRepository.GetSubProcessBySubProcessId(payment.SubProcessId);
+                    var booking = await _bookingRepository.GetById(payment.BookingServiceId);
+                    var farmer = await _accountRepository.GetAccountByAccId(getPayment.FromAccId);
+                    var expert = await _accountRepository.GetAccountByAccId(getPayment.ToAccId);
+                    var service = await _serviceRepository.GetByIdOutDelete(booking.ServiceId);
+
+                    serviceName = service?.ServiceName;
+                    farmerName = farmer?.FullName;
+                    expertName = expert?.FullName;
+                    price = subProcess?.Price;
+                }
+                else
+                {
+                    var getPayment = await _paymentRepository.GetPayment(payment.PaymentId);
+                    var booking = await _bookingRepository.GetById(payment.BookingServiceId);
+                    var farmer = await _accountRepository.GetAccountByAccId(getPayment.FromAccId);
+                    var expert = await _accountRepository.GetAccountByAccId(getPayment.ToAccId);
+                    var service = await _serviceRepository.GetByIdOutDelete(booking.ServiceId);
+
+                    serviceName = service?.ServiceName;
+                    farmerName = farmer?.FullName;
+                    expertName = expert?.FullName;
+                    price = booking?.Price;
+                }
+
+                result.Add(new PaymentDataMapper
+                {
+                    PaymentId = payment.PaymentId,
+                    BookingServiceId = payment.BookingServiceId,
+                    SubProcessId = payment.SubProcessId,
+                    FromAccId = payment.FromAccId,
+                    ToAccId = payment.ToAccId,
+                    IsRepayment = payment.IsRepayment,
+                    PayAt = payment.PayAt,
+                    Price = price,
+                    ServiceName = serviceName,
+                    FarmerName = farmerName,
+                    ExpertName = expertName
+                });
+            }
+
+            return new ListPaymentResponseDTO
+            {
+                Success = true,
+                Message = "Get list payment successfully",
+                Data = result
+            };
+        }
     }
 }

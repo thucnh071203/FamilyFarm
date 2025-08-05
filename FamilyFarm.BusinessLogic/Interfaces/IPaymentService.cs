@@ -25,5 +25,9 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<bool> HandleRepaymentVNPayReturnAsync(IQueryCollection vnpayData);
         Task<string> CreateRepaymentUrlAsync(CreateRepaymentRequestDTO request, HttpContext httpContext);
         Task<ListPaymentResponseDTO> GetListPayment();
+        Task<BillPaymentResponseDTO> GetBillPayment(string? paymentId);
+        Task<PaymentTransaction> GetLatestPaymentOfPayerById(string fromAccId);
+        Task<BillPaymentResponseDTO> GetBillPaymentByBookingId(string? bookingId);
+        Task<ListPaymentResponseDTO> GetListPaymentUser(string accId);
     }
 }
