@@ -44,17 +44,6 @@ namespace FamilyFarm.Tests.GroupMemberTest
         [Test]
         public async Task DeleteMember_ValidRequest_ShouldReturnSuccess()
         {
-            //_groupMemberServiceMock.Setup(x => x.GetGroupMemberById("680d28bcb2560a3fdd73707c")).ReturnsAsync(GetMockMember());
-            //_groupMemberServiceMock.Setup(x => x.DeleteGroupMember("680d28bcb2560a3fdd73707c")).ReturnsAsync(1);
-
-            //var result = await _controller.DeleteGroupMember("680d28bcb2560a3fdd73707c") as OkObjectResult;
-
-            //Assert.Multiple(() =>
-            //{
-            //    Assert.IsNotNull(result);
-            //    Assert.AreEqual(200, result.StatusCode);
-            //    Assert.AreEqual("Delete successfully!", result.Value);
-            //});
 
             var groupMemberId = "680d28bcb2560a3fdd73707c";
 

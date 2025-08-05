@@ -68,7 +68,7 @@ namespace FamilyFarm.API.Controllers
             try
             {
                 var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
-                return Ok(result); // Trả về: { "Farmer": 1234, "Expert": 567 }
+                return Ok(result); 
             }
             catch (Exception)
             {

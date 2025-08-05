@@ -37,7 +37,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
         new Account { AccId = "68007b0387b41211f0af1d56", FullName = "Tran Phu", Email = "phu@example.com" }
     };
 
-        // ✅ TC01: Search exact name "Tran Phuong Nam"
+        //  Search exact name "Tran Phuong Nam"
         [Test]
         public async Task SearchExactMatch_ShouldReturnMatchedUser()
         {
@@ -57,7 +57,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
             });
         }
 
-        // ✅ TC02: Search with partial match "Tran Phu"
+        // Search with partial match "Tran Phu"
         [Test]
         public async Task SearchPartialName_ShouldReturnMatchedUser()
         {
@@ -76,7 +76,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
             });
         }
 
-        // ✅ TC03: Search with empty keyword
+        // Search with empty keyword
         [Test]
         public async Task EmptyKeyword_ShouldReturnBadRequest()
         {
@@ -93,7 +93,7 @@ namespace FamilyFarm.Tests.GroupMemberTest
             });
         }
 
-        // ✅ TC04: No token provided
+        // No token provided
         [Test]
         public async Task NoToken_ShouldReturnOkIfKeywordProvided()
         {
