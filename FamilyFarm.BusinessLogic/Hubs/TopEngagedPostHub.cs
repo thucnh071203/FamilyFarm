@@ -1,4 +1,5 @@
 ﻿using FamilyFarm.BusinessLogic.Interfaces;
+using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Response;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -28,6 +29,12 @@ namespace FamilyFarm.BusinessLogic.Hubs
         {
             await Clients.All.SendAsync("UsersByProvince", usersByProvince);
         }
+
+        public async Task SendRevenueData(RevenueSystemDTO revenue)
+        {
+            await Clients.All.SendAsync("ReceiveRevenueUpdate", revenue);
+        }
+
 
     }
 }

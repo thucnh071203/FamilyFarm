@@ -1,4 +1,5 @@
-﻿using FamilyFarm.BusinessLogic.Interfaces;
+﻿using FamilyFarm.BusinessLogic.Hubs;
+using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.DataAccess.DAOs;
 using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
@@ -6,6 +7,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -18,10 +20,12 @@ namespace FamilyFarm.BusinessLogic.Services
     public class StatisticService : IStatisticService
     {
         private readonly IStatisticRepository _statisticRepository;
+        private readonly IHubContext<TopEngagedPostHub> _hubContext;
 
-        public StatisticService(IStatisticRepository statisticRepository)
+        public StatisticService(IStatisticRepository statisticRepository, IHubContext<TopEngagedPostHub> hubContext)
         {
             _statisticRepository = statisticRepository;
+            _hubContext = hubContext;
         }
 
         public async Task<List<EngagedPostResponseDTO>> GetTopEngagedPostsAsync(int topN)
@@ -77,11 +81,25 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await _statisticRepository.GetExpertRevenueAsync(expertId, from, to);
         }
-        public async Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null)
+    //    public async Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null)
    
-         {
-            return await _statisticRepository.GetSystemRevenueAsync(from, to);
-    }
+    //     {
+    //        return await _statisticRepository.GetSystemRevenueAsync(from, to);
+    //}
+
+        public async Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null)
+        {
+            var revenue = await _statisticRepository.GetSystemRevenueAsync(from, to);
+
+            await _hubContext.Clients.All.SendAsync("ReceiveRevenueUpdate", revenue);
+
+            return revenue;
+        }
+
+
+
+
+
         public async Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status)
         {
             return await _statisticRepository.GetBookingsByStatusAsync(accId, status);

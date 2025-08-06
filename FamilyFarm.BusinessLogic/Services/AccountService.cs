@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 using FamilyFarm.Models.DTOs.EntityDTO;
@@ -7,6 +8,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,12 +23,14 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly PasswordHasher _hasher;
         private readonly IUploadFileService _uploadFileService;
         private readonly IMapper _mapper;
-        public AccountService(IAccountRepository accountRepository, PasswordHasher hasher, IUploadFileService uploadFileService, IMapper mapper)
+        private readonly IHubContext<TopEngagedPostHub> _hubContext;
+        public AccountService(IAccountRepository accountRepository, PasswordHasher hasher, IUploadFileService uploadFileService, IMapper mapper, IHubContext<TopEngagedPostHub> hubContext)
         {
             _accountRepository = accountRepository;
             _hasher = hasher;
             _uploadFileService = uploadFileService;
             _mapper = mapper;
+            _hubContext = hubContext;
         }
         public async Task<Account?> GetAccountById(string acc_id)
         {
@@ -324,10 +328,28 @@ namespace FamilyFarm.BusinessLogic.Services
            // if (role_id == null) return null;
             return await _accountRepository.GetAllAccountByRoleId(role_id);
         }
+        //public async Task<bool> UpdateAccountStatus(string accId, int status)
+        //{
+        //    return await _accountRepository.UpdateAccountStatus(accId, status);
+        //}
+
         public async Task<bool> UpdateAccountStatus(string accId, int status)
         {
-            return await _accountRepository.UpdateAccountStatus(accId, status);
+            var result = await _accountRepository.UpdateAccountStatus(accId, status);
+
+            if (result && status == 1) 
+            {
+                var expertRoleIds = new List<string> { "68007b2a87b41211f0af1d57" };
+                var totalByRoles = await _accountRepository.GetTotalByRoleIdsAsync(expertRoleIds);
+                var expertCount = totalByRoles.ContainsKey("68007b2a87b41211f0af1d57") ? totalByRoles["68007b2a87b41211f0af1d57"] : 0;
+
+                await _hubContext.Clients.All.SendAsync("ExpertCountUpdate", expertCount);
+            }
+
+            return result;
         }
+
+
         public async Task<Account?> GetAccountByAccId(string accId)
         {
             if (accId == null) return null;

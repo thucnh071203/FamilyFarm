@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.Models.DTOs.Request;
@@ -8,6 +9,7 @@ using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,8 +37,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly ISharePostRepository _sharePostRepository;
         private readonly IGroupRepository _groupRepository;
         private readonly ISharePostTagRepository _sharePostTagRepository;
-
-        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository, IGroupRepository groupRepository, ISharePostTagRepository sharePostTagRepository)
+        private readonly IHubContext<TopEngagedPostHub> _hubContext;
+        private readonly IStatisticRepository _statisticRepository;
+        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository, IGroupRepository groupRepository, ISharePostTagRepository sharePostTagRepository, IHubContext<TopEngagedPostHub> hubContext, IStatisticRepository statisticRepository)
         {
             _postRepository = postRepository;
             _postCategoryRepository = postCategoryRepository;
@@ -53,6 +56,8 @@ namespace FamilyFarm.BusinessLogic.Services
             _sharePostRepository = sharePostRepository;
             _groupRepository = groupRepository;
             _sharePostTagRepository = sharePostTagRepository;
+            _hubContext = hubContext;
+            _statisticRepository = statisticRepository;
         }
 
         /// <summary>
@@ -95,6 +100,10 @@ namespace FamilyFarm.BusinessLogic.Services
             }
 
             var newPost = await _postRepository.CreatePost(postRequest);
+
+            long totalPost = await _statisticRepository.CountPostsAsync();
+            await _hubContext.Clients.All.SendAsync("NewPost", totalPost);
+
 
             if (newPost == null)
                 return new PostResponseDTO

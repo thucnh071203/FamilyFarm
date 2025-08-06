@@ -18,6 +18,7 @@ namespace FamilyFarm.Repositories.Implementations
         private readonly StatisticDAO _statisticDAO;
         private readonly ReactionDAO _reactionDAO;
         private readonly CommentDAO _commentDAO;
+
         public StatisticRepository(StatisticDAO statisticDAO, ReactionDAO reactionDAO, CommentDAO commentDAO)
         {
             _statisticDAO = statisticDAO;
@@ -85,24 +86,10 @@ namespace FamilyFarm.Repositories.Implementations
         }
         public async Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null)
         {
-            var bookings = await _statisticDAO.FindPaidBookingsAsync(from, to);
-
-            var totalRev = bookings.Sum(b => b.Price ?? 0);
-            var totalBk = bookings.Count;
-
-            var revByMonth = bookings
-                .Where(b => b.BookingServiceAt.HasValue)
-                .GroupBy(b => b.BookingServiceAt!.Value.ToString("yyyy-MM"))
-                .ToDictionary(g => g.Key, g => g.Sum(b => b.Price ?? 0));
-
-            return new RevenueSystemDTO
-            {
-                TotalRevenue = totalRev,
-                TotalBookings = totalBk,
-                TotalCommission = totalRev * 0.9m, // Lấy 90% của tổng doanh thu
-                RevenueByMonth = revByMonth
-            };
+            var revenue = await _statisticDAO.FindPaidBookingsAsync(from, to);
+            return revenue;
         }
+
 
         public async Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status)
         {
