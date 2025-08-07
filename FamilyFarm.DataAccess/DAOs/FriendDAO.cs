@@ -205,14 +205,19 @@ namespace FamilyFarm.DataAccess.DAOs
 
             relatedUserIds.Add(userId); // Không gợi ý chính mình
 
-            // 3. Trả về tối đa 8 người cùng role, chưa có quan hệ
             var suggestions = await _Account.Find(a =>
-                    a.RoleId == currentRole &&
-                    !relatedUserIds.Contains(a.AccId)) // Không nằm trong danh sách đã quen biết
-                .Limit(number)
-                .ToListAsync();
+           a.RoleId == currentRole &&
+           !relatedUserIds.Contains(a.AccId))
+       .Limit(number * 2) // lấy dư ra để sau khi sort còn đủ kết quả
+       .ToListAsync();
 
-            return suggestions;
+            // 4. Sắp xếp: account có cùng City với currentUser sẽ nằm đầu danh sách
+            var sortedSuggestions = suggestions
+                .OrderByDescending(a => a.City == currentUser.City) // true = 1, false = 0 => true lên đầu
+                .Take(number) // Giới hạn lại số lượng yêu cầu
+                .ToList();
+
+            return sortedSuggestions;
         }
 
         public async Task<List<Account>> GetSuggestedExperts(string userId, int number)
