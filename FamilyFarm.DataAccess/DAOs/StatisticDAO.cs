@@ -159,7 +159,20 @@ namespace FamilyFarm.DataAccess.DAOs
                 DailyCommission = dailyCommission
             };
         }
-        public async Task<List<BookingService>> FindPaidBookingsAsync(DateTime? from = null, DateTime? to = null)
+        //public async Task<List<BookingService>> FindPaidBookingsAsync(DateTime? from = null, DateTime? to = null)
+        //{
+        //    var fb = Builders<BookingService>.Filter;
+        //    var filter = fb.Eq(bs => bs.IsPaidByFarmer, true);
+
+        //    if (from.HasValue)
+        //        filter &= fb.Gte(bs => bs.BookingServiceAt, from.Value);
+        //    if (to.HasValue)
+        //        filter &= fb.Lte(bs => bs.BookingServiceAt, to.Value);
+
+        //    return await BookingServices.Find(filter).ToListAsync();
+        //}
+
+        public async Task<RevenueSystemDTO> FindPaidBookingsAsync(DateTime? from = null, DateTime? to = null)
         {
             var fb = Builders<BookingService>.Filter;
             var filter = fb.Eq(bs => bs.IsPaidByFarmer, true);
@@ -169,8 +182,28 @@ namespace FamilyFarm.DataAccess.DAOs
             if (to.HasValue)
                 filter &= fb.Lte(bs => bs.BookingServiceAt, to.Value);
 
-            return await BookingServices.Find(filter).ToListAsync();
+            var bookings = await BookingServices.Find(filter).ToListAsync();
+
+            var totalRev = bookings.Sum(b => b.Price ?? 0);
+            var totalBk = bookings.Count;
+
+            var revByMonth = bookings
+                .Where(b => b.BookingServiceAt.HasValue)
+                .GroupBy(b => b.BookingServiceAt!.Value.ToString("yyyy-MM"))
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(b => b.Price ?? 0)
+                );
+
+            return new RevenueSystemDTO
+            {
+                TotalRevenue = totalRev,
+                TotalBookings = totalBk,
+                TotalCommission = totalRev * 0.9m,
+                RevenueByMonth = revByMonth
+            };
         }
+
 
 
         public async Task<List<EngagedPostResponseDTO>> GetTopEngagedPostsAsync(

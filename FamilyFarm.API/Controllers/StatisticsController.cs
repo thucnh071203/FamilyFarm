@@ -141,9 +141,8 @@ namespace FamilyFarm.API.Controllers
             var userClaims = _authenService.GetDataFromToken();
             if (userClaims == null)
                 return BadRequest();
-            DateTime endDate = (toDate ?? DateTime.Today).AddDays(1);
+            DateTime endDate = ((toDate ?? DateTime.Today).AddDays(1)).ToUniversalTime();
             DateTime startDate = (fromDate ?? endDate.AddDays(-31)).ToUniversalTime();
-
 
             if (startDate > endDate)
             {

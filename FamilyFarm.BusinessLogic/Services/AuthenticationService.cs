@@ -17,6 +17,7 @@ using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using Humanizer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
@@ -601,6 +602,11 @@ namespace FamilyFarm.BusinessLogic.Services
                     farmerCount,
                     expertCount
                 });
+
+                await _hubContext.Clients.All.SendAsync("UpdateFarmerCount", farmerCount);
+
+
+
                 var usersByProvince = await _statisticRepository.GetUsersByProvinceAsync();
                 await _hubContext.Clients.All.SendAsync("UsersByProvince", usersByProvince);
 
