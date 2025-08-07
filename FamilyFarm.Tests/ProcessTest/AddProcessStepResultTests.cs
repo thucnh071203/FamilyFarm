@@ -17,6 +17,7 @@ using FamilyFarm.BusinessLogic.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using FamilyFarm.API.Controllers;
 using FamilyFarm.Models.Mapper;
+using AutoMapper;
 
 namespace FamilyFarm.Tests.ProcessTest
 {
@@ -38,6 +39,33 @@ namespace FamilyFarm.Tests.ProcessTest
         private ProcessStepController _controller;
 
         [SetUp]
+        //public void Setup()
+        //{
+        //    _mockProcessService = new Mock<IProcessService>();
+        //    _mockAuthService = new Mock<IAuthenticationService>();
+        //    _mockProcessRepo = new Mock<IProcessRepository>();
+        //    _mockAccountRepo = new Mock<IAccountRepository>();
+        //    _mockServiceRepo = new Mock<IServiceRepository>();
+        //    _mockBookingRepo = new Mock<IBookingServiceRepository>();
+        //    _mockUploadFileService = new Mock<IUploadFileService>();
+        //    _mockStepRepo = new Mock<IProcessStepRepository>();
+        //    _mockPaymentRepo = new Mock<IPaymentRepository>();
+        //    //_mockAuthService = new Mock<IAuthenticationService>();
+
+
+
+        //    _processService = new ProcessService(
+        //        _mockProcessRepo.Object,
+        //        _mockAccountRepo.Object,
+        //        _mockServiceRepo.Object,
+        //        _mockBookingRepo.Object,
+        //        _mockUploadFileService.Object,
+        //        _mockStepRepo.Object,
+        //        _mockPaymentRepo.Object);
+
+        //    _controller = new ProcessStepController(_mockProcessService.Object, _mockAuthService.Object);
+        //}
+
         public void Setup()
         {
             _mockProcessService = new Mock<IProcessService>();
@@ -49,10 +77,11 @@ namespace FamilyFarm.Tests.ProcessTest
             _mockUploadFileService = new Mock<IUploadFileService>();
             _mockStepRepo = new Mock<IProcessStepRepository>();
             _mockPaymentRepo = new Mock<IPaymentRepository>();
-            //_mockAuthService = new Mock<IAuthenticationService>();
 
+            // Mock IMapper
+            var mapperMock = new Mock<IMapper>();
 
-
+            // Khởi tạo ProcessService với tất cả các mock, bao gồm mock của IMapper
             _processService = new ProcessService(
                 _mockProcessRepo.Object,
                 _mockAccountRepo.Object,
@@ -60,10 +89,12 @@ namespace FamilyFarm.Tests.ProcessTest
                 _mockBookingRepo.Object,
                 _mockUploadFileService.Object,
                 _mockStepRepo.Object,
-                _mockPaymentRepo.Object);
+                _mockPaymentRepo.Object,
+                mapperMock.Object); // Thêm mock IMapper vào constructor
 
             _controller = new ProcessStepController(_mockProcessService.Object, _mockAuthService.Object);
         }
+
 
         private void SetFarmerUser() =>
         _mockAuthService.Setup(x => x.GetDataFromToken()).Returns(new UserClaimsResponseDTO

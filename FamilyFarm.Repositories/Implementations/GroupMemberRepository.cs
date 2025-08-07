@@ -100,7 +100,7 @@ namespace FamilyFarm.Repositories.Implementations
 
         public async Task<GroupMember> GetMemberInvitedOrJoinedGroup(string groupId, string accId)
         {
-            return await _dao.GetMemberInvitedGroupAsync(groupId, accId);
+            return await _dao.GetMemberInvitedOrJoinedGroupAsync(groupId, accId);
         }
 
         public async Task<GroupMember> GetGroupMemberInviteById(string groupMemberId)

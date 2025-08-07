@@ -74,6 +74,18 @@ namespace FamilyFarm.BusinessLogic.Services
                 };
             }
 
+            //KIỂM TRA XEM TÀI KHOẢN ĐÓ ROLE EXPERT CÓ ĐƯỢC ACCEPT HAY CHƯA
+            if(account.RoleId == "68007b2a87b41211f0af1d57")
+            {
+                if(account.Status == 2)
+                {
+                    return new LoginResponseDTO
+                    {
+                        Message = "Your account has not been approved."
+                    };
+                }
+            }
+
             //Kiểm tra xem có đúng password hay không
             if (!_hasher.VerifyPassword(request.Password, account.PasswordHash))
             {
@@ -84,12 +96,12 @@ namespace FamilyFarm.BusinessLogic.Services
                 if (account.FailedAttempts >= 5)
                 {
                     //Reset lại số lần thất bại thành 0 và cập nhật thời gian khóa mới
-                    var lockedUntil = DateTime.UtcNow.AddSeconds(10);
+                    var lockedUntil = DateTime.UtcNow.AddMinutes(3);
                     await _accountRepository.UpdateLoginFail(account.AccId, 0, lockedUntil);
 
                     return new LoginResponseDTO
                     {
-                        Message = "Account is locked login.",
+                        Message = "Your username or password is incorrect.",
                         LockedUntil = lockedUntil
                     };
                 }
