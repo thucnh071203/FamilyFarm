@@ -354,23 +354,84 @@ namespace FamilyFarm.DataAccess.DAOs
             return (int)await _Accounts.CountDocumentsAsync(a => a.RoleId == roleId && a.Status == 1);
         }
 
-        public async Task<Dictionary<string, int>> GetTotalByRoleIdsAsync(List<string> roleIds)
+        //public async Task<Dictionary<string, int>> GetTotalByRoleIdsAsync(List<string> roleIds)
+        //{
+        //    var filter = Builders<Account>.Filter.In(a => a.RoleId, roleIds);
+
+        //    var aggregation = await _Accounts.Aggregate()
+        //        .Match(filter)
+        //        .Group(a => a.RoleId, g => new { RoleId = g.Key, Count = g.Count() })
+        //        .ToListAsync();
+
+        //    var roleNames = await _Roles.Find(r => roleIds.Contains(r.RoleId))
+        //        .ToListAsync();
+
+        //    return aggregation.ToDictionary(
+        //        x => roleNames.FirstOrDefault(r => r.RoleId == x.RoleId)?.RoleName ?? "Unknown",
+        //        x => x.Count
+        //    );
+        //}
+
+
+
+        public async Task<Dictionary<string, (int Count, int Growth)>> GetTotalAndGrowthByRoleIdsAsync(List<string> roleIds)
         {
             var filter = Builders<Account>.Filter.In(a => a.RoleId, roleIds);
 
-            var aggregation = await _Accounts.Aggregate()
+            var now = DateTime.UtcNow;
+            var startOfThisWeek = now.Date.AddDays(-(int)now.DayOfWeek); // Sunday
+            var startOfLastWeek = startOfThisWeek.AddDays(-7);
+            var endOfLastWeek = startOfThisWeek.AddSeconds(-1);
+
+            var thisWeekFilter = Builders<Account>.Filter.And(
+                filter,
+                Builders<Account>.Filter.Gte(a => a.CreatedAt, startOfThisWeek),
+                Builders<Account>.Filter.Lte(a => a.CreatedAt, now)
+            );
+
+            var lastWeekFilter = Builders<Account>.Filter.And(
+                filter,
+                Builders<Account>.Filter.Gte(a => a.CreatedAt, startOfLastWeek),
+                Builders<Account>.Filter.Lte(a => a.CreatedAt, endOfLastWeek)
+            );
+
+            var totalAggregation = await _Accounts.Aggregate()
                 .Match(filter)
                 .Group(a => a.RoleId, g => new { RoleId = g.Key, Count = g.Count() })
                 .ToListAsync();
 
-            var roleNames = await _Roles.Find(r => roleIds.Contains(r.RoleId))
+            var thisWeekAggregation = await _Accounts.Aggregate()
+                .Match(thisWeekFilter)
+                .Group(a => a.RoleId, g => new { RoleId = g.Key, Count = g.Count() })
                 .ToListAsync();
 
-            return aggregation.ToDictionary(
-                x => roleNames.FirstOrDefault(r => r.RoleId == x.RoleId)?.RoleName ?? "Unknown",
-                x => x.Count
-            );
+            var lastWeekAggregation = await _Accounts.Aggregate()
+                .Match(lastWeekFilter)
+                .Group(a => a.RoleId, g => new { RoleId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var roleNames = await _Roles.Find(r => roleIds.Contains(r.RoleId)).ToListAsync();
+
+            var result = new Dictionary<string, (int Count, int Growth)>();
+
+            foreach (var total in totalAggregation)
+            {
+                var roleName = roleNames.FirstOrDefault(r => r.RoleId == total.RoleId)?.RoleName ?? "Unknown";
+
+                var thisWeek = thisWeekAggregation.FirstOrDefault(x => x.RoleId == total.RoleId)?.Count ?? 0;
+                var lastWeek = lastWeekAggregation.FirstOrDefault(x => x.RoleId == total.RoleId)?.Count ?? 0;
+
+                int growth = (lastWeek == 0 && thisWeek > 0)
+                    ? 100
+                    : (lastWeek == 0 ? 0 : (int)Math.Round(((double)(thisWeek - lastWeek) / lastWeek) * 100));
+
+                result[roleName.ToUpper()] = (total.Count, growth);
+            }
+
+            return result;
         }
+
+
 
         public async Task<Dictionary<string, int>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate)
         {

@@ -16,6 +16,8 @@ using NUnit.Framework;
 using FamilyFarm.Models.DTOs.EntityDTO;
 using FamilyFarm.BusinessLogic.PasswordHashing;
 using FamilyFarm.Models.DTOs.Response;
+using FamilyFarm.BusinessLogic.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace FamilyFarm.Tests.AccountTests
 {
@@ -31,7 +33,7 @@ namespace FamilyFarm.Tests.AccountTests
         private Mock<IUploadFileService> _uploadMock;
         private IAccountService _service;
         private IMapper _mapper;
-
+        private readonly IHubContext<TopEngagedPostHub> _hubContext;
         private Account CreateMockAccount(string id) => new Account
         {
             AccId = id,
@@ -58,7 +60,7 @@ namespace FamilyFarm.Tests.AccountTests
             });
             _mapper = config.CreateMapper();
 
-            _service = new AccountService(_accountRepoMock.Object, new PasswordHasher(), _uploadMock.Object, _mapper);
+            _service = new AccountService(_accountRepoMock.Object, new PasswordHasher(), _uploadMock.Object, _mapper, _hubContext);
         }
 
         [Test]

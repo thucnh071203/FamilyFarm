@@ -5,6 +5,7 @@ using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories;
+using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Driver.Core.Servers;
@@ -26,8 +27,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IPaymentRepository _paymentRepository;
         private readonly IHubContext<AllHub> _allHub;
         private readonly INotificationService _notificationService;
-
-        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<NotificationHub> notificationHub, IPaymentRepository paymentRepository, IHubContext<AllHub> allHub, INotificationService notificationService)
+        private readonly IStatisticService _statisticService;
+        private readonly IHubContext<TopEngagedPostHub> _hubContext;
+        public BookingServiceService(IBookingServiceRepository repository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IHubContext<NotificationHub> notificationHub, IPaymentRepository paymentRepository, IHubContext<AllHub> allHub, INotificationService notificationService, IStatisticService statisticService, IHubContext<TopEngagedPostHub> hubContext)
         {
             _repository = repository;
             _accountRepository = accountRepository;
@@ -37,6 +39,8 @@ namespace FamilyFarm.BusinessLogic.Services
             _paymentRepository = paymentRepository;
             _allHub = allHub;
             _notificationService = notificationService;
+            _statisticService = statisticService;
+            _hubContext = hubContext;
         }
 
         public async Task<bool?> CancelBookingService(string bookingServiceId)
@@ -59,6 +63,13 @@ namespace FamilyFarm.BusinessLogic.Services
             try
             {
                 await _repository.UpdateStatus(bookingservice);
+
+                //await _hubContext.Clients.All.SendAsync("BookingCancelled", bookingservice);
+                //await _hubContext.Clients.Group(bookingservice.ExpertId).SendAsync("BookingCancelled", bookingservice);
+                await _hubContext.Clients
+   .Group(bookingservice.ExpertId)
+ .SendAsync("BookingCancelled", bookingservice);
+
 
                 // 🔽 THÊM ĐOẠN NÀY SAU KHI UPDATE THÀNH CÔNG:
                 var accId = bookingservice.AccId; // Hoặc bookingservice.Booking.AccId nếu dữ liệu dạng liên kết
@@ -89,6 +100,12 @@ namespace FamilyFarm.BusinessLogic.Services
             try
             {
                 await _repository.UpdateStatus(bookingservice);
+                //await _hubContext.Clients.All.SendAsync("BookingRejected", bookingservice);
+                await _hubContext.Clients.Group(bookingservice.ExpertId).SendAsync("BookingRejected", bookingservice);
+                await _hubContext.Clients
+.Group(bookingservice.ExpertId)
+.SendAsync("BookingRejected", bookingservice);
+
 
                 // Gửi SignalR đến Farmer
                 var accId = bookingservice.AccId;
@@ -133,6 +150,13 @@ namespace FamilyFarm.BusinessLogic.Services
             try
             {
                 await _repository.UpdateStatus(bookingservice);
+                //await _hubContext.Clients.All.SendAsync("BookingAccepted", bookingservice);
+                //await _hubContext.Clients.Group(bookingservice.ExpertId).SendAsync("BookingAccepted", bookingservice);
+                await _hubContext.Clients
+.Group(bookingservice.ExpertId)
+.SendAsync("BookingAccepted", bookingservice);
+
+
 
                 // Gửi SignalR đến Farmer
                 var accId = bookingservice.AccId;
@@ -160,6 +184,11 @@ namespace FamilyFarm.BusinessLogic.Services
                 {
                     Console.WriteLine($"Notification failed: {notiResponse.Message}");
                 }
+
+                // Gửi signalR cập nhật weekly growth chart
+                var weeklyData = await _statisticService.GetWeeklyBookingGrowthAsync();
+                await _hubContext.Clients.All.SendAsync("ReceiveWeeklyGrowthUpdate", weeklyData);
+
 
                 return true;
             }
@@ -451,6 +480,13 @@ namespace FamilyFarm.BusinessLogic.Services
             bookingService.HasExtraProcess = false;
 
             var isRequestSuccess = await _repository.Create(bookingService);
+            //await _hubContext.Clients.All.SendAsync("BookingCreated", bookingService);
+
+            //await _hubContext.Clients.Group(bookingService.ExpertId).SendAsync("BookingCreated", bookingService);
+            await _hubContext.Clients
+    .Group(bookingService.ExpertId)
+  .SendAsync("BookingCreated", bookingService);
+
 
             var expertId = service.ProviderId; // lấy từ Service tương ứng
 
