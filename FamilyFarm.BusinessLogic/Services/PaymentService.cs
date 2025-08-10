@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using FamilyFarm.BusinessLogic.Hubs;
 using FamilyFarm.BusinessLogic.Interfaces;
 using FamilyFarm.BusinessLogic.VNPay;
 using FamilyFarm.DataAccess.DAOs;
@@ -18,7 +19,9 @@ using FamilyFarm.Models.ModelsConfig;
 using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
+using Humanizer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -38,8 +41,10 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IRepaymentCacheService _repaymentCacheService;
         private readonly IAccountRepository _accountRepository;
         private readonly ICategoryServiceRepository _categoryServiceRepository;
+        private readonly IStatisticService _statisticService;
+        private readonly IHubContext<TopEngagedPostHub> _hubContext;
 
-        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config, IPaymentRepository paymentRepository, IRevenueRepository revenueRepository, IProcessRepository processRepository, IRepaymentCacheService repaymentCacheService, IAccountRepository accountRepository, ICategoryServiceRepository categoryServiceRepository)
+        public PaymentService(PaymentDAO paymentDAO, IBookingServiceRepository bookingRepository, IServiceRepository serviceRepository, IOptions<VNPayConfig> config, IPaymentRepository paymentRepository, IRevenueRepository revenueRepository, IProcessRepository processRepository, IRepaymentCacheService repaymentCacheService, IAccountRepository accountRepository, ICategoryServiceRepository categoryServiceRepository, IStatisticService statisticService, IHubContext<TopEngagedPostHub> hubContext)
         {
             _paymentDAO = paymentDAO;
             _bookingRepository = bookingRepository;
@@ -51,6 +56,8 @@ namespace FamilyFarm.BusinessLogic.Services
             _repaymentCacheService = repaymentCacheService;
             _accountRepository = accountRepository;
             _categoryServiceRepository = categoryServiceRepository;
+            _statisticService = statisticService;
+            _hubContext = hubContext;
         }
 
         public async Task<PaymentResponseDTO> GetAllPayment()
@@ -199,6 +206,18 @@ namespace FamilyFarm.BusinessLogic.Services
             booking.IsPaidByFarmer = true;
             booking.IsPaidToExpert = false;
             await _bookingRepository.UpdateBookingPayment(booking.BookingServiceId, booking);
+
+            var updatedBooking = await _bookingRepository.GetById(booking.BookingServiceId);
+            //await _hubContext.Clients.All.SendAsync("BookingUpdated", updatedBooking);
+            //await _hubContext.Clients.All.SendAsync("BookingPaid", booking);
+            await _hubContext.Clients.Group(booking.ExpertId).SendAsync("BookingPaid", booking);
+
+            var revenueData = await _statisticService.GetSystemRevenueAsync();
+            await _hubContext.Clients.All.SendAsync("ReceiveRevenueUpdate", revenueData);
+
+
+            var expertRevenue = await _statisticService.GetRevenueByExpertAsync(booking.ExpertId, null, null);
+            await _hubContext.Clients.All.SendAsync("ReceiveExpertRevenueUpdate", expertRevenue);
 
             return true;
         }

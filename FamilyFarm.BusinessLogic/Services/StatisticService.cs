@@ -48,13 +48,6 @@ namespace FamilyFarm.BusinessLogic.Services
             return await _statisticRepository.GetUsersByProvinceAsync();
         }
 
-        //public async Task<Dictionary<string, int>> GetCountByStatusAsync(string accId)
-        //    public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> GetCountByStatusAsync(string accId)
-
-        //{
-        //    return await _statisticRepository.GetCountByStatusAsync(accId);
-        //}
-
         public async Task<Dictionary<string, int>> GetCountByDateAsync(string accId, string time)
         {
             return await _statisticRepository.GetCountByDateAsync(accId, time);
@@ -79,13 +72,13 @@ namespace FamilyFarm.BusinessLogic.Services
         }
         public async Task<ExpertRevenueDTO> GetRevenueByExpertAsync(string expertId, DateTime? from = null, DateTime? to = null)
         {
-            return await _statisticRepository.GetExpertRevenueAsync(expertId, from, to);
+
+            var revenue = await _statisticRepository.GetExpertRevenueAsync(expertId, from, to);
+
+            await _hubContext.Clients.All.SendAsync("ReceiveRevenueUpdate", revenue);
+
+            return revenue;
         }
-    //    public async Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null)
-   
-    //     {
-    //        return await _statisticRepository.GetSystemRevenueAsync(from, to);
-    //}
 
         public async Task<RevenueSystemDTO> GetSystemRevenueAsync(DateTime? from = null, DateTime? to = null)
         {
@@ -95,10 +88,6 @@ namespace FamilyFarm.BusinessLogic.Services
 
             return revenue;
         }
-
-
-
-
 
         public async Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status)
         {

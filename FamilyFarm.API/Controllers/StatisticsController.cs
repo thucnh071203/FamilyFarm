@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace FamilyFarm.API.Controllers
 {
@@ -32,57 +33,27 @@ namespace FamilyFarm.API.Controllers
             return Ok(new { totalPosts = count });
         }
 
-        //[HttpGet("count-by-role")]
-        //public async Task<IActionResult> CountByRole()
-        //{
-        //    var roleIds = new List<string>
-        //    {
-        //        "68007b0387b41211f0af1d56", // Farmer
-        //        "68007b2a87b41211f0af1d57"  // Expert
-        //    };
-
-        //    try
-        //    {
-        //        var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
-        //        return Ok(result); // 200 OK
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //        return StatusCode(500, new { error = "Fail to load" });
-        //    }
-
-
-        //    //var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
-        //    //return Ok(result);
-        //}
         [HttpGet("count-by-role")]
-        public async Task<IActionResult> CountByRole()
+        public async Task<IActionResult> GetTotalAndGrowthByRole()
         {
-            var roleIds = new List<string>
-    {
-        "68007b0387b41211f0af1d56", // Farmer
-        "68007b2a87b41211f0af1d57"  // Expert
-    };
+            var roleIds = new List<string> { "68007b0387b41211f0af1d56", "68007b2a87b41211f0af1d57" };
+            var result = await _accountService.GetTotalAndGrowthByRoleIdsAsync(roleIds);
 
-            try
+            var response = result.ToDictionary(
+                x => x.Key,
+                x => new {
+                    count = x.Value.Count,
+                    growth = x.Value.Growth
+                });
+
+            return Ok(new
             {
-                var result = await _accountService.GetTotalByRoleIdsAsync(roleIds);
-                return Ok(result); 
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { error = "Fail to load" });
-            }
+                IsSuccess = true,
+                Message = "Fetched role count and growth successfully",
+                Data = response
+            });
         }
 
-
-        //[HttpGet("growth")]
-        //public async Task<IActionResult> GetUserGrowthOverTime([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
-        //{
-        //    var result = await _accountService.GetUserGrowthOverTimeAsync(fromDate, toDate);
-        //    return Ok(result);
-        //}
 
         [HttpGet("growth")]
         public async Task<IActionResult> GetUserGrowthOverTime([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
@@ -109,31 +80,7 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
-        //[HttpGet("user-growth")]
-        //public async Task<IActionResult> GetUserGrowth(DateTime? fromDate, DateTime? toDate)
-        //{
-        //    DateTime endDate = toDate ?? DateTime.Today; // Nếu toDate null thì lấy ngày hôm nay
-        //    DateTime startDate = fromDate ?? endDate.AddDays(-30); // Nếu fromDate null thì lấy 30 ngày trước đó
 
-        //    if (fromDate > toDate)
-        //    {
-        //        return BadRequest(new
-        //        {
-        //            isSuccess = false,
-        //            message = "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.",
-        //            data = (object)null
-        //        });
-        //    }
-
-        //    var data = await _accountService.GetUserGrowthOverTimeAsync(startDate, endDate);
-
-        //    return Ok(new
-        //    {
-        //        isSuccess = true,
-        //        message = $"User growth from {fromDate:yyyy-MM-dd} to {toDate:yyyy-MM-dd}.",
-        //        data
-        //    });
-        //}
 
         [HttpGet("user-growth")]
         public async Task<IActionResult> GetUserGrowth(DateTime? fromDate, DateTime? toDate)
@@ -258,33 +205,6 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
        
-        [Authorize]
-        [HttpGet("bookingService/time")]
-        public async Task<IActionResult> GetStatisticByDate([FromQuery] string time)
-        {
-            var userClaims = _authenService.GetDataFromToken();
-            var accId = userClaims?.AccId;
-
-            if (string.IsNullOrEmpty(accId))
-            {
-                return BadRequest(new
-                {
-                    isSuccess = false,
-                    message = "Missing account ID (accId).",
-                    data = (object)null
-                });
-            }
-
-            var result = await _statisticService.GetCountByDateAsync(accId, time);
-
-            return Ok(new
-            {
-                isSuccess = true,
-                message = "Statistics by date retrieved successfully.",
-                data = result
-            });
-        }
-
 
         [HttpGet("time")]
         [Authorize]
@@ -294,6 +214,7 @@ namespace FamilyFarm.API.Controllers
         {
             var userClaims = _authenService.GetDataFromToken();
             var accId = userClaims?.AccId;
+            Debug.WriteLine($"accId ........: {accId}");
 
             if (string.IsNullOrEmpty(accId) || year <= 0 || string.IsNullOrEmpty(type))
             {
@@ -315,6 +236,7 @@ namespace FamilyFarm.API.Controllers
                 return BadRequest("Invalid type parameter. Use 'month' or 'day'");
             }
         }
+
         [Authorize]
         [HttpGet("popular-service-categories")]
         public async Task<IActionResult> GetPopularServiceCategories()
@@ -331,19 +253,7 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
-        //[Authorize]
-        //[HttpGet("most-booked-services")]
-        //public async Task<IActionResult> GetMostBookedServices()
-        //{
-        //    var userClaims = _authenService.GetDataFromToken();
-        //    var accId = userClaims?.AccId;
-
-        //    if (string.IsNullOrEmpty(accId))
-        //        return BadRequest("accId is required.");
-
-        //    var result = await _statisticService.GetMostBookedServicesByExpertAsync(accId);
-        //    return Ok(result);
-        //}
+ 
         [Authorize]
         [HttpGet("most-booked-services")]
         public async Task<IActionResult> GetMostBookedServices()

@@ -189,7 +189,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
             var revByMonth = bookings
                 .Where(b => b.BookingServiceAt.HasValue)
-                .GroupBy(b => b.BookingServiceAt!.Value.ToString("yyyy-MM"))
+                .GroupBy(b => b.BookingServiceAt!.Value.ToString("yyyy-MM-dd"))
                 .ToDictionary(
                     g => g.Key,
                     g => g.Sum(b => b.Price ?? 0)
@@ -391,57 +391,6 @@ namespace FamilyFarm.DataAccess.DAOs
             }).ToList();
         }
 
-
-        //public async Task<Dictionary<string, List<BookingServiceByStatusDTO>>> CountByStatusAsync(string accId)
-        //{
-        //    var bookingFilter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
-        //    var bookings = await BookingServices.Find(bookingFilter).ToListAsync();
-
-        //    var serviceIds = bookings.Select(b => b.ServiceId).Distinct().ToList();
-        //    var serviceFilter = Builders<Service>.Filter.In(s => s.ServiceId, serviceIds);
-        //    var services = await Services.Find(serviceFilter).ToListAsync();
-
-        //    var result = bookings.Select(b =>
-        //    {
-        //        var service = services.FirstOrDefault(s => s.ServiceId == b.ServiceId);
-
-        //        return new BookingServiceByStatusDTO
-        //        {
-        //            BookingServiceId = b.BookingServiceId,
-        //            AccId = b.AccId,
-        //            ServiceId = b.ServiceId,
-        //            Price = b.Price,
-        //            BookingServiceAt = b.BookingServiceAt,
-        //            BookingServiceStatus = b.BookingServiceStatus,
-        //            CancelServiceAt = b.CancelServiceAt,
-        //            RejectServiceAt = b.RejectServiceAt,
-        //            FirstPayment = b.FirstPayment,
-        //            FirstPaymentAt = b.FirstPaymentAt,
-        //            SecondPayment = b.SecondPayment,
-        //            SecondPaymentAt = b.SecondPaymentAt,
-        //            IsDeleted = b.IsDeleted,
-
-        //            ServiceName = service?.ServiceName,
-        //            ServiceDescription = service?.ServiceDescription
-        //        };
-        //    }).ToList();
-
-        //    return result
-        //        .GroupBy(x => x.BookingServiceStatus ?? "UNKNOWN")
-        //        .ToDictionary(g => g.Key, g => g.ToList());
-        //}
-
-        //public async Task<Dictionary<string, List<BookingService>>> CountByStatusAsync(string accId)
-        //{
-        //    var filter = Builders<BookingService>.Filter.Eq(x => x.AccId, accId);
-        //    var bookings = await BookingServices.Find(filter).ToListAsync();
-
-        //    var grouped = bookings
-        //        .GroupBy(x => x.BookingServiceStatus ?? "UNKNOWN")
-        //        .ToDictionary(g => g.Key, g => g.ToList());
-
-        //    return grouped;
-        //}
         public async Task<List<BookingService>> GetBookingsByStatusAsync(string accId, string status)
         {
             var fb = Builders<BookingService>.Filter;
@@ -483,7 +432,7 @@ namespace FamilyFarm.DataAccess.DAOs
         public async Task<Dictionary<string, int>> GetCountByMonthAsync(string accId, int year)
         {
             var filter = Builders<BookingService>.Filter.Where(x =>
-                x.AccId == accId &&
+                x.ExpertId == accId &&
                 x.BookingServiceAt.HasValue &&
                 x.BookingServiceAt.Value.Year == year &&
                 (x.IsDeleted == null || x.IsDeleted == false));
@@ -499,7 +448,7 @@ namespace FamilyFarm.DataAccess.DAOs
         public async Task<Dictionary<string, int>> GetCountByDayAllMonthsAsync(string accId, int year)
         {
             var filter = Builders<BookingService>.Filter.Where(x =>
-                x.AccId == accId &&
+                x.ExpertId == accId &&
                 x.BookingServiceAt.HasValue &&
                 x.BookingServiceAt.Value.Year == year &&
                 (x.IsDeleted == null || x.IsDeleted == false));
@@ -550,7 +499,7 @@ namespace FamilyFarm.DataAccess.DAOs
             // 2. Lọc booking theo ServiceId dạng string
             var bookingFilter = Builders<BookingService>.Filter.And(
                 Builders<BookingService>.Filter.In(b => b.ServiceId, expertServiceIds),
-                Builders<BookingService>.Filter.Eq(b => b.BookingServiceStatus, "Accept")
+                Builders<BookingService>.Filter.Eq(b => b.BookingServiceStatus, "Accepted")
             );
 
             var bookings = await BookingServices.Find(bookingFilter).ToListAsync();

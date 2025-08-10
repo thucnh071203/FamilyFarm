@@ -300,15 +300,9 @@ namespace FamilyFarm.BusinessLogic.Services
         //        Data = counts
         //    };
         //}
-        public async Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetTotalByRoleIdsAsync(List<string> roleIds)
+        public async Task<Dictionary<string, (int Count, int Growth)>> GetTotalAndGrowthByRoleIdsAsync(List<string> roleIds)
         {
-            var result = await _accountRepository.GetTotalByRoleIdsAsync(roleIds);
-            return new TotalFarmerExpertDTO<Dictionary<string, int>>
-            {
-                IsSuccess = true,
-                Message = "Successfully total expert/farmer.",
-                Data = result
-            };
+            return await _accountRepository.GetTotalAndGrowthByRoleIdsAsync(roleIds);
         }
 
         public async Task<TotalFarmerExpertDTO<Dictionary<string, int>>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate)
@@ -340,8 +334,10 @@ namespace FamilyFarm.BusinessLogic.Services
             if (result && status == 1) 
             {
                 var expertRoleIds = new List<string> { "68007b2a87b41211f0af1d57" };
-                var totalByRoles = await _accountRepository.GetTotalByRoleIdsAsync(expertRoleIds);
-                var expertCount = totalByRoles.ContainsKey("68007b2a87b41211f0af1d57") ? totalByRoles["68007b2a87b41211f0af1d57"] : 0;
+                var totalByRoles = await _accountRepository.GetTotalAndGrowthByRoleIdsAsync(expertRoleIds);
+                var expertCount = totalByRoles.ContainsKey("68007b2a87b41211f0af1d57")
+              ? totalByRoles["68007b2a87b41211f0af1d57"].Count
+              : 0;
 
                 await _hubContext.Clients.All.SendAsync("ExpertCountUpdate", expertCount);
             }

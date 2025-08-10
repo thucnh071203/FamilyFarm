@@ -603,7 +603,7 @@ namespace FamilyFarm.BusinessLogic.Services
                     expertCount
                 });
 
-                await _hubContext.Clients.All.SendAsync("UpdateFarmerCount", farmerCount);
+                await NotifyAccountChangeAsync();
 
 
 
@@ -628,6 +628,20 @@ namespace FamilyFarm.BusinessLogic.Services
                 IsSuccess = false,
                 MessageError = "Register fail!."
             };
+        }
+        public async Task NotifyAccountChangeAsync()
+        {
+            var roleIds = new List<string> { "68007b0387b41211f0af1d56", "68007b2a87b41211f0af1d57" };
+            var result = await _accountRepository.GetTotalAndGrowthByRoleIdsAsync(roleIds);
+
+            if (result.TryGetValue("FARMER", out var farmer))
+            {
+                await _hubContext.Clients.All.SendAsync("UpdateFarmerCount", farmer.Count, farmer.Growth);
+            }
+            if (result.TryGetValue("EXPERT", out var expert))
+            {
+                await _hubContext.Clients.All.SendAsync("ExpertCountUpdate", expert.Count, expert.Growth);
+            }
         }
 
         //kiểm tra email xem có đúng không , định dạng sai : uyen@gmail,  @gmail.com

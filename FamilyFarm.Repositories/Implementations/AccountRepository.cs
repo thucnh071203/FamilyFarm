@@ -152,10 +152,19 @@ namespace FamilyFarm.Repositories
         {
             return await _dao.GetAccountIdsByFullNameAsync(fullName);
         }
-        public async Task<Dictionary<string, int>> GetTotalByRoleIdsAsync(List<string> roleIds)
+        //public async Task<Dictionary<string, int>> GetTotalByRoleIdsAsync(List<string> roleIds)
+        //{
+        //    return await _dao.GetTotalByRoleIdsAsync(roleIds);
+        //}
+
+        public async Task<Dictionary<string, (int Count, int Growth)>> GetTotalAndGrowthByRoleIdsAsync(List<string> roleIds)
         {
-            return await _dao.GetTotalByRoleIdsAsync(roleIds);
+            return await _dao.GetTotalAndGrowthByRoleIdsAsync(roleIds);
         }
+
+
+
+
         public async Task<Dictionary<string, int>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate)
         {
             return await _dao.GetUserGrowthOverTimeAsync(fromDate, toDate);

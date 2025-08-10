@@ -68,7 +68,7 @@ namespace FamilyFarm.Repositories
         Task<string?> UpdateBackground(string? accountId, string? backgroundUrl);
 
         Task<List<string>> GetAccountIdsByFullNameAsync(string fullName);
-        Task<Dictionary<string, int>> GetTotalByRoleIdsAsync(List<string> roleIds);
+        Task<Dictionary<string, (int Count, int Growth)>> GetTotalAndGrowthByRoleIdsAsync(List<string> roleIds);
         Task<Dictionary<string, int>> GetUserGrowthOverTimeAsync(DateTime fromDate, DateTime toDate);
 
         Task<int> CountAccountsByRole(string roleId);
