@@ -398,5 +398,33 @@ namespace FamilyFarm.BusinessLogic.Services
                 Success = true
             };
         }
+
+        public async Task<SharePostResponseDTO?> RestoreSharePost(string? sharePostId)
+        {
+            var sharePost = await _sharePostRepository.GetById(sharePostId);
+
+            if (sharePost == null)
+                return new SharePostResponseDTO
+                {
+                    Message = "Not found this share post!",
+                    Success = false
+                };
+
+            var isRestore = await _sharePostRepository.RestoreAsync(sharePostId);
+
+            if (isRestore == false)
+            {
+                return new SharePostResponseDTO
+                {
+                    Message = "Restore share post fail!",
+                    Success = false
+                };
+            }
+            return new SharePostResponseDTO
+            {
+                Message = "Restore share post successfully!",
+                Success = true
+            };
+        }
     }
 }

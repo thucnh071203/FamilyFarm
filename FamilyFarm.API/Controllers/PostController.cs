@@ -522,6 +522,26 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("account/deleted-post-with-share")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> ListDeletedPostAndShareByAccount()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            if (userClaims == null)
+                return BadRequest("Invalid data from request.");
+
+            var result = await _postService.GetListDeletedPostAndShareByAccount(userClaims.AccId);
+
+            if (result == null)
+                return NotFound();
+
+            if (result.Success == false)
+                return NotFound();
+
+            return Ok(result);
+        }
+
         [HttpGet("self-view")]
         [Authorize]
         public async Task<ActionResult<ListPostResponseDTO>> GetPostSelfView()
@@ -559,6 +579,38 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("self-view-with-share")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> GetPostaAndSharesSelfView()
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            if (userClaims == null)
+                return BadRequest("Invalid data from request.");
+
+            var result = await _postService.GetPostsOwnerWithShare(userClaims.AccId);
+            if (result == null)
+                return NotFound();
+            if (result.Success == false)
+                return NotFound();
+            return Ok(result);
+        }
+
+        [HttpGet("another-view-with-share/{accId}")]
+        [Authorize]
+        public async Task<ActionResult<ListPostResponseDTO>> GetPostsAndSharesPublicAnother([FromRoute] string? accId)
+        {
+            if (accId == null)
+                return BadRequest("Don't have permission!");
+
+            var result = await _postService.GetPostsPublicWithShareByAccId(accId);
+            if (result == null)
+                return NotFound();
+            if (result.Success == false)
+                return NotFound();
+            return Ok(result);
+        }
+
         //get list post in list group
         [HttpGet("get-post-in-user-groups")]
         [Authorize]

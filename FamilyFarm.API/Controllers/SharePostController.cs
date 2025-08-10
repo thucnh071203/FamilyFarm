@@ -127,5 +127,21 @@ namespace FamilyFarm.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpPut("restore/{sharePostId}")]
+        public async Task<ActionResult<PostResponseDTO>> RestoreSharePost(string sharePostId)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+
+            var result = await _sharePostService.RestoreSharePost(sharePostId);
+
+            if (result == null)
+                return BadRequest(result);
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
     }
 }

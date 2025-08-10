@@ -52,5 +52,15 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _sharePostDAO.GetByPost(postId);
         }
+
+        public async Task<bool> RestoreAsync(string? sharePostId)
+        {
+            return await _sharePostDAO.RestoreAsync(sharePostId);
+        }
+
+        public async Task<List<SharePost>?> GetDeletedByAccId(string? accId)
+        {
+            return await _sharePostDAO.GetDeletedByAccId(accId);
+        }
     }
 }

@@ -145,5 +145,38 @@ namespace FamilyFarm.DataAccess.DAOs
 
             return result.ModifiedCount > 0;
         }
+
+        public async Task<bool> RestoreAsync(string? sharePostId)
+        {
+            if (string.IsNullOrEmpty(sharePostId)) return false;
+
+            var filter = Builders<SharePost>.Filter.Eq(p => p.SharePostId, sharePostId);
+            var update = Builders<SharePost>.Update.Set(p => p.IsDeleted, false)
+                                                .Set(p => p.DeletedAt, DateTime.UtcNow);
+
+            var result = await _sharePosts.UpdateOneAsync(filter, update);
+
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<List<SharePost>?> GetDeletedByAccId(string? accId)
+        {
+            if (string.IsNullOrEmpty(accId))
+                return null;
+
+            // Tạo bộ lọc với hai điều kiện:
+            var builder = Builders<SharePost>.Filter;
+            var filter = builder.Eq(x => x.AccId, accId) & builder.Eq(x => x.IsDeleted, true);
+
+            try
+            {
+                var sharePosts = await _sharePosts.Find(filter).ToListAsync();
+                return sharePosts;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
     }
 }
