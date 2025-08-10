@@ -15,5 +15,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<SharePostResponseDTO?> UpdateSharePost(string? sharePostId, UpdateSharePostRequestDTO? request);
         Task<SharePostResponseDTO?> SoftDeleteSharePost(string? sharePostId);
         Task<SharePostResponseDTO?> HardDeleteSharePost(string? sharePostId);
+        Task<SharePostResponseDTO?> RestoreSharePost(string? sharePostId);
     }
 }

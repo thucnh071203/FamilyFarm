@@ -26,6 +26,7 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<ListPostInGroupResponseDTO> SearchPostsWithAccountAsync(string groupId, string keyword);
         Task<ListPostResponseDTO?> GetListPostValid(); //Lấy các bài post còn khả dụng
         Task<ListPostResponseDTO?> GetListPostDeleted(); //Lấy posts bị xóa
+        Task<ListPostResponseDTO?> GetListDeletedPostAndShareByAccount(string? accId);
         Task<ListPostResponseDTO?> GetListAllPost(); //Lấy toàn bộ các bài post
         Task<ListPostResponseDTO?> GetListInfinitePost(string? last_post_id, int page_size);
         Task<ListPostResponseDTO?> GetListInfinitePostAndSharePost(string? lastPostId, string? lastSharePostId, int pageSize);
@@ -34,7 +35,9 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<bool?> CheckPostByAI(string postId);
         Task<ListPostResponseDTO?> GetListDeletedPostByAccount(string? accId);
         Task<ListPostResponseDTO?> GetPostsOwner(string? accId);
+        Task<ListPostResponseDTO?> GetPostsOwnerWithShare(string? accId);
         Task<ListPostResponseDTO?> GetPostsPublicByAccId(string? accId);
+        Task<ListPostResponseDTO?> GetPostsPublicWithShareByAccId(string? accId);
         Task<ListPostInGroupResponseDTO?> GetPostsInYourGroups(string? last_post_id, int page_size,string accId); //Lấy các bài post còn khả dụng trong các group mà user joined
             //get list post in group detail
         Task<ListPostInGroupResponseDTO?> GetPostsInGroupDetail(string? last_post_id, int page_size, string groupId);
