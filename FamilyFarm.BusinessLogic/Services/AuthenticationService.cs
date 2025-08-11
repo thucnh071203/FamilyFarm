@@ -64,6 +64,15 @@ namespace FamilyFarm.BusinessLogic.Services
                 return null;
             }
 
+
+            //KIỂM TRA XEM ACCOUNT CÓ BỊ DELETE HAY KHÔNG
+            if(account.Status == 1)
+            {
+                return new LoginResponseDTO
+                {
+                    Message = "Account does not exist or has been deleted."
+                };
+            }
             //KIỂM TRA XEM TÀI KHOẢN CÓ BỊ KHÓA LOGIN HAY KHÔNG
             if (account.LockedUntil != null && account.LockedUntil > DateTime.UtcNow)
             {

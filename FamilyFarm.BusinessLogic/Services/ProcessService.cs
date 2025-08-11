@@ -27,8 +27,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IProcessStepRepository _processStepRepository;
         private readonly IPaymentRepository _paymenRepository;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
-        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository, IUploadFileService uploadFileService, IProcessStepRepository processStepRepository, IPaymentRepository paymenRepository, IMapper mapper)
+        public ProcessService(IProcessRepository processRepository, IAccountRepository accountRepository, IServiceRepository serviceRepository, IBookingServiceRepository bookingServiceRepository, IUploadFileService uploadFileService, IProcessStepRepository processStepRepository, IPaymentRepository paymenRepository, IMapper mapper, INotificationService notificationService)
         {
             _processRepository = processRepository;
             _accountRepository = accountRepository;
@@ -38,6 +39,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _processStepRepository = processStepRepository;
             _paymenRepository = paymenRepository;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<ProcessResponseDTO> GetAllProcess()
@@ -586,6 +588,22 @@ namespace FamilyFarm.BusinessLogic.Services
             currentBooking.HasExtraProcess = true;
 
             var updatedBooking = await _bookingServiceRepository.UpdateBooking(request.BookingServiceId, currentBooking);
+
+
+            //KHI TẠO SUB PROCESS XONG THÌ THÔNG BÁO CHO FARMER
+            var expert = await _accountRepository.GetAccountByIdAsync(expertId);
+
+            var notiRequest = new SendNotificationRequestDTO
+            {
+                ReceiverIds = new List<string> { request.FarmerId},
+                SenderId = expertId,
+                CategoryNotiId = "685d3f6d1d2b7e9f45ae1c41",
+                TargetId = created.SubprocessId,
+                TargetType = "Process",
+                Content = expert.FullName + " added you to a process."
+            };
+            var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);
+
 
             return true;
 
