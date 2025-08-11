@@ -122,7 +122,7 @@ namespace FamilyFarm.BusinessLogic.Services
             foreach(var service in services)
             {
                 //var processOfService = await _processRepository.GetProcessByServiceId(service.ServiceId);
-                if(service.HaveProcess != false)
+                if(service.HaveProcess == true)
                 {
                     continue;
                 }
