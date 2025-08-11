@@ -479,7 +479,7 @@ namespace FamilyFarm.BusinessLogic.Services
             var prompt = $@"You are a helpful assistant guiding users on how to use a website.
                 Instructions: {_instructions}
                 User Input: {userInput}
-                Please provide a response based on the instructions above, using only the relevant section that matches the user's request. If no relevant section is found, politely inform the user.
+                Please provide feedback based on the above instructions, using only the relevant part that matches the user's request in the order of steps. If the relevant part is not found, please politely notify the user.
                 Response:";
             try
             {
