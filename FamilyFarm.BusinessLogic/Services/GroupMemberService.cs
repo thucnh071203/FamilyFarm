@@ -10,6 +10,7 @@ using FamilyFarm.Models.DTOs.Request;
 using FamilyFarm.Models.DTOs.Response;
 using FamilyFarm.Models.Mapper;
 using FamilyFarm.Models.Models;
+using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
@@ -23,14 +24,16 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IHubContext<FriendHub> _hub;
         private readonly IHubContext<NotificationHub> _notificationHub;
         private readonly INotificationService _notificationService;
+        private readonly IAccountRepository _accountRepository;
 
-        public GroupMemberService(IGroupMemberRepository groupMemberRepository, IHubContext<FriendHub> hub, IHubContext<NotificationHub> notificationHub = null, INotificationService notificationService = null, IGroupRepository groupRepository = null)
+        public GroupMemberService(IGroupMemberRepository groupMemberRepository, IHubContext<FriendHub> hub, IHubContext<NotificationHub> notificationHub = null, INotificationService notificationService = null, IGroupRepository groupRepository = null, IAccountRepository accountRepository = null)
         {
             _groupMemberRepository = groupMemberRepository;
             _hub = hub;
             _notificationHub = notificationHub;
             _notificationService = notificationService;
             _groupRepository = groupRepository;
+            _accountRepository = accountRepository;
         }
 
         public async Task<GroupMember> GetGroupMemberById(string groupMemberId)
@@ -70,8 +73,10 @@ namespace FamilyFarm.BusinessLogic.Services
             return result;
         }
 
-        public async Task<long> DeleteGroupMember(string groupMemberId)
+        public async Task<long> DeleteGroupMember(string groupMemberId, string deleterId)
         {
+            var groupMember = await _groupMemberRepository.GetGroupMemberById(groupMemberId);
+            var group = await _groupRepository.GetGroupById(groupMember.GroupId);
 
             var result = await _groupMemberRepository.DeleteGroupMember(groupMemberId);
 
@@ -79,7 +84,24 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 await _hub.Clients.All.SendAsync("GroupMemberUpdate");
             }
+            //notification
+            var acc = await _accountRepository.GetAccountByIdAsync(deleterId);
+            //var list = account.Select(a => a.AccId).ToList();
+            var notiRequest = new SendNotificationRequestDTO
+            {
+                ReceiverIds = new List<string> { groupMember.AccId },
+                SenderId = deleterId,
+                CategoryNotiId = "685d3f6d1d2b7e9f45ae1c3f",
+                TargetId = group.GroupId,
+                TargetType = "Group", //để link tới notifi gốc Post, Chat, Process, ...
+                Content = acc.FullName + " deleted you out of " + group.GroupName + ".",
+            };
 
+            var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);//send noti
+            if (!notiResponse.Success)
+            {
+                Console.WriteLine($"Notification failed: {notiResponse.Message}");
+            }
             return result;
         }
 

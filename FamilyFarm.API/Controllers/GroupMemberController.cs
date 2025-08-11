@@ -92,7 +92,7 @@ namespace FamilyFarm.API.Controllers
             if (group == null)
                 return BadRequest("Group member not found");
 
-            await _groupMemberService.DeleteGroupMember(groupMemberId);
+            await _groupMemberService.DeleteGroupMember(groupMemberId, userClaims.AccId);
             return Ok("Delete successfully!");
         }
 

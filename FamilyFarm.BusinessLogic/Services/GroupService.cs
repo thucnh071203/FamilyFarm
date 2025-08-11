@@ -13,6 +13,7 @@ using FamilyFarm.Models.Models;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using MongoDB.Driver.Core.Servers;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FamilyFarm.BusinessLogic.Services
@@ -24,14 +25,16 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly IUploadFileService _uploadFileService;
         private readonly IHubContext<NotificationHub> _hubNotificationContext;
         private readonly IHubContext<FriendHub> _hub;
+        private readonly INotificationService _notificationService;
 
-        public GroupService(IGroupRepository groupRepository, IGroupMemberRepository memberRepository, IUploadFileService uploadFileService, IHubContext<NotificationHub> hubNotificationContext, IHubContext<FriendHub> hub )
+        public GroupService(IGroupRepository groupRepository, IGroupMemberRepository memberRepository, IUploadFileService uploadFileService, IHubContext<NotificationHub> hubNotificationContext, IHubContext<FriendHub> hub, INotificationService notificationService)
         {
             _groupRepository = groupRepository;
             _memberRepository = memberRepository;
             _uploadFileService = uploadFileService;
             _hubNotificationContext = hubNotificationContext;
             _hub = hub;
+            _notificationService = notificationService;
         }
 
         public async Task<GroupResponseDTO> GetAllGroup()
@@ -284,6 +287,25 @@ namespace FamilyFarm.BusinessLogic.Services
                     Console.WriteLine($"[SignalR] Gửi tới accId {accId} lỗi: {ex.Message}");
                 }
             }
+            //notification
+            var account = await _memberRepository.GetUsersInGroupAsync(groupId);
+            var list = account.Select(a => a.AccId).ToList();
+            var notiRequest = new SendNotificationRequestDTO
+            {
+                ReceiverIds = list,
+                SenderId = item.AccountId,
+                CategoryNotiId = "685d3f6d1d2b7e9f45ae1c3f",
+                TargetId = groupId,
+                TargetType = "Group", //để link tới notifi gốc Post, Chat, Process, ...
+                Content = "Group "+ item.GroupName +" updated!"
+            };
+
+            var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);//send noti
+            if (!notiResponse.Success)
+            {
+                Console.WriteLine($"Notification failed: {notiResponse.Message}");
+            }
+
 
             return new GroupResponseDTO
             {
@@ -338,8 +360,27 @@ namespace FamilyFarm.BusinessLogic.Services
                     Message = "Failed to delete group"
                 };
             }
+            //notification
+            var account = await _memberRepository.GetUsersInGroupAsync(groupId);
+            var list = account.Select(a => a.AccId).ToList();
+            var notiRequest = new SendNotificationRequestDTO
+            {
+                ReceiverIds = list,
+                SenderId = group.OwnerId,
+                CategoryNotiId = "685d3f6d1d2b7e9f45ae1c3f",
+                TargetId = groupId,
+                TargetType = "Group", //để link tới notifi gốc Post, Chat, Process, ...
+                Content = "Group " + group.GroupName + " deleted!"
+            };
+
+            var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);//send noti
+            if (!notiResponse.Success)
+            {
+                Console.WriteLine($"Notification failed: {notiResponse.Message}");
+            }
 
             var deleteAllMember = await _memberRepository.DeleteAllGroupMember(groupId);
+
             await _hub.Clients.All.SendAsync("GroupDeleted", groupId);
 
             if (deleteAllMember == -1)
