@@ -279,6 +279,44 @@ namespace FamilyFarm.DataAccess.DAOs
             return (farmers, experts);
         }
 
+        public async Task<List<Account>> SearchUsers(string userId, string keyword, int number)
+        {
+            // 1. Lấy account hiện tại
+            var currentUser = await _Account.Find(a => a.AccId == userId).FirstOrDefaultAsync();
+            if (currentUser == null) return new List<Account>();
 
+            var currentRole = currentUser.RoleId;
+
+            // 2. Lấy danh sách bạn bè (nếu cần hiển thị mutual friend)
+            var relatedIds = await _Friend.Find(f =>
+                f.SenderId == userId || f.ReceiverId == userId
+            ).ToListAsync();
+
+            var relatedUserIds = relatedIds?
+                .Select(f => f.SenderId == userId ? f.ReceiverId : f.SenderId)
+                .Distinct()
+                .ToList() ?? new List<string>();
+
+            relatedUserIds.Add(userId); // Không gợi ý chính mình
+
+            // 3. Tìm kiếm user dựa trên keyword (case-insensitive)
+            var filterBuilder = Builders<Account>.Filter;
+            var filter = filterBuilder.Eq(a => a.RoleId, currentRole) &
+                         filterBuilder.Ne(a => a.AccId, userId) & // loại bản thân
+                         (filterBuilder.Regex(a => a.Username, new MongoDB.Bson.BsonRegularExpression(keyword, "i")) |
+                          filterBuilder.Regex(a => a.FullName, new MongoDB.Bson.BsonRegularExpression(keyword, "i")));
+
+            var suggestions = await _Account.Find(filter)
+                .Limit(number * 2) // Lấy dư để sort
+                .ToListAsync();
+
+            // 4. Sắp xếp: ưu tiên user cùng City
+            var sortedSuggestions = suggestions
+                .OrderByDescending(a => a.City == currentUser.City)
+                .Take(number)
+                .ToList();
+
+            return sortedSuggestions;
+        }
     }
 }

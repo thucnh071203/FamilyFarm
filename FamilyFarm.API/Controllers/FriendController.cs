@@ -389,6 +389,13 @@ namespace FamilyFarm.API.Controllers
             }
         }
 
-
+        [HttpGet("search-users")]
+        public async Task<ActionResult<FriendResponseDTO>> SearchUsers([FromQuery] string keyword, [FromQuery] int number = 50)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+            var result = await _serviceOfFriend.SearchUsers(accId, keyword, number);
+            return Ok(result);
+        }
     }
 }

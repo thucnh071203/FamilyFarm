@@ -50,5 +50,10 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _friendDao.CheckIsFriendAsync(senderId, receiverId);
         }
+
+        public async Task<List<Account>> SearchUsers(string userId, string keyword, int number)
+        {
+            return await _friendDao.SearchUsers(userId, keyword, number);
+        }
     }
 }
