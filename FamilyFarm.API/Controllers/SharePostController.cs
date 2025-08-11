@@ -38,6 +38,22 @@ namespace FamilyFarm.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("post/{postId}")]
+        [Authorize]
+        public async Task<ActionResult<ListSharePostResponseDTO>> GetSharePostsByPostId(string? postId)
+        {
+            //var userClaims = _authenService.GetDataFromToken();
+
+            var result = await _sharePostService.GetSharePostsByPostId(postId);
+            if (result == null)
+                return BadRequest(result);
+
+            if (result.Success == false)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
         [HttpPost("get-by-me")]
         [Authorize]
         public async Task<ActionResult<SharePostResponseDTO>> GetSharePostsByMe()

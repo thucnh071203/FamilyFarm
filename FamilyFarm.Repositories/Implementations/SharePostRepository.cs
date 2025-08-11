@@ -58,6 +58,11 @@ namespace FamilyFarm.Repositories.Implementations
             return await _sharePostDAO.RestoreAsync(sharePostId);
         }
 
+        public async Task<bool> DisableAsync(string? sharePostId)
+        {
+            return await _sharePostDAO.DisableAsync(sharePostId);
+        }
+
         public async Task<List<SharePost>?> GetDeletedByAccId(string? accId)
         {
             return await _sharePostDAO.GetDeletedByAccId(accId);

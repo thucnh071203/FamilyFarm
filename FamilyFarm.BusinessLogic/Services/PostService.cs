@@ -10,6 +10,7 @@ using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using MongoDB.Driver.Core.Servers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -505,6 +506,32 @@ namespace FamilyFarm.BusinessLogic.Services
             }
 
             var isSoftDelete = await _postRepository.InactivePost(post.PostId);
+            await _sharePostRepository.DisableAsync(post.PostId);
+
+            var account = await _accountRepository.GetAccountByIdAsync(post.AccId);
+
+            var sharePosts = await _sharePostRepository.GetByPost(post.PostId);
+
+            var listAccIdsSharePost = sharePosts
+                .Select(sp => sp.AccId)   // Lấy thuộc tính AccId
+                .Distinct()              
+                .ToList();
+
+            var notiRequest = new SendNotificationRequestDTO
+            {
+                ReceiverIds = listAccIdsSharePost,
+                SenderId = account?.AccId,
+                CategoryNotiId = "6899d3cf963f2ffdfac460c8",
+                TargetId = post.PostId,
+                TargetType = "Post", //để link tới notifi gốc Post, Chat, Process, ...
+                Content = account?.FullName + "'s post that you shared has been deleted."
+            };
+
+            var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);
+            if (!notiResponse.Success)
+            {
+                Console.WriteLine($"Notification failed: {notiResponse.Message}");
+            }
 
             if (isSoftDelete == false)
             {

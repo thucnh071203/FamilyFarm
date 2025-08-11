@@ -153,10 +153,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 //await _hubContext.Clients.All.SendAsync("BookingAccepted", bookingservice);
                 //await _hubContext.Clients.Group(bookingservice.ExpertId).SendAsync("BookingAccepted", bookingservice);
                 await _hubContext.Clients
-.Group(bookingservice.ExpertId)
-.SendAsync("BookingAccepted", bookingservice);
-
-
+                .Group(bookingservice.ExpertId)
+                .SendAsync("BookingAccepted", bookingservice);
 
                 // Gửi SignalR đến Farmer
                 var accId = bookingservice.AccId;
