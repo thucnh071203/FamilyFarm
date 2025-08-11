@@ -453,5 +453,53 @@ namespace FamilyFarm.BusinessLogic.Services
         {
             return await friendRepository.CheckIsFriendAsync(senderId, receiverId);
         }
+
+        public async Task<FriendResponseDTO?> SearchUsers(string userId, string keyword, int number)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(keyword)) return null;
+            var list = await friendRepository.SearchUsers(userId, keyword, number);
+            if (list.Count == 0)
+            {
+                return new FriendResponseDTO
+                {
+                    Message = "No users found!",
+                    Count = 0,
+                    IsSuccess = false,
+                };
+            }
+            else
+            {
+                List<FriendMapper> listAcc = new List<FriendMapper>();
+                foreach (var friend in list)
+                {
+                    var listMutualFriend = await MutualFriend(userId, friend.AccId);
+                    var friendMapper = new FriendMapper
+                    {
+                        AccId = friend.AccId,
+                        RoleId = friend.RoleId,
+                        Username = friend.Username,
+                        FullName = friend.FullName,
+                        Birthday = friend.Birthday,
+                        Gender = friend.Gender,
+                        City = friend.City,
+                        Country = friend.Country,
+                        Address = friend.Address,
+                        Avatar = friend.Avatar,
+                        Background = friend.Background,
+                        Certificate = friend.Certificate,
+                        WorkAt = friend.WorkAt,
+                        StudyAt = friend.StudyAt,
+                        MutualFriend = listMutualFriend.Count,
+                    };
+                    listAcc.Add(friendMapper);
+                }
+                return new FriendResponseDTO
+                {
+                    IsSuccess = true,
+                    Count = listAcc.Count,
+                    Data = listAcc,
+                };
+            }
+        }
     }
 }

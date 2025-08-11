@@ -17,5 +17,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<Account>> GetSuggestedExperts(string userId, int number);
         Task<bool> Unfriend(string senderId, string receiverId);
         Task<(List<Account> Farmers, List<Account> Experts)> GetAvailableFarmersAndExpertsAsync(string accId);
+        Task<List<Account>> SearchUsers(string userId, string keyword, int number);
     }
 }
