@@ -17,6 +17,7 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<bool> HardDeleteAsync(string? sharePostId);
         Task<bool> SoftDeleteAsync(string? sharePostId);
         Task<bool> RestoreAsync(string? sharePostId);
+        Task<bool> DisableAsync(string? postId);
         Task<List<SharePost>?> GetDeletedByAccId(string? accId);
     }
 }
