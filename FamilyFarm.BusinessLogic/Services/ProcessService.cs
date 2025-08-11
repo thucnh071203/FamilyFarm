@@ -255,6 +255,8 @@ namespace FamilyFarm.BusinessLogic.Services
                 }
             }
 
+            await _serviceRepository.UpdateStatusService(item.ServiceId, item.Status);
+
             await _serviceRepository.UpdateProcessStatusService(item.ServiceId);
             
             return new ProcessResponseDTO
