@@ -39,7 +39,9 @@ namespace FamilyFarm.BusinessLogic.Services
         private readonly ISharePostTagRepository _sharePostTagRepository;
         private readonly IHubContext<TopEngagedPostHub> _hubContext;
         private readonly IStatisticRepository _statisticRepository;
-        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository, IGroupRepository groupRepository, ISharePostTagRepository sharePostTagRepository, IHubContext<TopEngagedPostHub> hubContext, IStatisticRepository statisticRepository)
+        private readonly INotificationService _notificationService;
+
+        public PostService(IPostRepository postRepository, IPostCategoryRepository postCategoryRepository, IPostImageRepository postImageRepository, IHashTagRepository hashTagRepository, IPostTagRepository postTagRepository, ICategoryPostRepository categoryPostRepository, IUploadFileService uploadFileService, IAccountRepository accountRepository, ICohereService cohereService, IMapper mapper, IReactionRepository reactionRepository, ICommentRepository commentRepository, ISharePostRepository sharePostRepository, IGroupRepository groupRepository, ISharePostTagRepository sharePostTagRepository, IHubContext<TopEngagedPostHub> hubContext, IStatisticRepository statisticRepository, INotificationRepository notificationRepository, INotificationService notificationService)
         {
             _postRepository = postRepository;
             _postCategoryRepository = postCategoryRepository;
@@ -58,6 +60,7 @@ namespace FamilyFarm.BusinessLogic.Services
             _sharePostTagRepository = sharePostTagRepository;
             _hubContext = hubContext;
             _statisticRepository = statisticRepository;
+            _notificationService = notificationService;
         }
 
         /// <summary>
@@ -203,7 +206,21 @@ namespace FamilyFarm.BusinessLogic.Services
                     var newPostTag = await _postTagRepository.CreatePostTag(postTag);
                     if (newPostTag != null)
                         postTags.Add(newPostTag);
+
+                    
                 }
+
+                var notiRequest = new SendNotificationRequestDTO
+                {
+                    ReceiverIds = request.ListTagFriend,
+                    SenderId = ownAccount.AccId,
+                    CategoryNotiId = "685d3f6d1d2b7e9f45ae1c38",
+                    TargetId = newPost.PostId,
+                    TargetType = "Post",
+                    Content = ownAccount.FullName + " tagged you in a post."
+                };
+
+                var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);
             }
 
             //Tạo data trả về
