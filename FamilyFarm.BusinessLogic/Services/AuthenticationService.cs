@@ -330,7 +330,7 @@ namespace FamilyFarm.BusinessLogic.Services
             {
                 try
                 {
-                    var avatar = "https://firebasestorage.googleapis.com/v0/b/prn221-69738.appspot.com/o/image%2F638841241684706439_default-avatar.jpg?alt=media&token=8190d336-e471-4a34-bf8e-7853e969b04f";
+                    var avatar = "https://firebasestorage.googleapis.com/v0/b/prn221-69738.appspot.com/o/image%2Fdefault-avatar.png?alt=media&token=3857a1ec-ace4-4329-8f36-4f3a40c3fc67";
                     var certificate = "";
                    
 
@@ -581,7 +581,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 AccId = "",
                 RoleId = "68007b0387b41211f0af1d56",
                 Username = request.Username,
-                Avatar = "https://firebasestorage.googleapis.com/v0/b/prn221-69738.appspot.com/o/image%2F638841241684706439_default-avatar.jpg?alt=media&token=8190d336-e471-4a34-bf8e-7853e969b04f",
+                Avatar = "https://firebasestorage.googleapis.com/v0/b/prn221-69738.appspot.com/o/image%2Fdefault-avatar.png?alt=media&token=3857a1ec-ace4-4329-8f36-4f3a40c3fc67",
                 PasswordHash = hashedPassword,
                 FullName = request.FullName,
                 Email = request.Email,
@@ -693,7 +693,7 @@ namespace FamilyFarm.BusinessLogic.Services
                 account = new Account
                 {
                     AccId = ObjectId.GenerateNewId().ToString(),
-                    Avatar = "https://firebasestorage.googleapis.com/v0/b/prn221-69738.appspot.com/o/image%2F638841265588564215_default-avatar.jpg?alt=media&token=93401440-f4b8-436c-987f-ba43259e3517",
+                    Avatar = "https://firebasestorage.googleapis.com/v0/b/prn221-69738.appspot.com/o/image%2Fdefault-avatar.png?alt=media&token=3857a1ec-ace4-4329-8f36-4f3a40c3fc67",
                     Username = request.Email,
                     PasswordHash = "",
                     FullName = request.FullName,
