@@ -59,5 +59,9 @@ namespace FamilyFarm.Repositories.Implementations
         {
             return await _dao.GetGroupIdsByUserId(accId);
         }
+        public async Task<List<GroupCardDTO>> SearchGroups(string userId, string searchTerm)
+        {
+            return await _dao.SearchGroups(userId, searchTerm);
+        }
     }
 }

@@ -162,5 +162,21 @@ namespace FamilyFarm.API.Controllers
             var groups = await _groupService.GetGroupSuggestion(accId, 2);
             return Ok(groups);
         }
+
+        [HttpGet("search")]
+        [Authorize]
+        public async Task<IActionResult> SearchGroups([FromQuery] string q)
+        {
+            var userClaims = _authenService.GetDataFromToken();
+            var accId = userClaims?.AccId;
+
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                return BadRequest(new { message = "Search query parameter 'q' is required" });
+            }
+
+            var result = await _groupService.SearchGroups(accId, q);
+            return Ok(result);
+        }
     }
 }

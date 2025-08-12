@@ -423,6 +423,40 @@ namespace FamilyFarm.BusinessLogic.Services
                 Data = groupCardList
             };
         }
+        public async Task<GroupCardResponseDTO> SearchGroups(string userId, string searchTerm)
+        {
+            // Kiểm tra input
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return new GroupCardResponseDTO
+                {
+                    Success = false,
+                    Message = "Search term cannot be empty",
+                    Count = 0,
+                    Data = new List<GroupCardDTO>()
+                };
+            }
 
+            var groupCardList = await _groupRepository.SearchGroups(userId, searchTerm.Trim());
+
+            if (groupCardList == null || groupCardList.Count == 0)
+            {
+                return new GroupCardResponseDTO
+                {
+                    Success = true,
+                    Message = "No groups found matching your search",
+                    Count = 0,
+                    Data = new List<GroupCardDTO>()
+                };
+            }
+
+            return new GroupCardResponseDTO
+            {
+                Success = true,
+                Message = $"Found {groupCardList.Count} group(s)",
+                Count = groupCardList.Count,
+                Data = groupCardList
+            };
+        }
     }
 }
