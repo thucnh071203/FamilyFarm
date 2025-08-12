@@ -57,7 +57,7 @@ namespace FamilyFarm.DataAccess.DAOs
             service.ServiceId = ObjectId.GenerateNewId().ToString();
             service.CreateAt = DateTime.UtcNow;
             service.UpdateAt = null;
-            service.Status = 1;
+            //service.Status = 1;
             service.AverageRate = 0;
             service.RateCount = 0;
             service.IsDeleted = false;
