@@ -115,6 +115,12 @@ namespace FamilyFarm.API.Controllers
                         // Trả về mã 423 hoặc có thể là 400 nếu dữ liệu sai
                         return StatusCode(423, result);
                     }
+
+                    var content = $"<div><strong>Thank you for signing up to become an Expert. We will respond as soon as possible.<strong/></div>";
+                    var html = EmailTemplateHelper.EmailConfirm(request.Email, content);
+
+                    await _emailSender.SendEmailAsync(request.Email, "Register Expert", html);
+
                     // Thành công
                     return Ok(result);
                 }
