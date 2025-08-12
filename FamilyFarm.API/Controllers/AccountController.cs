@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using static Google.Rpc.Context.AttributeContext.Types;
 
 namespace FamilyFarm.API.Controllers
 {
@@ -20,12 +21,14 @@ namespace FamilyFarm.API.Controllers
         private readonly IAccountService _accountService;
         private readonly IAuthenticationService _authenService;
         private readonly IMapper _mapper;
+        private readonly IEmailSender _emailSender;
 
-        public AccountController(IAccountService accountService, IAuthenticationService authenService, IMapper mapper)
+        public AccountController(IAccountService accountService, IAuthenticationService authenService, IMapper mapper, IEmailSender emailSender)
         {
             _accountService = accountService;
             _authenService = authenService;
             _mapper = mapper;
+            _emailSender = emailSender;
         }
 
         /*[HttpPut("update-profile-farmer/{username}")]
@@ -255,6 +258,24 @@ namespace FamilyFarm.API.Controllers
             if (update != true)
             {
                 return BadRequest("have some error when update status of censor!");
+            }
+
+            var account = await _accountService.GetAccountByAccId(accId);
+
+            if (status == 0)
+            {
+                var content = $"<div><strong>Congratulations, you have successfully registered for an Expert account. You can now log in to the system.<strong/></div>";
+                var html = EmailTemplateHelper.EmailRegister(account.Email, content);
+
+                await _emailSender.SendEmailAsync(account.Email, "Register Expert", html);
+            }
+
+            else if (status == 1)
+            {
+                var content = $"<div><strong>Your request to register for an Expert account has been rejected due to insufficient information provided. Please update and resubmit your request.<strong/></div>";
+                var html = EmailTemplateHelper.EmailRegister(account.Email, content);
+
+                await _emailSender.SendEmailAsync(account.Email, "Register Expert", html);
             }
 
             return Ok(update);
