@@ -19,5 +19,6 @@ namespace FamilyFarm.Repositories.Interfaces
         Task<List<GroupCardDTO>> GetAllByUserId(string userId);
         Task<List<GroupCardDTO>> GetGroupsSuggestion(string userId, int number);
         Task<List<string>> GetGroupIdsByUserId(string accId);
+        Task<List<GroupCardDTO>> SearchGroups(string userId, string searchTerm);
     }
 }

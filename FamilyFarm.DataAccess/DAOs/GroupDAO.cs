@@ -207,6 +207,40 @@ namespace FamilyFarm.DataAccess.DAOs
             return validGroups;
         }
 
+        public async Task<List<GroupCardDTO>> SearchGroups(string userId, string searchTerm)
+        {
+            // Tạo filter để tìm kiếm group theo tên hoặc mô tả
+            var searchFilter = Builders<Group>.Filter.Or(
+                Builders<Group>.Filter.Regex(g => g.GroupName, new BsonRegularExpression(searchTerm, "i"))
+            );
 
+            // Lọc các group chưa bị xóa và khớp với từ khóa tìm kiếm
+            var filter = Builders<Group>.Filter.Ne(g => g.IsDeleted, true) &
+                         searchFilter;
+
+            // Lấy danh sách group
+            var groups = await _Groups.Find(filter)
+                .ToListAsync();
+
+            // Tạo danh sách GroupCardDTO với số lượng thành viên
+            var groupCardList = new List<GroupCardDTO>();
+            foreach (var group in groups)
+            {
+                var memberCount = await _GroupMembers.CountDocumentsAsync(
+                    Builders<GroupMember>.Filter.And(
+                        Builders<GroupMember>.Filter.Eq(m => m.GroupId, group.GroupId),
+                        Builders<GroupMember>.Filter.Eq(m => m.MemberStatus, "Accept")
+                    )
+                );
+
+                groupCardList.Add(new GroupCardDTO
+                {
+                    group = group,
+                    numberInGroup = (int)memberCount
+                });
+            }
+
+            return groupCardList;
+        }
     }
 }
