@@ -234,34 +234,80 @@ namespace FamilyFarm.BusinessLogic.Services
             return result;
         }
 
-        public async Task<bool> RespondToInviteRequestAsync(string groupMemberId, string responseStatus)
+        //public async Task<bool> RespondToInviteRequestAsync(string groupMemberId, string responseStatus)
+        //{
+        //    var result = false;
+        //    if (responseStatus.Equals("Accept"))
+        //    {
+        //        var getGroupMember = await _groupMemberRepository.GetGroupMemberInviteById(groupMemberId);
+
+        //        var getGroup = await _groupRepository.GetGroupById(getGroupMember.GroupId);
+
+        //        if (getGroup.PrivacyType.Equals("Public"))
+        //        {
+        //            result = await _groupMemberRepository.RespondToInviteRequestAsync(groupMemberId, "Accept");
+        //        } else if (getGroup.PrivacyType.Equals("Private"))
+        //        {
+        //            result = await _groupMemberRepository.RespondToInviteRequestAsync(groupMemberId, "Pending");
+        //        }
+        //    } else
+        //    {
+        //        result = await _groupMemberRepository.RespondToInviteRequestAsync(groupMemberId, responseStatus);
+        //    }
+
+        //    if (result)
+        //    {
+        //        // Chỉ gửi tín hiệu khi xử lý DB thành công
+        //        await _hub.Clients.All.SendAsync("GroupMemberUpdate");
+        //    }
+
+        //    return result;
+        //}
+
+        public async Task<(bool Success, string? Message)> RespondToInviteRequestAsync(string groupMemberId, string responseStatus)
         {
             var result = false;
-            if (responseStatus.Equals("Accept"))
+
+            if (responseStatus.Equals("Accept", StringComparison.OrdinalIgnoreCase))
             {
                 var getGroupMember = await _groupMemberRepository.GetGroupMemberInviteById(groupMemberId);
+                if (getGroupMember == null)
+                    return (false, "The invite request no longer exists");
 
                 var getGroup = await _groupRepository.GetGroupById(getGroupMember.GroupId);
+                if (getGroup == null)
+                {
+                    await _groupMemberRepository.RespondToInviteRequestAsync(groupMemberId, "Reject");
+                    await _hub.Clients.All.SendAsync("GroupMemberUpdate");
+                    return (false, "The group you respond has unavailable");
+                }
 
-                if (getGroup.PrivacyType.Equals("Public"))
+                if (string.Equals(getGroup.PrivacyType, "Public", StringComparison.OrdinalIgnoreCase))
                 {
                     result = await _groupMemberRepository.RespondToInviteRequestAsync(groupMemberId, "Accept");
-                } else if (getGroup.PrivacyType.Equals("Private"))
+                }
+                else if (string.Equals(getGroup.PrivacyType, "Private", StringComparison.OrdinalIgnoreCase))
                 {
                     result = await _groupMemberRepository.RespondToInviteRequestAsync(groupMemberId, "Pending");
                 }
-            } else
+                else
+                {
+                    return (false, "Invalid group privacy type");
+                }
+            }
+            else
             {
+                // Reject hoặc các trạng thái khác
                 result = await _groupMemberRepository.RespondToInviteRequestAsync(groupMemberId, responseStatus);
             }
 
             if (result)
             {
-                // Chỉ gửi tín hiệu khi xử lý DB thành công
                 await _hub.Clients.All.SendAsync("GroupMemberUpdate");
+                return (true, null); // hoặc trả message thành công tùy bạn
             }
 
-            return result;
+            return (false, "Invalid request or status");
         }
 
         public async Task<GroupMember> GetMemberInvitedOrJoinedGroup(string groupId, string accId)
