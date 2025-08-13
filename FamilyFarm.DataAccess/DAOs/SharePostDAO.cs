@@ -27,9 +27,11 @@ namespace FamilyFarm.DataAccess.DAOs
             var isDeletedFilter = filterBuilder.Eq(sp => sp.IsDeleted, false);
             // Điều kiện SharePostScope = "Public"
             var scopeFilter = filterBuilder.Eq(sp => sp.SharePostScope, "Public");
+            // Điều kiện Status = 0
+            var scopeStatus = filterBuilder.Eq(sp => sp.Status, 0);
 
             // Kết hợp các filter chung
-            var filters = new List<FilterDefinition<SharePost>> { isDeletedFilter, scopeFilter };
+            var filters = new List<FilterDefinition<SharePost>> { isDeletedFilter, scopeFilter, scopeStatus };
 
             if (!string.IsNullOrEmpty(lastSharePostId))
             {
@@ -65,11 +67,17 @@ namespace FamilyFarm.DataAccess.DAOs
             if (string.IsNullOrEmpty(accId))
                 return null;
 
-            var filter = Builders<SharePost>.Filter.Eq(x => x.AccId, accId);
+            var filterBuilder = Builders<SharePost>.Filter;
+            var accIdFilter = filterBuilder.Eq(x => x.AccId, accId);
+            var isDeletedFilter = filterBuilder.Eq(sp => sp.IsDeleted, false);
+            var scopeStatus = filterBuilder.Eq(sp => sp.Status, 0);
 
-            var posts = await _sharePosts.Find(filter).ToListAsync();
+            var finalFilter = filterBuilder.And(accIdFilter, isDeletedFilter, scopeStatus);
+
+            var posts = await _sharePosts.Find(finalFilter).ToListAsync();
             return posts;
         }
+
 
         public async Task<List<SharePost>?> GetByPost(string? postId)
         {
@@ -159,24 +167,34 @@ namespace FamilyFarm.DataAccess.DAOs
             return result.ModifiedCount > 0;
         }
 
+        public async Task<bool> DisableAsync(string? postId)
+        {
+            if (string.IsNullOrEmpty(postId)) return false;
+
+            var filter = Builders<SharePost>.Filter.Eq(p => p.PostId, postId);
+            var update = Builders<SharePost>.Update.Set(p => p.Status, 1)
+                                                .Set(p => p.DeletedAt, DateTime.UtcNow);
+
+            var result = await _sharePosts.UpdateManyAsync(filter, update);
+
+            return result.ModifiedCount > 0;
+        }
+
         public async Task<List<SharePost>?> GetDeletedByAccId(string? accId)
         {
             if (string.IsNullOrEmpty(accId))
                 return null;
 
-            // Tạo bộ lọc với hai điều kiện:
-            var builder = Builders<SharePost>.Filter;
-            var filter = builder.Eq(x => x.AccId, accId) & builder.Eq(x => x.IsDeleted, true);
+            var filterBuilder = Builders<SharePost>.Filter;
+            var accIdFilter = filterBuilder.Eq(x => x.AccId, accId);
+            var isDeletedFilter = filterBuilder.Eq(sp => sp.IsDeleted, true);
+            var scopeStatus = filterBuilder.Eq(sp => sp.Status, 0);
 
-            try
-            {
-                var sharePosts = await _sharePosts.Find(filter).ToListAsync();
-                return sharePosts;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            // Kết hợp tất cả filter
+            var finalFilter = filterBuilder.And(accIdFilter, isDeletedFilter, scopeStatus);
+
+            var posts = await _sharePosts.Find(finalFilter).ToListAsync();
+            return posts;
         }
     }
 }

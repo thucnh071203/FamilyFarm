@@ -87,6 +87,56 @@ namespace FamilyFarm.BusinessLogic.Services
             };
         }
 
+        public async Task<ListSharePostResponseDTO?> GetSharePostsByPostId(string? postId)
+        {
+            if (string.IsNullOrEmpty(postId) || !ObjectId.TryParse(postId, out _))
+                return null;
+
+            var sharePosts = await _sharePostRepository.GetByPost(postId);
+
+            if (sharePosts == null)
+            {
+                return new ListSharePostResponseDTO
+                {
+                    Success = false,
+                    Message = "Get list share posts fail!",
+                    Count = 0,
+                    SharePostDatas = null
+                };
+            }
+
+            if (!sharePosts.Any())
+            {
+                return new ListSharePostResponseDTO
+                {
+                    Success = false,
+                    Message = "No share posts found for this post!",
+                    Count = 0,
+                    SharePostDatas = null
+                };
+            }
+
+            var sharePostDatas = new List<SharePostDTO>();
+            foreach (var sharePost in sharePosts)
+            {
+                var post = await _postService.GetPostById(sharePost.PostId);
+                sharePostDatas.Add(new SharePostDTO
+                {
+                    SharePost = await _sharePostRepository.GetById(sharePost.SharePostId),
+                    SharePostTags = await _sharePostTagRepository.GetAllBySharePost(sharePost.SharePostId),
+                    HashTags = await _hashTagRepository.GetHashTagByPost(sharePost.SharePostId),
+                    PostData = post?.Data
+                });
+            }
+            return new ListSharePostResponseDTO
+            {
+                Success = true,
+                Message = "Get list Share post by post ID successfully!",
+                Count = sharePostDatas.Count(s => s.SharePost?.IsDeleted != true && s.PostData?.Post?.IsDeleted != true),
+                SharePostDatas = sharePostDatas.Where(s => s.SharePost?.IsDeleted != true && s.PostData?.Post?.IsDeleted != true).ToList()
+            };
+        }
+
         /// <summary>
         /// Creates a new share post by a given account, optionally tagging friends and adding hashtags.
         /// Also uses an AI service to check if the post content is agriculture-related to determine its status.

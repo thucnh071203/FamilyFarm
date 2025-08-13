@@ -19,5 +19,6 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<GroupResponseDTO> DeleteGroup(string groupId);
         Task<GroupCardResponseDTO> GetAllByUserId(string userId);
         Task<GroupCardResponseDTO> GetGroupSuggestion(string userId, int number);
+        Task<GroupCardResponseDTO> SearchGroups(string userId, string searchTerm);
     }
 }

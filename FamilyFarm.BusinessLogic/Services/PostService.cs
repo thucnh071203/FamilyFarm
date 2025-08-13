@@ -10,6 +10,7 @@ using FamilyFarm.Repositories;
 using FamilyFarm.Repositories.Implementations;
 using FamilyFarm.Repositories.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using MongoDB.Driver.Core.Servers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -472,48 +473,63 @@ namespace FamilyFarm.BusinessLogic.Services
         /// </summary>
         public async Task<DeletePostResponseDTO?> TempDeleted(string? acc_id, DeletePostRequestDTO request)
         {
-            if (acc_id == null)
-                return null;
-
-            if (request.PostId == null)
-                return null;
+            if (acc_id == null || string.IsNullOrWhiteSpace(request.PostId)) return null;
 
             var post = await _postRepository.GetPostById(request.PostId);
-
             if (post == null)
-                return new DeletePostResponseDTO
-                {
-                    Message = "Not found this post",
-                    Success = false
-                };
+                return new DeletePostResponseDTO { Message = "Not found this post", Success = false };
 
             if (post.AccId != acc_id)
-                return new DeletePostResponseDTO
-                {
-                    Message = "You are not permission for this action.",
-                    Success = false
-                };
+                return new DeletePostResponseDTO { Message = "You are not permission for this action.", Success = false };
 
-            //Kiểm tra xem có xóa mềm chưa, nếu xóa mềm rồi và thời gian hơn 30 ngày thì không xóa nữa
+            // Nếu đã soft delete > 30 ngày thì không thao tác nữa
             if (post.DeletedAt.HasValue && (DateTime.UtcNow - post.DeletedAt.Value).TotalDays >= 30)
-            {
-                return new DeletePostResponseDTO
-                {
-                    Message = "This post has been soft deleted.",
-                    Success = false
-                };
-            }
+                return new DeletePostResponseDTO { Message = "This post has been soft deleted.", Success = false };
 
+            // 1) Thực hiện xóa mềm trước
             var isSoftDelete = await _postRepository.InactivePost(post.PostId);
+            await _sharePostRepository.DisableAsync(post.PostId);
 
-            if (isSoftDelete == false)
+            if (!isSoftDelete)
+                return new DeletePostResponseDTO { Message = "Soft delete post fail.", Success = false };
+
+            // 2) Chuẩn bị gửi thông báo, nhưng phải có người nhận
+            var sharePosts = await _sharePostRepository.GetByPost(post.PostId) ?? new List<SharePost>();
+            var receiverIds = sharePosts
+                .Select(sp => sp.AccId)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList();
+
+            try
             {
-                return new DeletePostResponseDTO
+                if (receiverIds.Count > 0)
                 {
-                    Message = "Soft delete post fail.",
-                    Success = false
-                };
+                    var account = await _accountRepository.GetAccountByIdAsync(post.AccId);
+                    var notiRequest = new SendNotificationRequestDTO
+                    {
+                        ReceiverIds = receiverIds,
+                        SenderId = account?.AccId, // Nếu service yêu cầu bắt buộc, đảm bảo != null
+                        CategoryNotiId = "6899d3cf963f2ffdfac460c8",
+                        TargetId = post.PostId,
+                        TargetType = "Post",
+                        Content = $"{account?.FullName}'s post that you shared has been deleted."
+                    };
+
+                    var notiResponse = await _notificationService.SendNotificationAsync(notiRequest);
+                    if (!notiResponse.Success)
+                    {
+                        // Log nhẹ, không throw để tránh 500
+                        Console.WriteLine($"Notification failed: {notiResponse.Message}");
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                // Bảo vệ không để noti làm vỡ API
+                Console.WriteLine($"Notification exception: {ex}");
+            }
+
             return new DeletePostResponseDTO
             {
                 Message = "Soft delete post success.",
