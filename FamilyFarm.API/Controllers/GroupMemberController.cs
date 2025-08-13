@@ -313,11 +313,27 @@ namespace FamilyFarm.API.Controllers
         [HttpPut("response-to-invite-group/{groupMemberId}")]
         public async Task<IActionResult> RespondToInviteRequest(string groupMemberId, [FromQuery] string status)
         {
-            var success = await _groupMemberService.RespondToInviteRequestAsync(groupMemberId, status);
+            //var success = await _groupMemberService.RespondToInviteRequestAsync(groupMemberId, status);
+
+            //if (!success)
+            //{
+            //    return BadRequest(new { message = "Invalid request or status" });
+            //}
+
+            var (success, message) = await _groupMemberService.RespondToInviteRequestAsync(groupMemberId, status);
 
             if (!success)
             {
-                return BadRequest(new { message = "Invalid request or status" });
+                // Nếu service đã nói rõ là group không tồn tại → 404
+                if (string.Equals(message, "The group you respond has unavailable", StringComparison.Ordinal))
+                    return NotFound(new { message });
+
+                // Nếu invite không còn tồn tại → 404 cũng hợp lý
+                if (string.Equals(message, "The invite request no longer exists", StringComparison.Ordinal))
+                    return NotFound(new { message });
+
+                // Các lỗi còn lại → 400
+                return BadRequest(new { message = message ?? "Invalid request or status" });
             }
 
             return Ok(new { message = $"Invite request has been {status.ToLower()}ed successfully" });
