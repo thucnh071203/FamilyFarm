@@ -53,7 +53,7 @@ namespace FamilyFarm.DataAccess.DAOs
 
         public async Task<ExpertRevenueDTO> GetExpertRevenueAsync(string expertId, DateTime? from = null, DateTime? to = null)
         {
-            // B1: Lấy danh sách booking services của expert
+            // B1: Filter booking
             var bookingFilter = Builders<BookingService>.Filter.And(
                 Builders<BookingService>.Filter.Eq(bs => bs.ExpertId, expertId),
                 Builders<BookingService>.Filter.Eq(bs => bs.IsPaidByFarmer, true),
@@ -63,31 +63,35 @@ namespace FamilyFarm.DataAccess.DAOs
             var bookingServices = await BookingServices.Find(bookingFilter).ToListAsync();
 
             if (!bookingServices.Any())
-                return new ExpertRevenueDTO(); // Không có booking → return rỗng
+                return new ExpertRevenueDTO();
 
-            // B2: Tạo dictionary cho nhanh
             var bookingServiceDict = bookingServices
-                .Where(bs => bs.BookingServiceId != null)
-                .ToDictionary(bs => bs.BookingServiceId, bs => bs);
+          .Where(bs => !string.IsNullOrEmpty(bs.BookingServiceId))
+          .ToDictionary(bs => bs.BookingServiceId!, bs => bs);
 
-            var bookingServiceIds = bookingServiceDict.Keys.ToList(); // List<ObjectId>
+            var bookingIds = bookingServiceDict.Keys.ToList();
 
-            // B3: Truy vấn payment transaction dựa theo BookingServiceId
             var paymentFilter = Builders<PaymentTransaction>.Filter.In(
-                pt => pt.BookingServiceId, bookingServiceIds
+                pt => pt.BookingServiceId, bookingIds
             );
+
 
             var paymentTransactions = await PaymentTransaction.Find(paymentFilter).ToListAsync();
 
-            // B4: Filter theo PayAt nếu có
+   
             if (from.HasValue || to.HasValue)
             {
+                // Chuyển sang UTC nếu from/to có giá trị
+                DateTime? fromUtc = from?.Date.ToUniversalTime();
+                DateTime? toUtc = to?.Date.AddDays(1).ToUniversalTime(); // lấy hết ngày
+
                 paymentTransactions = paymentTransactions
                     .Where(pt => pt.PayAt.HasValue &&
-                                 (!from.HasValue || pt.PayAt.Value >= from.Value) &&
-                                 (!to.HasValue || pt.PayAt.Value <= to.Value))
+                                 (!fromUtc.HasValue || pt.PayAt.Value.ToUniversalTime() >= fromUtc.Value) &&
+                                 (!toUtc.HasValue || pt.PayAt.Value.ToUniversalTime() < toUtc.Value))
                     .ToList();
             }
+
 
             // B5: Thống kê
             decimal totalRevenue = 0;
@@ -105,39 +109,25 @@ namespace FamilyFarm.DataAccess.DAOs
                 if (!bookingServiceDict.TryGetValue(payment.BookingServiceId, out var service)) continue;
 
                 var price = service.Price ?? 0;
-                var commissionRate = (service.CommissionRate ?? 0) / 100m;
-                var commission = price * commissionRate;
+                var commission = service.CommissionRate ?? 0; // Đã là số tiền
+
                 totalRevenue += price;
                 commissionRevenue += commission;
                 serviceCount++;
 
                 // Theo tháng
                 var monthKey = payment.PayAt.Value.ToString("yyyy-MM");
-                if (!monthlyRevenue.ContainsKey(monthKey))
-                {
-                    monthlyRevenue[monthKey] = 0;
-                    monthlyCommission[monthKey] = 0;
-                }
-                monthlyRevenue[monthKey] += price;
-                monthlyCommission[monthKey] += commission;
+                monthlyRevenue[monthKey] = monthlyRevenue.GetValueOrDefault(monthKey) + price;
+                monthlyCommission[monthKey] = monthlyCommission.GetValueOrDefault(monthKey) + commission;
 
                 // Theo ngày
                 var dayKey = payment.PayAt.Value.ToString("yyyy-MM-dd");
-                if (!dailyRevenue.ContainsKey(dayKey))
-                {
-                    dailyRevenue[dayKey] = 0;
-                    dailyCommission[dayKey] = 0;
-                }
-                dailyRevenue[dayKey] += price;
-                dailyCommission[dayKey] += commission;
+                dailyRevenue[dayKey] = dailyRevenue.GetValueOrDefault(dayKey) + price;
+                dailyCommission[dayKey] = dailyCommission.GetValueOrDefault(dayKey) + commission;
 
-                // Thống kê top dịch vụ
+                // Top dịch vụ
                 if (!string.IsNullOrEmpty(service.ServiceName))
-                {
-                    if (!serviceNameStats.ContainsKey(service.ServiceName))
-                        serviceNameStats[service.ServiceName] = 0;
-                    serviceNameStats[service.ServiceName]++;
-                }
+                    serviceNameStats[service.ServiceName] = serviceNameStats.GetValueOrDefault(service.ServiceName) + 1;
             }
 
             var topServiceNames = serviceNameStats
@@ -159,18 +149,7 @@ namespace FamilyFarm.DataAccess.DAOs
                 DailyCommission = dailyCommission
             };
         }
-        //public async Task<List<BookingService>> FindPaidBookingsAsync(DateTime? from = null, DateTime? to = null)
-        //{
-        //    var fb = Builders<BookingService>.Filter;
-        //    var filter = fb.Eq(bs => bs.IsPaidByFarmer, true);
 
-        //    if (from.HasValue)
-        //        filter &= fb.Gte(bs => bs.BookingServiceAt, from.Value);
-        //    if (to.HasValue)
-        //        filter &= fb.Lte(bs => bs.BookingServiceAt, to.Value);
-
-        //    return await BookingServices.Find(filter).ToListAsync();
-        //}
 
         public async Task<RevenueSystemDTO> FindPaidBookingsAsync(DateTime? from = null, DateTime? to = null)
         {
@@ -367,7 +346,7 @@ namespace FamilyFarm.DataAccess.DAOs
                 memberActivity.Add(memberDTO);
             }
 
-            return memberActivity.OrderByDescending(m => m.TotalActivity).Take(10).ToList();
+            return memberActivity.OrderByDescending(m => m.TotalActivity).Take(5).ToList();
         }
 
 
