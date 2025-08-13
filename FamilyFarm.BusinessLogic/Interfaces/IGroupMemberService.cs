@@ -24,7 +24,9 @@ namespace FamilyFarm.BusinessLogic.Interfaces
         Task<GroupMemberResponseDTO> GetOneUserInGroupAsync(string groupId, string accId);
         Task<bool> LeaveGroupAsync(string groupId, string accId);
         Task<GroupMember> InviteGroupMember(string groupId, string accountId, string inviterId);
-        Task<bool> RespondToInviteRequestAsync(string groupMemberId, string responseStatus);
+        //Task<bool> RespondToInviteRequestAsync(string groupMemberId, string responseStatus);
+        //Task<bool> RespondToInviteRequestAsync(string groupMemberId, string responseStatus, out var message);
+        Task<(bool Success, string? Message)> RespondToInviteRequestAsync(string groupMemberId, string responseStatus);
         Task<GroupMember> GetMemberInvitedOrJoinedGroup(string groupId, string accId);
         Task<GroupMember> GetGroupMemberInviteById(string groupMemberId);
     }
